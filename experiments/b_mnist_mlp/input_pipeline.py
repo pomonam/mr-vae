@@ -49,8 +49,8 @@ def load_data(split,
     return loader
 
 
-def build_input_queue(split, batch_size, device):
-    loader = load_data(split=split, batch_size=batch_size)
+def build_input_queue(split, batch_size, device, data_path="../../logs/data"):
+    loader = load_data(split=split, batch_size=batch_size, data_path=data_path)
 
     for batch in loader:
         yield {
