@@ -24,3 +24,4 @@ logs
 .jekyll-cache
 _site
 .vscode
+.env
