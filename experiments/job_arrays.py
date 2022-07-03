@@ -43,8 +43,8 @@ def generate_sh_file(file_name, num_jobs, mem=8, qos="normal"):
     lines += "#SBATCH -c 4\n"
     lines += "\n"
 
-    lines += ". $HOME/envs/hi_env\n"
-    lines += "export PYTHONPATH=$HOME/codes/hyper-influence:$PYTHONPATH\n"
+    lines += ". $HOME/envs/vae_env\n"
+    lines += "export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH\n"
     lines += "\n"
 
     lines += "IFS=$'\\n' read -d '' -r -a lines < {}\n".format(file_name)
