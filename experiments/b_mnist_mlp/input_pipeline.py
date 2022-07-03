@@ -4,7 +4,7 @@ import torch.utils.data
 import torch.utils.data.dataset
 import torch.utils.data.distributed
 from torchvision.datasets import MNIST
-import torchvision.transforms as transforms
+from torchvision import transforms
 
 
 class DictMNIST(MNIST):
@@ -54,7 +54,7 @@ def build_input_queue(split, batch_size, device):
 
     for batch in loader:
         yield {
-            "inputs": batch["inputs"].to(device, non_blocking=True),
+            "inputs": batch["inputs"].view(-1, 784).to(device, non_blocking=True),
             "targets": batch["targets"].to(device, non_blocking=True),
             "index": batch["index"]
         }

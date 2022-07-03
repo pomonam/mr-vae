@@ -14,6 +14,7 @@ setup(
         "torch==1.12.0",
         "torchvision==0.13.0",
         "pyDeprecate==0.3.1",
+        "torchsummary",
         "python-dotenv",
         "matplotlib",
         "tqdm",
@@ -33,6 +34,6 @@ setup(
         "seaborn",
     ],
     packages=["src"],
-    # test_suite="tests",
+    test_suite="tests",
     zip_safe=False,
 )

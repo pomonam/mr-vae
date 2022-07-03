@@ -1,14 +1,13 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+from torch import nn
 
 from .utils import load_activation
 
 
-class MLPDecoder(nn.Module):
+class MLPEncoder(nn.Module):
     def __init__(self, structure=(784, 70, 10), activation="relu", bias=True):
         super().__init__()
 
+        self.structure = structure
         self.layers = nn.ModuleList([
             nn.Linear(a, b, bias=bias)
             for a, b in zip(structure, structure[1:])

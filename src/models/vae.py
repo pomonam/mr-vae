@@ -1,20 +1,20 @@
-from decoder import MLPDecoder
-from encoder import MLPEncoder
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+from torch import nn
+import torchvision
 
 
-class BetaVAE(nn.Module):
+class BaseVae(nn.Module):
 
-    def __init__(self, encoder, decoder, beta=1.):
-        super(BetaVAE, self).__init__()
+    def __init__(self, encoder, decoder, sampler):
+        super().__init__()
 
         self.encoder = encoder
         self.decoder = decoder
+        self.sampler = sampler
 
     def encode(self, x):
-        mean, std = self.encoder(x)
+        ix = self.encoder(x)
+        mean, std = self.sampler(ix)
         return mean, std
 
     def sample(self, mu, std):
@@ -28,5 +28,15 @@ class BetaVAE(nn.Module):
         mu, std = self.encode(x)
         z = self.sample(mu, std)
         rx = self.decode(z)
-        return rx, mu, std
+        outputs_dict = {
+            "inputs": x,
+            "mean": mu,
+            "stddev": std,
+            "logits": rx
+        }
+        return outputs_dict
 
+    def sample_inputs(self, batch):
+        outputs_dict = self.model(batch["inputs"])
+        recons = outputs_dict["logits"]
+        torchvision.utils.save_image(recons)
