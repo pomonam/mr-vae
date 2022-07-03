@@ -1,0 +1,38 @@
+from setuptools import setup
+
+setup(
+    name="hyper-vae",
+    version="0.1.dev0",
+    license="Creative Commons Attribution-Noncommercial-Share Alike license",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    setup_requires=[
+        "cython",
+        "setuptools>=18.0",
+    ],
+    install_requires=[
+        "torch==1.12.0",
+        "torchvision==0.13.0",
+        "pyDeprecate==0.3.1",
+        "python-dotenv",
+        "matplotlib",
+        "tqdm",
+        "Pillow",
+        "wandb",
+        "pre-commit",
+        "black",
+        "isort",
+        "flake8",
+        "rich",
+        "pytest",
+        "pylint",
+        "sh",
+        "scipy",
+        "sklearn",
+        "scikit-learn",
+        "seaborn",
+    ],
+    packages=["src"],
+    # test_suite="tests",
+    zip_safe=False,
+)
