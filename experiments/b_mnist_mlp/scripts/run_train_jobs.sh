@@ -10,8 +10,8 @@
 #SBATCH --output=temp/array-%A_%a.out
 #SBATCH -c 4
 
-. $HOME/envs/hi_env
-export PYTHONPATH=$HOME/codes/hyper-influence:$PYTHONPATH
+. $HOME/envs/vae_env
+export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH
 
 IFS=$'\n' read -d '' -r -a lines < train_jobs
 cd ..
