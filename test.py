@@ -1,7 +1,10 @@
 
 """Variational Autoencoder example on binarized MNIST dataset."""
 
-from typing import Iterator, Mapping, Tuple, NamedTuple, Sequence, Union
+from functools import partial
+import os
+from typing import (Iterator, Mapping, NamedTuple, Optional, Sequence, Tuple,
+                    Union)
 
 from absl import app
 from absl import flags
@@ -12,9 +15,7 @@ import jax.numpy as jnp
 import numpy as np
 import optax
 import tensorflow_datasets as tfds
-from typing import Optional
-from functools import partial
-import os
+
 os.environ['XLA_PYTHON_CLIENT_PREALLOCATE']='false'
 os.environ['XLA_PYTHON_CLIENT_MEM_FRACTION']='.10'
 jax.config.update('jax_platform_name', 'cpu')
