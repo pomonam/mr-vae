@@ -1,4 +1,4 @@
-# hyper-vae
+# Learning VAE with hypernetwork
 
 ## Setting up
 
