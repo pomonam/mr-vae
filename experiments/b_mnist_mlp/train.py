@@ -21,7 +21,7 @@ from experiments.utils import seed_everything
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
 
-parser.add_argument("--epochs", type=int, default=5)
+parser.add_argument("--epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--beta", type=float, default=1.)
