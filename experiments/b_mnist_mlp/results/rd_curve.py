@@ -4,7 +4,7 @@ import numpy as np
 from experiments.init_wandb import init_api
 
 ENTITY = "bae-group"
-EXPERIMENT_NAME = "hyper_vae-b_mnist_mlp_train"
+EXPERIMENT_NAME = "hv-b_mnist_mlp_train"
 
 
 def get_summary(config_lst, summary_lst, lr=1e-3):
