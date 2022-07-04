@@ -25,7 +25,7 @@ parser.add_argument("--epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--beta", type=float, default=1.)
-parser.add_argument("--schedule", type=str, default="constant")
+parser.add_argument("--schedule", type=str, default="cyclic")
 
 parser.add_argument("--no_cuda", type=bool, default=False)
 parser.add_argument("--seed", type=int, default=0)
@@ -104,6 +104,7 @@ def train(model, optimizer, criterion, beta):
             p_bar.set_description(summ_str)
 
         summ_dict = summarize_metric(metric_dict, name="train_step/")
+        summ_dict["beta"] = beta[epoch]
         wandb.log(summ_dict)
         epoch = epoch + 1
 
@@ -120,7 +121,7 @@ def main():
 
     if args.schedule == "constant":
         beta = np.ones(args.epochs) * args.beta
-    elif args.sechdule == "monotonic":
+    elif args.schedule == "monotonic":
         beta = frange_cycle_linear(0, args.beta, args.epochs, 1, 0.25)
     elif args.schedule == "cyclic":
         beta = frange_cycle_linear(0, args.beta, args.epochs, 4)
