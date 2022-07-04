@@ -7,13 +7,14 @@ from experiments.job_arrays import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="train_jobs")
-parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp_train")
+parser.add_argument("--experiment_name", type=str, default="hv-b_mnist_mlp_train")
 
 args = parser.parse_args()
 
 CONFIG = {
-    "lr": [5e-3, 1e-3, 5e-4, 1e-4],
-    "beta": np.linspace(0.001, 10)
+    "lr": [1e-3],
+    "schedule": ["constant", "monotonic", "cyclic"],
+    "beta": np.logspace(-3, 1, num=20)
 }
 
 if __name__ == "__main__":

@@ -43,17 +43,17 @@ def build_model(device):
 
 
 class BinarizedMnistMlpCriterion(nn.Module):
-    def __init__(self, beta):
-        super().__init__()
-        self.beta = beta
+    # def __init__(self, beta):
+    #     super().__init__()
+    #     self.beta = beta
 
     def get_metric_lst(self):
         return ["loss", "rate", "distortion"]
 
-    def forward(self, outputs_dict):
+    def forward(self, outputs_dict, beta):
         log_likelihood = -binary_cross_entropy(outputs_dict["inputs"], outputs_dict["logits"])
         kl = kl_gaussian(outputs_dict["mean"], torch.square(outputs_dict["stddev"]))
-        elbo = log_likelihood - self.beta * kl
+        elbo = log_likelihood - beta * kl
         loss_dict = {
             "loss": -torch.mean(elbo).item(),
             "distortion": -torch.mean(log_likelihood).item(),
@@ -62,6 +62,6 @@ class BinarizedMnistMlpCriterion(nn.Module):
         return -torch.mean(elbo), loss_dict
 
 
-def build_criterion(beta, device):
-    loss_fnc = BinarizedMnistMlpCriterion(beta)
+def build_criterion(device):
+    loss_fnc = BinarizedMnistMlpCriterion()
     return loss_fnc.to(device)

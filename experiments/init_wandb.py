@@ -9,6 +9,11 @@ log_dir = pathlib.Path(__file__).parents[1] / "logs"
 load_dotenv(find_dotenv())
 
 
+def init_api():
+    api = wandb.Api()
+    return api
+
+
 def init_wandb(checkpoint_dir, project_name, run_name=None, config=None):
     if checkpoint_dir is None:
         wandb.init(project=project_name,

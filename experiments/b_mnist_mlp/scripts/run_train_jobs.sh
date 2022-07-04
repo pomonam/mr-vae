@@ -6,7 +6,7 @@
 #SBATCH --partition=t4v1,p100,t4v2,rtx6000
 #SBATCH --qos=normal
 #SBATCH --export=ALL
-#SBATCH --array=0-200%200
+#SBATCH --array=0-60%60
 #SBATCH --output=temp/array-%A_%a.out
 #SBATCH -c 4
 

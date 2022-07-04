@@ -1,200 +1,60 @@
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 0.001 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 0.20506122448979594 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 0.4091224489795919 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 0.6131836734693878 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 0.8172448979591838 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 1.0213061224489797 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 1.2253673469387756 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 1.4294285714285715 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 1.6334897959183674 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 1.8375510204081633 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 2.0416122448979594 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 2.2456734693877554 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 2.4497346938775513 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 2.653795918367347 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 2.857857142857143 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 3.061918367346939 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 3.265979591836735 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 3.470040816326531 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 3.6741020408163267 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 3.8781632653061227 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 4.0822244897959195 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 4.286285714285715 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 4.490346938775511 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 4.694408163265307 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 4.898469387755103 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 5.102530612244899 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 5.306591836734695 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 5.510653061224491 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 5.714714285714287 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 5.918775510204083 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 6.122836734693879 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 6.3268979591836745 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 6.53095918367347 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 6.735020408163266 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 6.939081632653062 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 7.143142857142858 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 7.347204081632654 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 7.55126530612245 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 7.755326530612246 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 7.959387755102042 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 8.163448979591838 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 8.367510204081633 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 8.57157142857143 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 8.775632653061225 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 8.979693877551021 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 9.183755102040816 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 9.387816326530613 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 9.591877551020408 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 9.795938775510205 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.005 --beta 10.0 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 0.001 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 0.20506122448979594 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 0.4091224489795919 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 0.6131836734693878 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 0.8172448979591838 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 1.0213061224489797 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 1.2253673469387756 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 1.4294285714285715 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 1.6334897959183674 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 1.8375510204081633 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 2.0416122448979594 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 2.2456734693877554 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 2.4497346938775513 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 2.653795918367347 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 2.857857142857143 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 3.061918367346939 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 3.265979591836735 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 3.470040816326531 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 3.6741020408163267 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 3.8781632653061227 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 4.0822244897959195 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 4.286285714285715 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 4.490346938775511 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 4.694408163265307 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 4.898469387755103 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 5.102530612244899 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 5.306591836734695 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 5.510653061224491 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 5.714714285714287 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 5.918775510204083 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 6.122836734693879 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 6.3268979591836745 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 6.53095918367347 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 6.735020408163266 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 6.939081632653062 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 7.143142857142858 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 7.347204081632654 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 7.55126530612245 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 7.755326530612246 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 7.959387755102042 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 8.163448979591838 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 8.367510204081633 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 8.57157142857143 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 8.775632653061225 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 8.979693877551021 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 9.183755102040816 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 9.387816326530613 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 9.591877551020408 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 9.795938775510205 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.001 --beta 10.0 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 0.001 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 0.20506122448979594 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 0.4091224489795919 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 0.6131836734693878 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 0.8172448979591838 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 1.0213061224489797 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 1.2253673469387756 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 1.4294285714285715 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 1.6334897959183674 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 1.8375510204081633 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 2.0416122448979594 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 2.2456734693877554 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 2.4497346938775513 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 2.653795918367347 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 2.857857142857143 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 3.061918367346939 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 3.265979591836735 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 3.470040816326531 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 3.6741020408163267 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 3.8781632653061227 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 4.0822244897959195 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 4.286285714285715 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 4.490346938775511 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 4.694408163265307 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 4.898469387755103 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 5.102530612244899 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 5.306591836734695 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 5.510653061224491 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 5.714714285714287 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 5.918775510204083 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 6.122836734693879 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 6.3268979591836745 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 6.53095918367347 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 6.735020408163266 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 6.939081632653062 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 7.143142857142858 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 7.347204081632654 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 7.55126530612245 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 7.755326530612246 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 7.959387755102042 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 8.163448979591838 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 8.367510204081633 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 8.57157142857143 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 8.775632653061225 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 8.979693877551021 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 9.183755102040816 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 9.387816326530613 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 9.591877551020408 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 9.795938775510205 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0005 --beta 10.0 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 0.001 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 0.20506122448979594 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 0.4091224489795919 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 0.6131836734693878 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 0.8172448979591838 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 1.0213061224489797 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 1.2253673469387756 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 1.4294285714285715 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 1.6334897959183674 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 1.8375510204081633 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 2.0416122448979594 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 2.2456734693877554 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 2.4497346938775513 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 2.653795918367347 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 2.857857142857143 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 3.061918367346939 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 3.265979591836735 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 3.470040816326531 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 3.6741020408163267 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 3.8781632653061227 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 4.0822244897959195 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 4.286285714285715 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 4.490346938775511 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 4.694408163265307 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 4.898469387755103 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 5.102530612244899 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 5.306591836734695 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 5.510653061224491 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 5.714714285714287 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 5.918775510204083 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 6.122836734693879 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 6.3268979591836745 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 6.53095918367347 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 6.735020408163266 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 6.939081632653062 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 7.143142857142858 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 7.347204081632654 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 7.55126530612245 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 7.755326530612246 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 7.959387755102042 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 8.163448979591838 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 8.367510204081633 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 8.57157142857143 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 8.775632653061225 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 8.979693877551021 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 9.183755102040816 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 9.387816326530613 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 9.591877551020408 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 9.795938775510205 
-python train.py --experiment_name hyper_vae-b_mnist_mlp_train --lr 0.0001 --beta 10.0
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.001 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.001623776739188721 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.0026366508987303583 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.004281332398719396 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.0069519279617756054 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.011288378916846888 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.018329807108324356 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.029763514416313176 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.04832930238571752 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.07847599703514611 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.12742749857031335 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.20691380811147903 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.3359818286283781 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.5455594781168515 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 0.8858667904100823 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 1.438449888287663 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 2.3357214690901213 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 3.792690190732246 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 6.158482110660261 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule constant --beta 10.0 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.001 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.001623776739188721 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.0026366508987303583 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.004281332398719396 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.0069519279617756054 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.011288378916846888 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.018329807108324356 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.029763514416313176 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.04832930238571752 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.07847599703514611 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.12742749857031335 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.20691380811147903 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.3359818286283781 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.5455594781168515 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 0.8858667904100823 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 1.438449888287663 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 2.3357214690901213 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 3.792690190732246 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 6.158482110660261 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule monotonic --beta 10.0 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.001 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.001623776739188721 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.0026366508987303583 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.004281332398719396 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.0069519279617756054 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.011288378916846888 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.018329807108324356 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.029763514416313176 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.04832930238571752 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.07847599703514611 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.12742749857031335 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.20691380811147903 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.3359818286283781 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.5455594781168515 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 0.8858667904100823 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 1.438449888287663 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 2.3357214690901213 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 3.792690190732246 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 6.158482110660261 
+python train.py --experiment_name hv-b_mnist_mlp_train --lr 0.001 --schedule cyclic --beta 10.0
