@@ -5,6 +5,8 @@ import torch
 from torch.backends import cudnn
 import tqdm
 import wandb
+import numpy as np
+import matplotlib.pyplot as plt
 
 from experiments.b_mnist_mlp.input_pipeline import build_input_queue
 from experiments.b_mnist_mlp.model_pipeline import build_criterion
@@ -19,16 +21,13 @@ from experiments.utils import seed_everything
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
 
-parser.add_argument("--epochs", type=int, default=200)
-parser.add_argument("--beta", type=float, default=1.)
-
-parser.add_argument("--lr", type=float, default=0.001)
+parser.add_argument("--epochs", type=int, default=5)
+parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--wd", type=float, default=0.)
+parser.add_argument("--beta", type=float, default=1.)
 
 parser.add_argument("--no_cuda", type=bool, default=False)
 parser.add_argument("--seed", type=int, default=0)
-
 parser.add_argument("--checkpoint_dir", type=str, default=None)
 parser.add_argument("--save_freq", type=int, default=100)
 parser.add_argument("--eval_freq", type=int, default=10)
@@ -76,8 +75,7 @@ def train(model, optimizer, criterion):
             evaluate(model, criterion, epoch, "test")
 
         if args.checkpoint_dir is not None and epoch % args.save_freq == 0 and epoch != 0:
-            slurm_check_dir = os.path.join(args.checkpoint_dir,
-                                           "checkpoint.pth")
+            slurm_check_dir = os.path.join(args.checkpoint_dir, "checkpoint.pth")
             log_info = {
                 "id": wandb.run.id,
                 "epoch": epoch,
@@ -104,11 +102,13 @@ def train(model, optimizer, criterion):
             summ_str = generate_metric_str("train", epoch, summ_dict)
             p_bar.set_description(summ_str)
 
-        # log
         summ_dict = summarize_metric(metric_dict, name="train_step/")
         wandb.log(summ_dict)
-
         epoch = epoch + 1
+
+        if np.isnan(summ_dict["train_step/loss"]):
+            wandb.finish(exit_code=1)
+            raise ValueError()
 
 
 def main():
@@ -120,8 +120,28 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     criterion = build_criterion(args.beta, DEVICE)
     train(model, optimizer, criterion)
-    evaluate(model, criterion, args.epoch, "train_eval")
-    evaluate(model, criterion, args.epoch, "test")
+    evaluate(model, criterion, args.epochs, "train_eval")
+    evaluate(model, criterion, args.epochs, "test")
+
+    # Visualizing the reconstruction
+    test_loader = build_input_queue("test", args.batch_size, DEVICE)
+    test_batch = next(test_loader)
+    outputs_dict = model.forward(test_batch["inputs"])
+    logits = outputs_dict["logits"].view(-1, 28, 28)
+    plt.figure(figsize=(5, 5))
+    plt.axis("square")
+    plt.legend(frameon=True)
+    for i in range(50):
+        data_i = test_batch["inputs"].view(-1, 28, 28)[i].data.cpu().numpy()
+        recon_i = torch.sigmoid(logits[i]).data.cpu().numpy()
+        plt.subplot(10, 10, 2*i+1)
+        plt.imshow(data_i, cmap="Greys")
+        plt.axis("off")
+        plt.subplot(10, 10, 2*i+2)
+        plt.imshow(recon_i, cmap="Greys")
+        plt.axis("off")
+    wandb.log({"reconstruction": plt})
+    wandb.finish()
 
 
 if __name__ == "__main__":
