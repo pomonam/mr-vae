@@ -7,12 +7,12 @@ ENTITY = "bae-group"
 EXPERIMENT_NAME = "hv-b_mnist_mlp_train"
 
 
-def get_summary(config_lst, summary_lst, lr=1e-3):
+def get_summary(config_lst, summary_lst, lr=1e-3, schedule="constant"):
     beta_to_rate = {}
     beta_to_dist = {}
 
     for i, c in enumerate(config_lst):
-        if c["lr"] == lr:
+        if c["lr"] == lr and c["schedule"] == schedule:
             beta_to_rate[c["beta"]] = summary_lst[i]["train_eval/rate"]
             beta_to_dist[c["beta"]] = summary_lst[i]["train_eval/distortion"]
     return beta_to_rate, beta_to_dist
@@ -33,7 +33,7 @@ def main():
                  if not k.startswith('_')})
             name_list.append(run.name)
 
-    rate_dict, dist_dict = get_summary(config_list, summary_list)
+    rate_dict, dist_dict = get_summary(config_list, summary_list, schedule="cyclic")
 
     dist_dict_sorted = {i: dist_dict[i] for i in rate_dict.keys()}
     keys = rate_dict.keys()

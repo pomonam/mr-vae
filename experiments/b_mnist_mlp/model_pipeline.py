@@ -6,7 +6,8 @@ from src.criterions import kl_gaussian
 from src.models.decoders import MLPDecoder
 from src.models.encoders import MLPEncoder
 from src.models.samplers import IsotropicGaussianSampler
-from src.models.vae import BaseVae
+from src.models.vae import BaseVae, HyperVae
+from src.models.hyper import replace_module
 
 
 class BinarizedMnistMlpModel(BaseVae):
@@ -32,6 +33,39 @@ class BinarizedMnistMlpModel(BaseVae):
         return outputs_dict
 
 
+class HyperBinarizedMnistMlpModel(HyperVae):
+    def __init__(self, encoder, decoder, sampler, block_name):
+        super().__init__(encoder, decoder, sampler)
+
+        self.encoder = encoder
+        self.decoder = decoder
+        self.sampler = sampler
+        replace_module(self.encoder, block_name)
+        replace_module(self.decoder, block_name)
+        replace_module(self.sampler, block_name)
+
+    def encode(self, x, beta):
+        ix = self.encoder(x, beta)
+        mean, std = self.sampler(ix, beta)
+        return mean, std
+
+    def sample(self, mu, std):
+        eps = torch.randn_like(std)
+        return eps.mul(std).add_(mu)
+
+    def forward(self, x, beta):
+        mu, std = self.encode(x, beta)
+        z = self.sample(mu, std)
+        rx = self.decode(z, beta)
+        outputs_dict = {
+            "inputs": x,
+            "mean": mu,
+            "stddev": std,
+            "logits": rx
+        }
+        return outputs_dict
+
+
 def build_model(device):
     # The architecture is inspired from:
     # https://github.com/deepmind/dm-haiku/blob/main/examples/vae.py
@@ -39,6 +73,16 @@ def build_model(device):
     sampler = IsotropicGaussianSampler(hidden_size=512, latent_size=10)
     decoder = MLPDecoder(structure=(10, 512, 784))
     model = BinarizedMnistMlpModel(encoder=encoder, decoder=decoder, sampler=sampler)
+    return model.to(device)
+
+
+def build_hyper_model(block_name, device):
+    # The architecture is inspired from:
+    # https://github.com/deepmind/dm-haiku/blob/main/examples/vae.py
+    encoder = MLPEncoder(structure=(784, 512))
+    sampler = IsotropicGaussianSampler(hidden_size=512, latent_size=10)
+    decoder = MLPDecoder(structure=(10, 512, 784))
+    model = HyperBinarizedMnistMlpModel(encoder=encoder, decoder=decoder, sampler=sampler, block_name=block_name)
     return model.to(device)
 
 

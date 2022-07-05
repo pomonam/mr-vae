@@ -12,10 +12,10 @@ class MLPDecoder(nn.Module):
         ])
         self.activation_fn = load_activation(name=activation)
 
-    def forward(self, z):
+    def forward(self, z, *argv):
         z = z.view(-1, self.structure[0])
         for i, layer in enumerate(self.layers):
-            z = layer(z)
+            z = layer(z, *argv)
             if i != len(self.layers) - 1:
                 z = self.activation_fn(z)
         return z

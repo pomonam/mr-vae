@@ -1,0 +1,6 @@
+python hyper_train.py --experiment_name hv-b_mnist_mlp_hyper --lr 0.001 --param_method mlp 
+python hyper_train.py --experiment_name hv-b_mnist_mlp_hyper --lr 0.001 --param_method residual 
+python hyper_train.py --experiment_name hv-b_mnist_mlp_hyper --lr 0.001 --param_method convnext 
+python hyper_train.py --experiment_name hv-b_mnist_mlp_hyper --lr 0.0003 --param_method mlp 
+python hyper_train.py --experiment_name hv-b_mnist_mlp_hyper --lr 0.0003 --param_method residual 
+python hyper_train.py --experiment_name hv-b_mnist_mlp_hyper --lr 0.0003 --param_method convnext
