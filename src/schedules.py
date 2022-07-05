@@ -1,9 +1,8 @@
-import torch
 import numpy as np
 
 
 def frange_cycle_linear(start, stop, n_epoch, n_cycle=4, ratio=0.5):
-    L = np.ones(n_epoch)
+    L = np.ones(n_epoch) * stop
     period = n_epoch / n_cycle
     # linear schedule
     step = (stop - start) / (period * ratio)
