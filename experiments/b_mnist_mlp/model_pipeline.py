@@ -11,24 +11,15 @@ from src.models.hyper import replace_module
 
 
 class BinarizedMnistMlpModel(BaseVae):
-    def encode(self, x):
-        ix = self.encoder(x)
-        mean, std = self.sampler(ix)
-        return mean, std
-
-    def sample(self, mu, std):
-        eps = torch.randn_like(std)
-        return eps.mul(std).add_(mu)
-
     def forward(self, x):
-        mu, std = self.encode(x)
-        z = self.sample(mu, std)
-        rx = self.decode(z)
+        outputs_dict = self.encode(x)
+        z = self.sampler.sample(outputs_dict)
+        logits = self.decode(z)
         outputs_dict = {
             "inputs": x,
-            "mean": mu,
-            "stddev": std,
-            "logits": rx
+            "mean": outputs_dict["mean"],
+            "stddev": outputs_dict["stddev"],
+            "logits": logits
         }
         return outputs_dict
 
@@ -44,24 +35,15 @@ class HyperBinarizedMnistMlpModel(HyperVae):
         replace_module(self.decoder, block_name)
         replace_module(self.sampler, block_name)
 
-    def encode(self, x, beta):
-        ix = self.encoder(x, beta)
-        mean, std = self.sampler(ix, beta)
-        return mean, std
-
-    def sample(self, mu, std):
-        eps = torch.randn_like(std)
-        return eps.mul(std).add_(mu)
-
     def forward(self, x, beta):
-        mu, std = self.encode(x, beta)
-        z = self.sample(mu, std)
-        rx = self.decode(z, beta)
+        outputs_dict = self.encode(x, beta)
+        z = self.sampler.sample(outputs_dict)
+        logits = self.decode(z, beta)
         outputs_dict = {
             "inputs": x,
-            "mean": mu,
-            "stddev": std,
-            "logits": rx
+            "mean": outputs_dict["mean"],
+            "stddev": outputs_dict["stddev"],
+            "logits": logits
         }
         return outputs_dict
 
@@ -87,17 +69,13 @@ def build_hyper_model(block_name, device):
 
 
 class BinarizedMnistMlpCriterion(nn.Module):
-    # def __init__(self, beta):
-    #     super().__init__()
-    #     self.beta = beta
-
     def get_metric_lst(self):
         return ["loss", "rate", "distortion"]
 
     def forward(self, outputs_dict, beta):
         log_likelihood = -binary_cross_entropy(outputs_dict["inputs"], outputs_dict["logits"])
         kl = kl_gaussian(outputs_dict["mean"], torch.square(outputs_dict["stddev"]))
-        elbo = log_likelihood - beta * kl
+        elbo = log_likelihood - beta.view(-1) * kl
         loss_dict = {
             "loss": -torch.mean(elbo).item(),
             "distortion": -torch.mean(log_likelihood).item(),

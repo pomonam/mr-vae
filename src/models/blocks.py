@@ -7,12 +7,14 @@ class MlpBlock(nn.Module):
     def __init__(self, width: int, rank: int = None):
         super().__init__()
         self.width = width
-        self.mid_width = width * 4 if rank is None else rank
+        self.mid_width = width * 2 if rank is None else rank
 
         self.net = nn.Sequential(
             nn.Linear(1, self.mid_width),
             nn.GELU(),
-            nn.Linear(self.mid_width, self.width)
+            nn.Linear(self.mid_width, self.mid_width),
+            nn.GELU(),
+            nn.Linear(self.mid_width, self.mid_width)
         )
         self._init_weights()
 
@@ -24,7 +26,13 @@ class MlpBlock(nn.Module):
                     module.bias.data.normal_(std=1e-6)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.net(x)
+        out = self.net(x)
+        scale, bias = out[:, :self.width], out[:, self.width:]
+        outputs_dict = {
+            "scale": scale,
+            "bias": bias
+        }
+        return outputs_dict
 
 
 class ResidualBlock(nn.Module):

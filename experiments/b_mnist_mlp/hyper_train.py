@@ -24,7 +24,7 @@ parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_ml
 parser.add_argument("--epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--param_method", type=str, default="convnext")
+parser.add_argument("--param_method", type=str, default="mlp")
 
 parser.add_argument("--no_cuda", type=bool, default=False)
 parser.add_argument("--seed", type=int, default=0)
@@ -94,7 +94,8 @@ def hyper_train(model, optimizer, criterion):
 
         for batch in p_bar:
             inputs = batch["inputs"]
-            betas = torch.FloatTensor(inputs.shape[0], 1).uniform_(0.001, 10).to(DEVICE)
+            betas = torch.FloatTensor(inputs.shape[0], 1).uniform_(-3, 1).to(DEVICE)
+            betas = torch.pow(10, betas)
             output_dict = model(inputs, betas)
             loss, loss_dict = criterion(output_dict, betas)
             optimizer.zero_grad()

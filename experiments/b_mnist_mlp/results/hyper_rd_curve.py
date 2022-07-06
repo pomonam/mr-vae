@@ -8,7 +8,7 @@ EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper"
 ID = "17f36ab6"
 
 
-def get_summary(config, summary):
+def get_summary(summary):
     beta_to_rate = {}
     beta_to_dist = {}
     beta_lst = np.logspace(-3, 1, num=20)
@@ -34,7 +34,7 @@ def main():
                  if not k.startswith('_')})
             name_list.append(run.name)
 
-    rate_dict, dist_dict = get_summary(config_list[0], summary_list[0])
+    rate_dict, dist_dict = get_summary(summary_list[0])
 
     dist_dict_sorted = {i: dist_dict[i] for i in rate_dict.keys()}
     keys = rate_dict.keys()

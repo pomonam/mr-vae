@@ -21,22 +21,20 @@ from experiments.utils import seed_everything
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
 
-parser.add_argument("--epochs", type=int, default=200)
+parser.add_argument("--epochs", type=int, default=5)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--beta", type=float, default=1.)
-parser.add_argument("--schedule", type=str, default="cyclic")
+parser.add_argument("--schedule", type=str, default="constant")
 
-parser.add_argument("--no_cuda", type=bool, default=False)
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
 parser.add_argument("--save_freq", type=int, default=100)
 parser.add_argument("--eval_freq", type=int, default=10)
 args = parser.parse_args()
 
-cuda = torch.cuda.is_available() and not args.no_cuda
+cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
-cudnn.benchmark = True
 
 
 def evaluate(model, criterion, epoch, name):
@@ -141,7 +139,6 @@ def main():
     logits = outputs_dict["logits"].view(-1, 28, 28)
     plt.figure(figsize=(5, 5))
     plt.axis("square")
-    plt.legend(frameon=True)
     for i in range(50):
         data_i = test_batch["inputs"].view(-1, 28, 28)[i].data.cpu().numpy()
         recon_i = torch.sigmoid(logits[i]).data.cpu().numpy()

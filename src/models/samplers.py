@@ -7,11 +7,12 @@ class BaseSampler(nn.Module):
     def forward(self, x):
         raise NotImplementedError
 
-    def sample(self, x):
+    @staticmethod
+    def sample(outputs_dict):
         raise NotImplementedError
 
 
-class IsotropicGaussianSampler(nn.Module):
+class IsotropicGaussianSampler(BaseSampler):
     def __init__(self, hidden_size, latent_size, bias=True):
         super().__init__()
 
@@ -22,4 +23,13 @@ class IsotropicGaussianSampler(nn.Module):
         mean = self.mean(x, *argv)
         log_stddev = self.log_stddev(x, *argv)
         stddev = torch.exp(log_stddev)
-        return mean, stddev
+        outputs_dict = {
+            "mean": mean,
+            "stddev": stddev
+        }
+        return outputs_dict
+
+    @staticmethod
+    def sample(outputs_dict):
+        eps = torch.randn_like(outputs_dict["stddev"])
+        return eps.mul(outputs_dict["stddev"]).add_(outputs_dict["mean"])

@@ -1,9 +1,12 @@
 from torch import nn
-from .utils import load_activation
-
+from src.utils import load_activation
+from typing import Tuple
 
 class MLPDecoder(nn.Module):
-    def __init__(self, structure=(784, 70, 10), activation="relu", bias=True):
+    def __init__(self,
+                 structure: Tuple[int, ...] = (784, 70, 10),
+                 activation: str = "relu",
+                 bias: bool = True):
         super().__init__()
         self.structure = structure
         self.layers = nn.ModuleList([
