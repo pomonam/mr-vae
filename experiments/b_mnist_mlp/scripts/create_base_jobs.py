@@ -13,6 +13,7 @@ args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-3],
+    "epochs": [200],
     "schedule": ["constant", "monotonic", "cyclic"],
     "beta": np.logspace(-3, 1, num=20)
 }
