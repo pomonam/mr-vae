@@ -75,7 +75,11 @@ class BinarizedMnistMlpCriterion(nn.Module):
     def forward(self, outputs_dict, beta):
         log_likelihood = -binary_cross_entropy(outputs_dict["inputs"], outputs_dict["logits"])
         kl = kl_gaussian(outputs_dict["mean"], torch.square(outputs_dict["stddev"]))
-        elbo = log_likelihood - beta.view(-1) * kl
+        if isinstance(beta, int) or isinstance(beta, float):
+            elbo = log_likelihood - beta * kl
+        else:
+            elbo = log_likelihood - beta.view(-1) * kl
+
         loss_dict = {
             "loss": -torch.mean(elbo).item(),
             "distortion": -torch.mean(log_likelihood).item(),
