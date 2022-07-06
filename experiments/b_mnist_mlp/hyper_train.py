@@ -52,7 +52,8 @@ def hyper_evaluate(model, criterion, epoch, name):
                 inputs = batch["inputs"]
                 betas = torch.ones((inputs.shape[0], 1)).to(DEVICE) * beta
                 output_dict = model(inputs, beta=betas)
-                _, loss_dict = criterion(output_dict, beta=1)
+                ones_betas = torch.ones((inputs.shape[0], 1)).to(DEVICE)
+                _, loss_dict = criterion(output_dict, beta=ones_betas)
 
                 metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
                 summ_dict = summarize_metric(metric_dict)
