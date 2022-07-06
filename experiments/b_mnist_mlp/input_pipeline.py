@@ -20,6 +20,7 @@ def load_data(split,
     transform_train = transform_test = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,)),
+        # Binarize the dataset
         lambda x: x > 0,
         lambda x: x.float()
     ])

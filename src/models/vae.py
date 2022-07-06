@@ -14,32 +14,29 @@ class BaseVae(nn.Module):
 
     def encode(self, x):
         ix = self.encoder(x)
-        mean, std = self.sampler(ix)
-        return mean, std
-
-    def sample(self, mu, std):
-        eps = torch.randn_like(std)
-        return eps.mul(std).add_(mu)
+        outputs_dict = self.sampler(ix)
+        return outputs_dict
 
     def decode(self, z):
         return self.decoder(z)
 
     def forward(self, x):
-        mu, std = self.encode(x)
-        z = self.sample(mu, std)
-        rx = self.decode(z)
-        outputs_dict = {
-            "inputs": x,
-            "mean": mu,
-            "stddev": std,
-            "logits": rx
-        }
-        return outputs_dict
+        raise NotImplementedError
+        # outputs_dict = self.encode(x)
+        # z = self.sampler.sample(outputs_dict)
+        # rx = self.decode(z)
+        # outputs_dict = {
+        #     "inputs": x,
+        #     "mean": mu,
+        #     "stddev": std,
+        #     "logits": rx
+        # }
+        # return outputs_dict
 
-    def sample_inputs(self, batch):
-        outputs_dict = self.model(batch["inputs"])
-        recons = outputs_dict["logits"]
-        torchvision.utils.save_image(recons)
+    # def sample_inputs(self, batch):
+    #     outputs_dict = self.model(batch["inputs"])
+    #     recons = outputs_dict["logits"]
+    #     torchvision.utils.save_image(recons)
 
 
 class HyperVae(nn.Module):
@@ -53,12 +50,8 @@ class HyperVae(nn.Module):
 
     def encode(self, x, beta):
         ix = self.encoder(x, beta)
-        mean, std = self.sampler(ix)
-        return mean, std
-
-    def sample(self, mu, std):
-        eps = torch.randn_like(std)
-        return eps.mul(std).add_(mu)
+        outputs_dict = self.sampler(ix, beta)
+        return outputs_dict
 
     def decode(self, z, beta):
         return self.decoder(z, beta)

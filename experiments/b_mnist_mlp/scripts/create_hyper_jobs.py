@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-3, 3e-4],
-    "param_method": ["mlp", "residual", "convnext"],
+    "param_method": ["mlp"],
 }
 
 if __name__ == "__main__":

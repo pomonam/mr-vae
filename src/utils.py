@@ -1,10 +1,20 @@
 import os
 import random
+import torch.nn.functional as F
 
 import numpy as np
 import torch
 from torch import nn
 from torch.nn.utils import parameters_to_vector
+
+
+def load_activation(name):
+    activations = {
+        "id": lambda z: z,
+        "relu": F.relu,
+        "tanh": torch.tanh,
+    }
+    return activations[name]
 
 
 def make_parameter(shape, device):
