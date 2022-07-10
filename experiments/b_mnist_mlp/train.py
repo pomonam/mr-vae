@@ -2,7 +2,6 @@ import argparse
 import os
 
 import torch
-from torch.backends import cudnn
 import tqdm
 import wandb
 import numpy as np

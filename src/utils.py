@@ -1,11 +1,26 @@
 import os
 import random
 import torch.nn.functional as F
-
+import math
 import numpy as np
 import torch
 from torch import nn
 from torch.nn.utils import parameters_to_vector
+
+
+def sample_beta(shape, sample_range, device, apply_exp=False):
+    a = sample_range[0]
+    b = sample_range[1]
+
+    if apply_exp:
+        a = math.log(a)
+        b = math.log(b)
+
+    if a == b:
+        betas = torch.ones(shape[0], 1).to(device) * a
+    else:
+        betas = torch.FloatTensor(shape[0], 1).uniform_(a, b).to(device)
+    return betas
 
 
 def load_activation(name):

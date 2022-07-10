@@ -1,19 +1,19 @@
 import argparse
 
-import numpy as np
-
 from experiments.job_arrays import generate_job_strings
 from experiments.job_arrays import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
-parser.add_argument("--experiment_name", type=str, default="hv-b_mnist_mlp_hyper")
+parser.add_argument("--experiment_name", type=str, default="hv-b_mnist_mlp_hyper-v2")
 
 args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-3, 3e-4],
-    "param_method": ["mlp"],
+    "param_method": ["mlp", "linear", "residual"],
+    "training_method": ["sequential", "simultaneous"],
+    "hyper_type": ["mult", "add"]
 }
 
 if __name__ == "__main__":
