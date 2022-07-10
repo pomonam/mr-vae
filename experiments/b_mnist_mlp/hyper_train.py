@@ -6,8 +6,6 @@ from torch.backends import cudnn
 import tqdm
 import wandb
 import numpy as np
-import matplotlib.pyplot as plt
-from src.schedules import frange_cycle_linear
 from experiments.b_mnist_mlp.input_pipeline import build_input_queue
 from experiments.b_mnist_mlp.model_pipeline import build_criterion
 from experiments.b_mnist_mlp.model_pipeline import build_hyper_model
@@ -17,6 +15,7 @@ from experiments.evaluate import summarize_metric
 from experiments.evaluate import update_metric
 from experiments.init_wandb import init_wandb
 from experiments.utils import seed_everything
+from src.utils import sample_beta
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
@@ -24,7 +23,12 @@ parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_ml
 parser.add_argument("--epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
+parser.add_argument("--training_method", type=str, default="sequential",
+                    choices=["simultaneous", "sequential"])
+
+parser.add_argument("--hyper_type", type=str, default="add")
 parser.add_argument("--param_method", type=str, default="mlp")
+parser.add_argument("--apply_exp", type=int, default=1)
 
 parser.add_argument("--no_cuda", type=bool, default=False)
 parser.add_argument("--seed", type=int, default=0)
@@ -42,7 +46,7 @@ def hyper_evaluate(model, criterion, epoch, name):
     model.eval()
 
     with torch.no_grad():
-        beta_lst = np.logspace(-3, 1, num=20)
+        beta_lst = np.logspace(0.001, 10, num=20)
         for beta in beta_lst:
             loader = build_input_queue(name, args.batch_size, DEVICE)
             p_bar = tqdm.tqdm(loader)
@@ -50,7 +54,8 @@ def hyper_evaluate(model, criterion, epoch, name):
 
             for batch in p_bar:
                 inputs = batch["inputs"]
-                betas = torch.ones((inputs.shape[0], 1)).to(DEVICE) * beta
+                betas = sample_beta(inputs.shape, sample_range=(beta, beta), device=DEVICE,
+                                    apply_exp=args.apply_exp)
                 output_dict = model(inputs, beta=betas)
                 ones_betas = torch.ones((inputs.shape[0], 1)).to(DEVICE)
                 _, loss_dict = criterion(output_dict, beta=ones_betas)
@@ -74,7 +79,7 @@ def hyper_train(model, optimizer, criterion):
         epoch = 0
 
     while epoch < args.epochs:
-        if epoch % args.eval_freq == 0:
+        if epoch % args.eval_freq == 0 and epoch != 0:
             hyper_evaluate(model, criterion, epoch, "train_eval")
             hyper_evaluate(model, criterion, epoch, "test")
 
@@ -95,10 +100,19 @@ def hyper_train(model, optimizer, criterion):
 
         for batch in p_bar:
             inputs = batch["inputs"]
-            betas = torch.FloatTensor(inputs.shape[0], 1).uniform_(-3, 1).to(DEVICE)
-            betas = torch.pow(10, betas)
+
+            if args.training_method == "sequential":
+                betas = torch.zeros(inputs.shape[0], 1).to(DEVICE)
+                output_dict = model(inputs, betas, ignore_hyper=True)
+                loss, loss_dict = criterion(output_dict, betas)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+            betas = sample_beta(inputs.shape, sample_range=(0.001, 10), device=DEVICE,
+                                apply_exp=args.apply_exp)
             output_dict = model(inputs, betas)
-            loss, loss_dict = criterion(output_dict, betas)
+            loss, loss_dict = criterion(output_dict, torch.exp(betas) if args.apply_exp else betas)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -109,7 +123,6 @@ def hyper_train(model, optimizer, criterion):
             p_bar.set_description(summ_str)
 
         summ_dict = summarize_metric(metric_dict, name="train_step/")
-        # summ_dict["beta"] = beta[epoch]
         wandb.log(summ_dict)
         epoch = epoch + 1
 
@@ -122,7 +135,7 @@ def main():
     init_wandb(args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
 
     seed_everything(args.seed)
-    model = build_hyper_model(args.param_method, DEVICE)
+    model = build_hyper_model(args.hyper_type, args.param_method, DEVICE)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     criterion = build_criterion(DEVICE)
