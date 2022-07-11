@@ -46,7 +46,7 @@ def hyper_evaluate(model, criterion, epoch, name):
     model.eval()
 
     with torch.no_grad():
-        beta_lst = np.logspace(0.001, 10, num=20)
+        beta_lst = np.linspace(0.001, 10, num=20)
         for beta in beta_lst:
             loader = build_input_queue(name, args.batch_size, DEVICE)
             p_bar = tqdm.tqdm(loader)
@@ -79,7 +79,7 @@ def hyper_train(model, optimizer, criterion):
         epoch = 0
 
     while epoch < args.epochs:
-        if epoch % args.eval_freq == 0 and epoch != 0:
+        if epoch % args.eval_freq == 0:
             hyper_evaluate(model, criterion, epoch, "train_eval")
             hyper_evaluate(model, criterion, epoch, "test")
 
