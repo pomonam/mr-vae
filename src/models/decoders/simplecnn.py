@@ -5,27 +5,26 @@ from typing import Tuple
 
 class SimpleCNNDecoder(nn.Module):
     def __init__(self,
-                 activation: str = "relu",
+                 structure: tuple = (100, 32 * 4, 32 * 2, 32, 256),
                  bias: bool = True):
         super().__init__()
 
+        self.structure = structure
         self.layers = nn.ModuleList([
-            nn.ConvTranspose2d(1, 1, kernel_size=1, stride=7),
-            nn.ConvTranspose2d(1, 64, kernel_size=7, stride=1),
-            nn.ConvTranspose2d(64, 64, kernel_size=5, stride=1),
-            nn.ConvTranspose2d(64, 64, kernel_size=5, stride=2),
-            nn.ConvTranspose2d(64, 64, kernel_size=5, stride=2),
-            nn.ConvTranspose2d(64, 32, kernel_size=5, stride=1),
-            nn.ConvTranspose2d(32, 32, kernel_size=5, stride=2),
-            nn.ConvTranspose2d(32, 32, kernel_size=4, stride=1),
-            nn.Conv2d(32, 1, kernel_size=5, stride=1),
+            nn.ConvTranspose2d(self.structure[0], self.structure[1], kernel_size=4, stride=1, padding=0, bias=bias),
+            # nn.BatchNorm2d(self.structure[1]),
+            nn.ReLU(),
+            nn.ConvTranspose2d(self.structure[1], self.structure[2], kernel_size=4, stride=2, padding=1, bias=bias),
+            # nn.BatchNorm2d(self.structure[2]),
+            nn.ReLU(),
+            nn.ConvTranspose2d(self.structure[2], self.structure[3], kernel_size=4, stride=2, padding=1, bias=bias),
+            # nn.BatchNorm2d(self.structure[3]),
+            nn.ReLU(),
+            nn.ConvTranspose2d(self.structure[3], self.structure[4], kernel_size=4, stride=2, padding=1, bias=bias),
         ])
-        self.activation_fn = load_activation(name=activation)
 
     def forward(self, x, z, *argv):
-        z = z.view(-1, self.structure[0])
+        z = z.view(z.shape[0], z.shape[1], 1, 1)
         for i, layer in enumerate(self.layers):
             z = layer(z, *argv)
-            if i != len(self.layers) - 1:
-                z = self.activation_fn(z)
         return z
