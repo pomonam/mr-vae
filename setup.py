@@ -15,6 +15,7 @@ setup(
         "torchvision==0.13.0",
         "pyDeprecate==0.3.1",
         "torchsummary",
+        "numpy",
         "python-dotenv",
         "matplotlib",
         "tqdm",

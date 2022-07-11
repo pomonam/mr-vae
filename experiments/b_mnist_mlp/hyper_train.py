@@ -34,19 +34,18 @@ parser.add_argument("--no_cuda", type=bool, default=False)
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
 parser.add_argument("--save_freq", type=int, default=100)
-parser.add_argument("--eval_freq", type=int, default=10)
+parser.add_argument("--eval_freq", type=int, default=100)
 args = parser.parse_args()
 
 cuda = torch.cuda.is_available() and not args.no_cuda
 DEVICE = torch.device("cuda" if cuda else "cpu")
-cudnn.benchmark = True
 
 
 def hyper_evaluate(model, criterion, epoch, name):
     model.eval()
 
     with torch.no_grad():
-        beta_lst = np.linspace(0.001, 10, num=20)
+        beta_lst = np.linspace(1e-5, 10, num=20)
         for beta in beta_lst:
             loader = build_input_queue(name, args.batch_size, DEVICE)
             p_bar = tqdm.tqdm(loader)
@@ -109,7 +108,7 @@ def hyper_train(model, optimizer, criterion):
                 loss.backward()
                 optimizer.step()
 
-            betas = sample_beta(inputs.shape, sample_range=(0.001, 10), device=DEVICE,
+            betas = sample_beta(inputs.shape, sample_range=(1e-5, 10), device=DEVICE,
                                 apply_exp=args.apply_exp)
             output_dict = model(inputs, betas)
             loss, loss_dict = criterion(output_dict, torch.exp(betas) if args.apply_exp else betas)

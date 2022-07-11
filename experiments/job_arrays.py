@@ -1,21 +1,23 @@
 import itertools
+from typing import Any
 
 
 class ConfigIterator:
 
-    def __init__(self, conf):
+    def __init__(self, conf: dict) -> None:
         self.conf = conf
 
-    def __iter__(self):
+    def __iter__(self) -> iter:
         return itertools.product(*[self.conf[key] for key in self.conf])
 
 
-def chunks(lst, n):
+def chunks(lst: list, n: int) -> Any:
     n = max(1, n)
     return (lst[i:i + n] for i in range(0, len(lst), n))
 
 
-def generate_job_strings(config, command_template="python train.py "):
+def generate_job_strings(config: dict,
+                         command_template: str = "python train.py ") -> list:
     jobs = []
     for setting in ConfigIterator(config):
         command = command_template
@@ -28,7 +30,10 @@ def generate_job_strings(config, command_template="python train.py "):
     return jobs
 
 
-def generate_sh_file(file_name, num_jobs, mem=8, qos="normal"):
+def generate_sh_file(file_name: str,
+                     num_jobs: int,
+                     mem: int = 8,
+                     qos: str = "normal") -> list:
     lines = []
     lines += "#!/bin/bash\n"
     lines += "#SBATCH -N 1\n"
@@ -56,3 +61,5 @@ def generate_sh_file(file_name, num_jobs, mem=8, qos="normal"):
 
     with open("run_" + file_name + ".sh", "w") as f:
         f.writelines(lines)
+
+    return lines
