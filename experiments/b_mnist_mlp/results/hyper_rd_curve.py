@@ -4,14 +4,14 @@ import numpy as np
 from experiments.init_wandb import init_api
 
 ENTITY = "bae-group"
-EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper"
-ID = "17f36ab6"
+EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v3"
+ID = "3dbw1wbi"
 
 
 def get_summary(summary):
     beta_to_rate = {}
     beta_to_dist = {}
-    beta_lst = np.logspace(-3, 1, num=20)
+    beta_lst = np.linspace(0.001, 10, num=20)
 
     for beta in beta_lst:
         beta_to_rate[beta] = summary["train_eval/{}/rate".format(beta)]

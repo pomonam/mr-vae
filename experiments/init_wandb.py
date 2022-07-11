@@ -9,12 +9,15 @@ log_dir = pathlib.Path(__file__).parents[1] / "logs"
 load_dotenv(find_dotenv())
 
 
-def init_api():
+def init_api() -> wandb.Api:
     api = wandb.Api()
     return api
 
 
-def init_wandb(checkpoint_dir, project_name, run_name=None, config=None):
+def init_wandb(checkpoint_dir: str,
+               project_name: str,
+               run_name: str = None,
+               config: dict = None) -> None:
     if checkpoint_dir is None:
         wandb.init(project=project_name,
                    name=run_name,
@@ -32,7 +35,7 @@ def init_wandb(checkpoint_dir, project_name, run_name=None, config=None):
                        config=config,
                        dir=log_dir)
         else:
-            # If the run_id doesn't exist, then create a new run and write the run id the file
+            # If the run_id doesn't exist, then create a new run and write the id the file
             run = wandb.init(project=project_name,
                              name=run_name,
                              config=config,
@@ -41,7 +44,6 @@ def init_wandb(checkpoint_dir, project_name, run_name=None, config=None):
 
     wandb_config = wandb.config
     if config is not None:
-        # update the current passed in config with the wandb_config
         config.update(wandb_config)
 
     return config

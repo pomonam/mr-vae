@@ -1,9 +1,10 @@
 from torch import nn
 from src.utils import load_activation
 from typing import Tuple
+from src.models.decoders.base import BaseDecoder
 
 
-class MLPDecoder(nn.Module):
+class MLPDecoder(BaseDecoder):
     def __init__(self,
                  structure: Tuple[int, ...] = (784, 70, 10),
                  activation: str = "relu",
@@ -16,7 +17,7 @@ class MLPDecoder(nn.Module):
         ])
         self.activation_fn = load_activation(name=activation)
 
-    def forward(self, z, *argv):
+    def forward(self, x, z, *argv):
         z = z.view(-1, self.structure[0])
         for i, layer in enumerate(self.layers):
             z = layer(z, *argv)
