@@ -17,8 +17,8 @@ class BaseVae(nn.Module):
         outputs_dict = self.sampler(ix)
         return outputs_dict
 
-    def decode(self, z):
-        return self.decoder(z)
+    def decode(self, x, z):
+        return self.decoder(x, z)
 
     def forward(self, x):
         raise NotImplementedError

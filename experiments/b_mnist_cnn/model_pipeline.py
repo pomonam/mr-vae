@@ -17,7 +17,7 @@ class BinarizedMnistMlpModel(BaseVae):
     def forward(self, x):
         outputs_dict = self.encode(x)
         z = self.sampler.sample(outputs_dict)
-        logits = self.decode(z)
+        logits = self.decode(x, z)
         outputs_dict = {
             "inputs": x,
             "mean": outputs_dict["mean"],
@@ -55,7 +55,7 @@ def build_model(device):
     # The architecture is inspired from:
     # https://github.com/deepmind/dm-haiku/blob/main/examples/vae.py
     encoder = SimpleCNNEncoder()
-    sampler = IsotropicGaussianSampler(hidden_size=512, latent_size=10)
+    sampler = IsotropicGaussianSampler(hidden_size=256, latent_size=100)
     decoder = SimpleCNNDecoder()
     model = BinarizedMnistMlpModel(encoder=encoder, decoder=decoder, sampler=sampler)
     return model.to(device)
