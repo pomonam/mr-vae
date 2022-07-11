@@ -18,6 +18,13 @@ CONFIG = {
     "beta": np.logspace(-3, 1, num=20)
 }
 
+BASE_CONFIG = {
+    "lr": [1e-3],
+    "epochs": [200],
+    "schedule": ["constant"],
+    "beta": [0.]
+}
+
 if __name__ == "__main__":
     jobs = generate_job_strings(
         CONFIG,
