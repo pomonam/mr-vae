@@ -2,6 +2,7 @@ from experiments.plots import init_plotting
 import matplotlib.pyplot as plt
 import numpy as np
 from experiments.init_wandb import init_api
+from matplotlib.collections import LineCollection
 
 ENTITY = "bae-group"
 EXPERIMENT_NAME = "hv-b_mnist_mlp_train"
@@ -15,7 +16,9 @@ def get_summary(config_lst, summary_lst, lr=1e-3, schedule="constant"):
         if c["lr"] == lr and c["schedule"] == schedule:
             beta_to_rate[c["beta"]] = summary_lst[i]["train_eval/rate"]
             beta_to_dist[c["beta"]] = summary_lst[i]["train_eval/distortion"]
-    return beta_to_rate, beta_to_dist
+    sorted_beta_to_rate = dict(sorted(beta_to_rate.items(), key=lambda item: item[0]))
+    sorted_beta_to_dist = dict(sorted(beta_to_dist.items(), key=lambda item: item[0]))
+    return sorted_beta_to_rate, sorted_beta_to_dist
 
 
 def main():
@@ -35,14 +38,28 @@ def main():
 
     rate_dict, dist_dict = get_summary(config_list, summary_list, schedule="cyclic")
 
-    dist_dict_sorted = {i: dist_dict[i] for i in rate_dict.keys()}
+    # dist_dict_sorted = {i: dist_dict[i] for i in rate_dict.keys()}
     keys = rate_dict.keys()
-    values = zip(rate_dict.values(), dist_dict_sorted.values())
+    values = zip(rate_dict.values(), dist_dict.values())
     combined_dict = dict(zip(keys, values))
 
     rate = np.array([c[0] for c in combined_dict.values()])
     dist = np.array([c[1] for c in combined_dict.values()])
-    plt.scatter(rate, dist)
+
+    points = np.array([rate, dist]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+    fig, ax = plt.subplots()
+    keys = np.log(np.array(list(keys)))
+    norm = plt.Normalize(keys.min(), keys.max())
+    lc = LineCollection(segments, cmap='Dark2', norm=norm)
+    lc.set_array(keys)
+    lc.set_linewidth(2)
+    line = ax.add_collection(lc)
+    fig.colorbar(line, ax=ax)
+
+    # plt.plot(rate, dist)
+    plt.scatter(rate, dist, facecolors='none', edgecolors="k")
 
     min_val = min(np.min(rate), np.min(dist)) - 10
     max_val = max(np.max(rate), np.max(dist)) + 10
