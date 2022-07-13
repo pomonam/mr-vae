@@ -20,16 +20,20 @@ from experiments.utils import seed_everything
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
 
-parser.add_argument("--epochs", type=int, default=5)
+parser.add_argument("--epochs", type=int, default=20)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--beta", type=float, default=0.1)
 parser.add_argument("--schedule", type=str, default="constant")
 
+parser.add_argument("--encoder_name", type=str, default="mlp")
+parser.add_argument("--decoder_name", type=str, default="pixelcnn")
+
+
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
 parser.add_argument("--save_freq", type=int, default=100)
-parser.add_argument("--eval_freq", type=int, default=10)
+parser.add_argument("--eval_freq", type=int, default=50)
 args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
@@ -114,7 +118,7 @@ def main():
     init_wandb(args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
 
     seed_everything(args.seed)
-    model = build_model("mlp_mlp", DEVICE)
+    model = build_model(args.encoder_name, args.decoder_name, DEVICE)
 
     if args.schedule == "constant":
         beta_schedule = np.ones(args.epochs) * args.beta

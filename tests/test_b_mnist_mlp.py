@@ -9,12 +9,11 @@ from experiments.b_mnist_mlp import model_pipeline
 class TestBMnistMlp(unittest.TestCase):
 
     def setUp(self) -> None:
-        # self.model2 = VAE(3, 10)
         device = torch.device("cpu")
         self.model = model_pipeline.build_model(device)
 
     def test_summary(self):
-        print(summary(self.model, (1, 784), device='cpu'))
+        print(summary(self.model, (1, 784), device="cpu"))
 
     def test_forward(self):
         x = torch.randn(1, 784)

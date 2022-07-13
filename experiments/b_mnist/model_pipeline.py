@@ -3,8 +3,8 @@ from torch import nn
 
 from src.criterions import binary_cross_entropy
 from src.criterions import kl_gaussian
-from experiments.b_mnist.models.decoders import MLPDecoder
-from experiments.b_mnist.models.encoders import MLPEncoder
+from experiments.b_mnist.models.decoders import MLPDecoder, CNNDecoder, PixelCNNDecoder
+from experiments.b_mnist.models.encoders import MLPEncoder, CNNEncoder, ResNetEncoder
 from src.models.samplers import IsotropicGaussianSampler
 from src.models.vae import BaseVae
 
@@ -13,7 +13,7 @@ class BinarizedMnistMlpModel(BaseVae):
     def forward(self, x):
         outputs_dict = self.encode(x)
         z = self.sampler.sample(outputs_dict)
-        logits = self.decode(x, z)
+        logits = self.decode(z)
         outputs_dict = {
             "inputs": x,
             "mean": outputs_dict["mean"],
@@ -47,12 +47,26 @@ class BinarizedMnistMlpModel(BaseVae):
 #         return outputs_dict
 
 
-def build_model(name, device):
-    # The architecture is inspired from:
-    # https://github.com/deepmind/dm-haiku/blob/main/examples/vae.py
-    encoder = MLPEncoder()
+def build_model(encoder_name, decoder_name, device):
+    if encoder_name == "mlp":
+        encoder = MLPEncoder()
+    elif encoder_name == "cnn":
+        encoder = CNNEncoder()
+    elif encoder_name == "resnet":
+        encoder = ResNetEncoder()
+    else:
+        raise ValueError()
+
     sampler = IsotropicGaussianSampler(hidden_size=256, latent_size=64)
-    decoder = MLPDecoder()
+
+    if decoder_name == "mlp":
+        decoder = MLPDecoder()
+    elif decoder_name == "cnn":
+        decoder = CNNDecoder()
+    elif decoder_name == "pixelcnn":
+        decoder = PixelCNNDecoder()
+    else:
+        raise ValueError()
     model = BinarizedMnistMlpModel(encoder=encoder, decoder=decoder, sampler=sampler)
     return model.to(device)
 

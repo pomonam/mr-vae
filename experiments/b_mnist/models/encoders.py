@@ -36,13 +36,13 @@ class CNNEncoder(nn.Module):
             nn.Flatten()
         ])
 
-    def forward(self, x, *argv):
+    def forward(self, x):
         for i, layer in enumerate(self.layers):
-            x = layer(x, *argv)
+            x = layer(x)
         return x
 
 
-class ResNetV2Encoder(nn.Module):
+class ResNetEncoder(nn.Module):
     def __init__(self):
         super().__init__()
         self.layers = nn.Sequential(

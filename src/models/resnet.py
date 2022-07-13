@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-from src.models.encoders.base import BaseEncoder
+# from src.models.encoders.base import BaseEncoder
 
 
 def conv3x3(in_planes, out_planes, stride=1):
@@ -85,39 +85,39 @@ class ResNet(nn.Module):
     def forward(self, x):
         return self.main(x)
 
-
-class ResNetV2Encoder(BaseEncoder):
-    def __init__(self, ngpu=1):
-        super().__init__()
-        self.ngpu = ngpu
-        # self.nz = args.nz
-        self.nc = 1
-        hidden_units = 512
-        self.main = nn.Sequential(
-            ResNet(self.nc, [64, 64, 64], [2, 2, 2]),
-            nn.Conv2d(64, hidden_units, 4, 1, 0, bias=False),
-            nn.BatchNorm2d(hidden_units),
-            nn.ELU(),
-        )
-        # self.linear = nn.Linear(hidden_units, 2 * self.nz)
-        self.reset_parameters()
-
-    def reset_parameters(self):
-        for m in self.main.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-        # nn.init.xavier_uniform_(self.linear.weight)
-        # nn.init.constant_(self.linear.bias, 0.0)
-
-    def forward(self, input):
-        # if isinstance(input.data, torch.cuda.FloatTensor) and self.ngpu > 1:
-        #     output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
-        # else:
-        output = self.main(input)
-        # output = self.linear(output.view(output.size()[:2]))
-        # return output.chunk(2, 1)
-        return output.view(output.shape[0], -1)
+#
+# class ResNetV2Encoder(BaseEncoder):
+#     def __init__(self, ngpu=1):
+#         super().__init__()
+#         self.ngpu = ngpu
+#         # self.nz = args.nz
+#         self.nc = 1
+#         hidden_units = 512
+#         self.main = nn.Sequential(
+#             ResNet(self.nc, [64, 64, 64], [2, 2, 2]),
+#             nn.Conv2d(64, hidden_units, 4, 1, 0, bias=False),
+#             nn.BatchNorm2d(hidden_units),
+#             nn.ELU(),
+#         )
+#         # self.linear = nn.Linear(hidden_units, 2 * self.nz)
+#         self.reset_parameters()
+#
+#     def reset_parameters(self):
+#         for m in self.main.modules():
+#             if isinstance(m, nn.Conv2d):
+#                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+#                 m.weight.data.normal_(0, math.sqrt(2. / n))
+#             elif isinstance(m, nn.BatchNorm2d):
+#                 m.weight.data.fill_(1)
+#                 m.bias.data.zero_()
+#         # nn.init.xavier_uniform_(self.linear.weight)
+#         # nn.init.constant_(self.linear.bias, 0.0)
+#
+#     def forward(self, input):
+#         # if isinstance(input.data, torch.cuda.FloatTensor) and self.ngpu > 1:
+#         #     output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
+#         # else:
+#         output = self.main(input)
+#         # output = self.linear(output.view(output.size()[:2]))
+#         # return output.chunk(2, 1)
+#         return output.view(output.shape[0], -1)
