@@ -17,6 +17,7 @@ setup(
         "torchsummary",
         "numpy",
         "python-dotenv",
+        "h5py",
         "matplotlib",
         "tqdm",
         "Pillow",

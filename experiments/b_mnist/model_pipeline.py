@@ -3,15 +3,10 @@ from torch import nn
 
 from src.criterions import binary_cross_entropy
 from src.criterions import kl_gaussian
-from src.models.decoders.simplecnn import SimpleCNNDecoder
-from src.models.encoders.resnet_v2 import ResNetV2Encoder
-from src.models.encoders.simplecnn import SimpleCNNEncoder
+from experiments.b_mnist.models.decoders import MLPDecoder
+from experiments.b_mnist.models.encoders import MLPEncoder
 from src.models.samplers import IsotropicGaussianSampler
 from src.models.vae import BaseVae
-from src.hyper_models.samplers import HyperIsotropicGaussianSampler
-from src.hyper_models.vae import HyperVae
-
-from src.hyper_models.modules import replace_module
 
 
 class BinarizedMnistMlpModel(BaseVae):
@@ -52,13 +47,12 @@ class BinarizedMnistMlpModel(BaseVae):
 #         return outputs_dict
 
 
-def build_model(device):
+def build_model(name, device):
     # The architecture is inspired from:
     # https://github.com/deepmind/dm-haiku/blob/main/examples/vae.py
-    encoder = SimpleCNNEncoder(nc=1, nf=32)
-    # encoder = ResNetV2Encoder()
+    encoder = MLPEncoder()
     sampler = IsotropicGaussianSampler(hidden_size=256, latent_size=64)
-    decoder = SimpleCNNDecoder(nc=1, nf=32)
+    decoder = MLPDecoder()
     model = BinarizedMnistMlpModel(encoder=encoder, decoder=decoder, sampler=sampler)
     return model.to(device)
 
