@@ -1,6 +1,4 @@
-import torch
 from torch import nn
-import torchvision
 
 
 class BaseVae(nn.Module):
@@ -17,23 +15,19 @@ class BaseVae(nn.Module):
         outputs_dict = self.sampler(ix)
         return outputs_dict
 
-    def decode(self, x, z):
-        return self.decoder(x, z)
+    def decode(self, z):
+        return self.decoder(z)
 
     def forward(self, x):
-        raise NotImplementedError
-        # outputs_dict = self.encode(x)
-        # z = self.sampler.sample(outputs_dict)
-        # rx = self.decode(z)
-        # outputs_dict = {
-        #     "inputs": x,
-        #     "mean": mu,
-        #     "stddev": std,
-        #     "logits": rx
-        # }
-        # return outputs_dict
+        outputs_dict = self.encode(x)
+        z = self.sampler.sample(outputs_dict)
+        logits = self.decode(z)
+        outputs_dict = {
+            "inputs": x,
+            "mean": outputs_dict["mean"],
+            "stddev": outputs_dict["stddev"],
+            "logits": logits
+        }
+        return outputs_dict
 
-    # def sample_inputs(self, batch):
-    #     outputs_dict = self.model(batch["inputs"])
-    #     recons = outputs_dict["logits"]
-    #     torchvision.utils.save_image(recons)
+
