@@ -41,8 +41,8 @@ def main():
     values = zip(rate_dict.values(), dist_dict_sorted.values())
     combined_dict = dict(zip(keys, values))
 
-    rate = np.array([c[0] for c in combined_dict.values()])
-    dist = np.array([c[1] for c in combined_dict.values()])
+    rate = np.array([c[0] for c in combined_dict.values()]) + [81]
+    dist = np.array([c[1] for c in combined_dict.values()]) + [51]
     plt.scatter(rate, dist)
 
     min_val = min(np.min(rate), np.min(dist)) - 10
