@@ -1,12 +1,13 @@
+import os
+import urllib.request
+
+import h5py
+import numpy as np
+import torch
 import torch.nn.parallel
 import torch.utils.data
 import torch.utils.data.dataset
 import torch.utils.data.distributed
-import urllib.request
-import os
-import numpy as np
-import h5py
-import torch
 
 
 def parse_binary_mnist(data_dir):
@@ -44,7 +45,6 @@ def download_binary_mnist(file_name):
     f.create_dataset("valid", data=data_dict["valid"])
     f.create_dataset("test", data=data_dict["test"])
     f.close()
-    # print(f"Saved binary MNIST data to: {file_name}")
 
 
 def load_binary_mnist(file_name):
