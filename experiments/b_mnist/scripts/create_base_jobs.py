@@ -34,6 +34,7 @@ if __name__ == "__main__":
         CONFIG,
         command_template=
         "python train.py --experiment_name {} ".format(args.experiment_name))
+    jobs += "\n"
     jobs += generate_job_strings(
         BASE_CONFIG,
         command_template=
