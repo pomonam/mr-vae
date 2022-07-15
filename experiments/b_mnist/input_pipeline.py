@@ -30,11 +30,11 @@ def download_binary_mnist(file_name):
     data_dir = "/tmp/"
     subdatasets = ["train", "valid", "test"]
     for subdataset in subdatasets:
-        filename = "binarized_mnist_{}.amat".format(subdataset)
+        fn = "binarized_mnist_{}.amat".format(subdataset)
         url = "http://www.cs.toronto.edu/~larocheh/public/datasets/binarized_mnist/binarized_mnist_{}.amat".format(
             subdataset
         )
-        local_filename = os.path.join(data_dir, filename)
+        local_filename = os.path.join(data_dir, fn)
         urllib.request.urlretrieve(url, local_filename)
 
     train, validation, test = parse_binary_mnist(data_dir)
