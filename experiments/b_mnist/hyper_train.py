@@ -20,7 +20,7 @@ from src.config import HyperConfig
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
 
-parser.add_argument("--encoder_name", type=str, default="cnn")
+parser.add_argument("--encoder_name", type=str, default="resnet")
 parser.add_argument("--decoder_name", type=str, default="cnn")
 
 # Configurations specific to the hypernet ...
