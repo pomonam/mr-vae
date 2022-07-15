@@ -21,8 +21,8 @@ from src.schedules import build_betas_schedule
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
 
-parser.add_argument("--encoder_name", type=str, default="mlp")
-parser.add_argument("--decoder_name", type=str, default="mlp")
+parser.add_argument("--encoder_name", type=str, default="cnn")
+parser.add_argument("--decoder_name", type=str, default="cnn")
 
 parser.add_argument("--epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=1e-3)

@@ -20,8 +20,8 @@ from src.config import HyperConfig
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
 
-parser.add_argument("--encoder_name", type=str, default="mlp")
-parser.add_argument("--decoder_name", type=str, default="mlp")
+parser.add_argument("--encoder_name", type=str, default="cnn")
+parser.add_argument("--decoder_name", type=str, default="cnn")
 
 # Configurations specific to the hypernet ...
 parser.add_argument("--training_method", type=str, default="simultaneous",
@@ -117,7 +117,7 @@ def hyper_train(model, optimizer, criterion):
         epoch = 0
 
     while epoch < args.epochs:
-        if epoch % args.eval_freq == 0:
+        if epoch % args.eval_freq == 0 and epoch != 0:
             hyper_evaluate(model, criterion, epoch, "train_eval")
             hyper_evaluate(model, criterion, epoch, "test")
 
@@ -178,25 +178,6 @@ def main():
     hyper_train(model, optimizer, criterion)
     hyper_evaluate(model, criterion, args.epochs, "train_eval")
     hyper_evaluate(model, criterion, args.epochs, "test")
-
-    # Visualizing the reconstruction
-    # test_loader = build_input_queue("test", args.batch_size, DEVICE)
-    # test_batch = next(test_loader)
-    # outputs_dict = model.forward(test_batch["inputs"])
-    # logits = outputs_dict["logits"].view(-1, 28, 28)
-    # plt.figure(figsize=(5, 5))
-    # plt.axis("square")
-    # for i in range(50):
-    #     data_i = test_batch["inputs"].view(-1, 28, 28)[i].data.cpu().numpy()
-    #     recon_i = torch.sigmoid(logits[i]).data.cpu().numpy()
-    #     plt.subplot(10, 10, 2*i+1)
-    #     plt.imshow(data_i, cmap="Greys")
-    #     plt.axis("off")
-    #     plt.subplot(10, 10, 2*i+2)
-    #     plt.imshow(recon_i, cmap="Greys")
-    #     plt.axis("off")
-    # wandb.log({"reconstruction": plt})
-    # wandb.finish()
 
 
 if __name__ == "__main__":
