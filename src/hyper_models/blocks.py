@@ -6,12 +6,10 @@ class BaseBlock(nn.Module):
 
     def __init__(self,
                  width: int,
-                 include_bias: bool = False,
                  include_output_linear: bool = True,
                  include_sigmoid_activation: bool = True):
         super().__init__()
         self.width = width
-        self.include_bias = include_bias
         self.include_output_linear = include_output_linear
         self.include_sigmoid_activation = include_sigmoid_activation
 
@@ -21,6 +19,7 @@ class BaseBlock(nn.Module):
             self.output_layer = None
 
         self.layers = None
+        self._beta = None
         self._construct_layers()
 
     def _construct_layers(self) -> None:
@@ -33,7 +32,7 @@ class BaseBlock(nn.Module):
 class LinearBlock(BaseBlock):
     def _construct_layers(self) -> None:
         self.layers = nn.Sequential(
-            nn.Linear(1, self.width, bias=self.include_bias)
+            nn.Linear(1, self.width)
         )
 
     def forward(self, beta: torch.Tensor) -> torch.Tensor:
@@ -48,11 +47,11 @@ class LinearBlock(BaseBlock):
 class MlpBlock(BaseBlock):
     def _construct_layers(self) -> None:
         self.layers = nn.Sequential(
-            nn.Linear(1, self.width * 2, bias=self.include_bias),
+            nn.Linear(1, self.width),
             nn.GELU(),
-            nn.Linear(self.width * 2, self.width * 2, bias=self.include_bias),
+            nn.Linear(self.width, self.width),
             nn.GELU(),
-            nn.Linear(self.width * 2, self.width, bias=self.include_bias),
+            nn.Linear(self.width, self.width),
         )
 
     def forward(self, beta: torch.Tensor) -> torch.Tensor:
@@ -75,7 +74,7 @@ class ResidualBlock(BaseBlock):
             nn.Linear(self.width, self.width, bias=False),
         )
         self.temp_layer = nn.Sequential(
-            nn.Linear(1, self.width, bias=self.include_bias),
+            nn.Linear(1, self.width),
             nn.ReLU()
         )
 
@@ -103,7 +102,7 @@ class BatchNormResidualBlock(nn.Module):
             nn.BatchNorm1d(self.width),
         )
         self.temp_layer = nn.Sequential(
-            nn.Linear(1, self.width, bias=self.include_bias),
+            nn.Linear(1, self.width),
             nn.ReLU()
         )
 

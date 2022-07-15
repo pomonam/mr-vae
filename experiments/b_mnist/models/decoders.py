@@ -1,10 +1,12 @@
-from torch import nn
 import torch
-from src.models.pixcelcnn import PixelCNN
+from torch import nn
 from torch.autograd import Variable
 
+from src.models.base_decoder import BaseDecoder
+from src.models.pixcelcnn import PixelCNN
 
-class MLPDecoder(nn.Module):
+
+class MLPDecoder(BaseDecoder):
     def __init__(self):
         super().__init__()
 
@@ -22,7 +24,7 @@ class MLPDecoder(nn.Module):
         return z
 
 
-class CNNDecoder(nn.Module):
+class CNNDecoder(BaseDecoder):
     def __init__(self):
         super().__init__()
 
@@ -46,7 +48,7 @@ class CNNDecoder(nn.Module):
         return z
 
 
-class PixelCNNDecoder(nn.Module):
+class PixelCNNDecoder(BaseDecoder):
     def __init__(self):
         super(PixelCNNDecoder, self).__init__()
         self.nz = 64

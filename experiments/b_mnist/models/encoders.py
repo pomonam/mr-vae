@@ -1,10 +1,13 @@
-from torch import nn
-import torch
 import math
+
+import torch
+from torch import nn
+
+from src.models.base_encoder import BaseEncoder
 from src.models.resnet import ResNet
 
 
-class MLPEncoder(nn.Module):
+class MLPEncoder(BaseEncoder):
     def __init__(self):
         super().__init__()
 
@@ -20,7 +23,7 @@ class MLPEncoder(nn.Module):
         return x
 
 
-class CNNEncoder(nn.Module):
+class CNNEncoder(BaseEncoder):
     def __init__(self):
         super().__init__()
 
@@ -42,7 +45,7 @@ class CNNEncoder(nn.Module):
         return x
 
 
-class ResNetEncoder(nn.Module):
+class ResNetEncoder(BaseEncoder):
     def __init__(self):
         super().__init__()
         self.layers = nn.Sequential(
