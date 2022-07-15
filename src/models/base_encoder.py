@@ -1,12 +1,11 @@
-import math
 import torch
 import torch.nn as nn
 
-from src.utils import log_sum_exp
-
 
 class BaseEncoder(nn.Module):
-  """docstring for EncoderBase"""
 
-  def forward(self, x):
-    raise NotImplementedError
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        raise NotImplementedError
+
+    def encode(self, x: torch.Tensor) -> torch.Tensor:
+        return self.forward(x)

@@ -1,13 +1,12 @@
 import math
 
+import numpy as np
 import torch
+from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 
-import numpy as np
-
-from .decoder import DecoderBase
+# from .decoder import DecoderBase
 
 class MaskedConv2d(nn.Conv2d):
     def __init__(self, mask_type, masked_channels, *args, **kwargs):
@@ -28,6 +27,7 @@ class MaskedConv2d(nn.Conv2d):
     def forward(self, x):
         self.weight.data.mul_(self.mask)
         return super(MaskedConv2d, self).forward(x)
+
 
 class PixelCNNBlock(nn.Module):
     def __init__(self, in_channels, kernel_size):
@@ -120,110 +120,110 @@ class PixelCNN(nn.Module):
         direct_conncet = self.direct_connects[-1]
         return input + direct_conncet(direct_inputs.pop(0))
 
-class PixelCNNDecoderV2(DecoderBase):
-    def __init__(self, args, ngpu=1, mode='large'):
-        super(PixelCNNDecoderV2, self).__init__()
-        self.ngpu = ngpu
-        self.nz = args.nz
-        self.nc = 1
-        # self.fm_latent = 4 old ??? hardcoded
-        self.fm_latent = args.latent_feature_map
-
-        self.img_latent = 28 * 28 * self.fm_latent
-        if self.nz != 0 :
-            self.z_transform = nn.Sequential(
-                nn.Linear(self.nz, self.img_latent),
-            )
-        if mode == 'small':
-            kernal_sizes = [7, 7, 7, 5, 5, 3, 3]
-        elif mode == 'large':
-            kernal_sizes = [7, 7, 7, 7, 7, 5, 5, 5, 5, 3, 3, 3, 3]
-        else:
-            raise ValueError('unknown mode: %s' % mode)
-
-        hidden_channels = 64
-        self.main = nn.Sequential(
-            PixelCNN(self.nc + self.fm_latent, hidden_channels, len(kernal_sizes), kernal_sizes, self.nc),
-            nn.Conv2d(hidden_channels, hidden_channels, 1, bias=False),
-            nn.BatchNorm2d(hidden_channels),
-            nn.ELU(),
-            nn.Conv2d(hidden_channels, self.nc, 1, bias=False),
-            nn.Sigmoid(),
-        )
-        self.reset_parameters()
-
-    def reset_parameters(self):
-        if self.nz != 0:
-            nn.init.xavier_uniform_(self.z_transform[0].weight)
-            nn.init.constant_(self.z_transform[0].bias, 0)
-
-        m = self.main[2]
-        assert isinstance(m, nn.BatchNorm2d)
-        m.weight.data.fill_(1)
-        m.bias.data.zero_()
-
-    def forward(self, input):
-        if isinstance(input.data, torch.cuda.FloatTensor) and self.ngpu > 1:
-            output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
-        else:
-            output = self.main(input)
-        return output
-
-    def reconstruct_error(self, x, z):
-        eps = 1e-12
-        if type(z) == type(None):
-            batch_size, nsampels, _, _ = x.size()
-            img = x.unsqueeze(1).expand(batch_size, nsampels, *x.size()[1:])
-        else:
-            batch_size, nsampels, nz = z.size()
-            # [batch, nsamples, -1] --> [batch, nsamples, fm, H, W]
-            z = self.z_transform(z).view(batch_size, nsampels, self.fm_latent, 28, 28)
-
-            # [batch, nc, H, W] --> [batch, 1, nc, H, W] --> [batch, nsample, nc, H, W]
-            img = x.unsqueeze(1).expand(batch_size, nsampels, *x.size()[1:])
-            # [batch, nsample, nc+fm, H, W] --> [batch * nsamples, nc+fm, H, W]
-            img = torch.cat([img, z], dim=2)
-
-        img = img.view(-1, *img.size()[2:])
-
-        # [batch * nsamples, *] --> [batch, nsamples, -1]
-        recon_x = self.forward(img).view(batch_size, nsampels, -1)
-        # [batch, -1]
-        x_flat = x.view(batch_size, -1)
-        BCE = (recon_x + eps).log() * x_flat.unsqueeze(1) + (1.0 - recon_x + eps).log() * (1. - x_flat).unsqueeze(1)
-        # [batch, nsamples]
-        return BCE.sum(dim=2) * -1.0
-
-    def log_probability(self, x, z):
-        bce = self.reconstruct_error(x, z)
-        return bce * -1.
-
-    def decode(self, z, deterministic):
-        '''
-        Args:
-            z: Tensor
-                the tensor of latent z shape=[batch, nz]
-            deterministic: boolean
-                randomly sample of decode via argmaximizing probability
-        Returns: Tensor
-            the tensor of decoded x shape=[batch, *]
-        '''
-        H = W = 28
-        batch_size, nz = z.size()
-
-        # [batch, -1] --> [batch, fm, H, W]
-        z = self.z_transform(z).view(batch_size, self.fm_latent, H, W)
-        img = Variable(z.data.new(batch_size, self.nc, H, W).zero_(), volatile=True)
-        # [batch, nc+fm, H, W]
-        img = torch.cat([img, z], dim=1)
-        for i in range(H):
-            for j in range(W):
-                # [batch, nc, H, W]
-                recon_img = self.forward(img)
-                # [batch, nc]
-                img[:, :self.nc, i, j] = torch.ge(recon_img[:, :, i, j], 0.5).float() if deterministic else torch.bernoulli(recon_img[:, :, i, j])
-                # img[:, :self.nc, i, j] = torch.bernoulli(recon_img[:, :, i, j])
-
-        # [batch, nc, H, W]
-        img_probs = self.forward(img)
-        return img[:, :self.nc], img_probs
+# class PixelCNNDecoderV2(DecoderBase):
+#     def __init__(self, args, ngpu=1, mode='large'):
+#         super(PixelCNNDecoderV2, self).__init__()
+#         self.ngpu = ngpu
+#         self.nz = args.nz
+#         self.nc = 1
+#         # self.fm_latent = 4 old ??? hardcoded
+#         self.fm_latent = args.latent_feature_map
+#
+#         self.img_latent = 28 * 28 * self.fm_latent
+#         if self.nz != 0 :
+#             self.z_transform = nn.Sequential(
+#                 nn.Linear(self.nz, self.img_latent),
+#             )
+#         if mode == 'small':
+#             kernal_sizes = [7, 7, 7, 5, 5, 3, 3]
+#         elif mode == 'large':
+#             kernal_sizes = [7, 7, 7, 7, 7, 5, 5, 5, 5, 3, 3, 3, 3]
+#         else:
+#             raise ValueError('unknown mode: %s' % mode)
+#
+#         hidden_channels = 64
+#         self.main = nn.Sequential(
+#             PixelCNN(self.nc + self.fm_latent, hidden_channels, len(kernal_sizes), kernal_sizes, self.nc),
+#             nn.Conv2d(hidden_channels, hidden_channels, 1, bias=False),
+#             nn.BatchNorm2d(hidden_channels),
+#             nn.ELU(),
+#             nn.Conv2d(hidden_channels, self.nc, 1, bias=False),
+#             nn.Sigmoid(),
+#         )
+#         self.reset_parameters()
+#
+#     def reset_parameters(self):
+#         if self.nz != 0:
+#             nn.init.xavier_uniform_(self.z_transform[0].weight)
+#             nn.init.constant_(self.z_transform[0].bias, 0)
+#
+#         m = self.main[2]
+#         assert isinstance(m, nn.BatchNorm2d)
+#         m.weight.data.fill_(1)
+#         m.bias.data.zero_()
+#
+#     def forward(self, input):
+#         if isinstance(input.data, torch.cuda.FloatTensor) and self.ngpu > 1:
+#             output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
+#         else:
+#             output = self.main(input)
+#         return output
+#
+#     def reconstruct_error(self, x, z):
+#         eps = 1e-12
+#         if type(z) == type(None):
+#             batch_size, nsampels, _, _ = x.size()
+#             img = x.unsqueeze(1).expand(batch_size, nsampels, *x.size()[1:])
+#         else:
+#             batch_size, nsampels, nz = z.size()
+#             # [batch, nsamples, -1] --> [batch, nsamples, fm, H, W]
+#             z = self.z_transform(z).view(batch_size, nsampels, self.fm_latent, 28, 28)
+#
+#             # [batch, nc, H, W] --> [batch, 1, nc, H, W] --> [batch, nsample, nc, H, W]
+#             img = x.unsqueeze(1).expand(batch_size, nsampels, *x.size()[1:])
+#             # [batch, nsample, nc+fm, H, W] --> [batch * nsamples, nc+fm, H, W]
+#             img = torch.cat([img, z], dim=2)
+#
+#         img = img.view(-1, *img.size()[2:])
+#
+#         # [batch * nsamples, *] --> [batch, nsamples, -1]
+#         recon_x = self.forward(img).view(batch_size, nsampels, -1)
+#         # [batch, -1]
+#         x_flat = x.view(batch_size, -1)
+#         BCE = (recon_x + eps).log() * x_flat.unsqueeze(1) + (1.0 - recon_x + eps).log() * (1. - x_flat).unsqueeze(1)
+#         # [batch, nsamples]
+#         return BCE.sum(dim=2) * -1.0
+#
+#     def log_probability(self, x, z):
+#         bce = self.reconstruct_error(x, z)
+#         return bce * -1.
+#
+#     def decode(self, z, deterministic):
+#         '''
+#         Args:
+#             z: Tensor
+#                 the tensor of latent z shape=[batch, nz]
+#             deterministic: boolean
+#                 randomly sample of decode via argmaximizing probability
+#         Returns: Tensor
+#             the tensor of decoded x shape=[batch, *]
+#         '''
+#         H = W = 28
+#         batch_size, nz = z.size()
+#
+#         # [batch, -1] --> [batch, fm, H, W]
+#         z = self.z_transform(z).view(batch_size, self.fm_latent, H, W)
+#         img = Variable(z.data.new(batch_size, self.nc, H, W).zero_(), volatile=True)
+#         # [batch, nc+fm, H, W]
+#         img = torch.cat([img, z], dim=1)
+#         for i in range(H):
+#             for j in range(W):
+#                 # [batch, nc, H, W]
+#                 recon_img = self.forward(img)
+#                 # [batch, nc]
+#                 img[:, :self.nc, i, j] = torch.ge(recon_img[:, :, i, j], 0.5).float() if deterministic else torch.bernoulli(recon_img[:, :, i, j])
+#                 # img[:, :self.nc, i, j] = torch.bernoulli(recon_img[:, :, i, j])
+#
+#         # [batch, nc, H, W]
+#         img_probs = self.forward(img)
+#         return img[:, :self.nc], img_probs

@@ -4,32 +4,36 @@ from torch import nn
 
 class BaseSampler(nn.Module):
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> dict:
         raise NotImplementedError
 
     @staticmethod
-    def sample(outputs_dict):
+    def sample(outputs_dict: dict, num_samples: int = 1) -> torch.Tensor:
         raise NotImplementedError
 
 
 class IsotropicGaussianSampler(BaseSampler):
-    def __init__(self, hidden_size, latent_size, bias=True):
+    def __init__(self, nh, nz):
         super().__init__()
 
-        self.mean = nn.Linear(hidden_size, latent_size, bias=bias)
-        self.log_stddev = nn.Linear(hidden_size, latent_size, bias=bias)
+        self.nh = nh
+        self.nz = nz
 
-    def forward(self, x, *argv):
-        mean = self.mean(x, *argv)
-        log_stddev = self.log_stddev(x, *argv)
-        stddev = torch.exp(log_stddev)
+        self.mean = nn.Linear(self.nh, self.nz)
+        self.log_var = nn.Linear(self.nh, self.nz)
+
+    def forward(self, x: torch.Tensor) -> dict:
+        mean = self.mean(x)
+        log_var = self.log_var(x)
         outputs_dict = {
             "mean": mean,
-            "stddev": stddev
+            "log_var": log_var
         }
         return outputs_dict
 
     @staticmethod
-    def sample(outputs_dict):
-        eps = torch.randn_like(outputs_dict["stddev"])
-        return eps.mul(outputs_dict["stddev"]).add_(outputs_dict["mean"])
+    def sample(outputs_dict, num_samples=1) -> torch.Tensor:
+        # TODO(JB): Add support for num_samples > 1
+        std = outputs_dict["log_var"].mul(0.5).exp()
+        eps = torch.randn_like(std)
+        return eps.mul(std).add_(outputs_dict["mean"])

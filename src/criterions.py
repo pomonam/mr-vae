@@ -2,6 +2,19 @@ import torch
 import torch.nn.functional as F
 
 
+def log_sum_exp(value, dim=None, keepdim=False):
+    if dim is not None:
+        m, _ = torch.max(value, dim=dim, keepdim=True)
+        value0 = value - m
+        if keepdim is False:
+            m = m.squeeze(dim)
+        return m + torch.log(torch.sum(torch.exp(value0), dim=dim, keepdim=keepdim))
+    else:
+        m = torch.max(value)
+        sum_exp = torch.sum(torch.exp(value - m))
+        return m + torch.log(sum_exp)
+
+
 def binary_cross_entropy(x, logits):
     if x.shape != logits.shape:
         raise ValueError("Inputs x and logits must be of the same shape")

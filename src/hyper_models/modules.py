@@ -1,64 +1,79 @@
-from torch import nn
-from src.hyper_models.blocks import LinearBlock, MlpBlock, ResidualBlock, BatchNormResidualBlock
+import copy
+
 import torch
+from torch import nn
+
+from src.config import HyperConfig
+from src.hyper_models.blocks import BatchNormResidualBlock
+from src.hyper_models.blocks import LinearBlock
+from src.hyper_models.blocks import MlpBlock
+from src.hyper_models.blocks import ResidualBlock
 
 _BLOCK_DICT = {
     "linear": LinearBlock,
-    "bn_residual": BatchNormResidualBlock,
-    "residual": ResidualBlock,
     "mlp": MlpBlock,
+    "residual": ResidualBlock,
+    "bn_residual": BatchNormResidualBlock,
 }
 
 
-def replace_module(model: nn.Module, hyper_type, block_name) -> None:
+def replace_module(model: nn.Module, hyper_config: HyperConfig) -> None:
     for name, module in model.named_children():
         if len(list(module.children())) > 0:
-            replace_module(module, hyper_type, block_name)
+            replace_module(module, hyper_config)
 
         if isinstance(module, nn.Linear):
-            hyper_module = HyperModule(module, hyper_type, block_name)
+            hyper_module = HyperModule(module, hyper_config)
             setattr(model, name, hyper_module)
 
         if isinstance(module, nn.Conv2d):
             # TODO: Change this
-            hyper_module = HyperModule(module, block_name)
+            hyper_module = HyperModule(module, hyper_config)
             setattr(model, name, hyper_module)
 
 
 class HyperModule(nn.Module):
     def __init__(self,
                  module: nn.Module,
-                 hyper_type: str = "add",
-                 block_name: str = "linear"):
+                 hyper_config: HyperConfig):
         super().__init__()
 
-        if hyper_type not in ["add", "mult"]:
-            raise ValueError("Invalid hyper_type {}".format(str(hyper_type)))
-        self.hyper_type = hyper_type
-        self.block_name = block_name
+        self.hyper_type = hyper_config.hyper_type
+        if self.hyper_type not in ["add", "mult"]:
+            raise ValueError("Invalid hyper_type {}".format(str(self.hyper_type)))
+        self.block_type = hyper_config.block_type
         if isinstance(module, nn.Linear):
-            self.module = nn.Linear(module.in_features, module.out_features, bias=module.bias is not None)
-            self.hyper_module = _BLOCK_DICT[block_name](module.out_features)
+            # Create a copy of a module ...
+            self.module = copy.deepcopy(module)
+            self.hyper_module = _BLOCK_DICT[self.block_type](module.out_features)
 
         if self.hyper_type == "add":
-            self.add_hyper_module = nn.Linear(module.in_features, module.out_features, bias=False)
+            self.add_hyper_module = copy.deepcopy(module)
         else:
             self.add_hyper_module = None
 
-    def forward(self, inputs: torch.Tensor, beta: torch.Tensor, ignore_hyper: bool = False) -> torch.Tensor:
+        self._beta = None
+
+    def set_beta(self, beta: torch.Tensor) -> None:
+        self._beta = beta
+
+    def reset_beta(self) -> None:
+        self._beta = None
+
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         if self.hyper_type == "add":
-            if ignore_hyper:
+            if self._beta is None:
                 out = self.module(inputs)
             else:
                 add_out = self.add_hyper_module(inputs)
-                hyper_out = self.hyper_module(beta)
+                hyper_out = self.hyper_module(self._beta)
                 hyper_out = add_out * hyper_out
                 out = self.module(inputs) + hyper_out
 
         elif self.hyper_type == "mult":
-            if ignore_hyper:
+            if self._beta is None:
                 print("Warning: hyper_type mult does not support ignore_hyper")
-            hyper_out = self.hyper_module(beta)
+            hyper_out = self.hyper_module(self._beta)
             out = self.module(inputs) * hyper_out
 
         else:
