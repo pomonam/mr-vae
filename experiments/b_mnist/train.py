@@ -1,12 +1,12 @@
 import argparse
 import os
 
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import tqdm
 import wandb
-import numpy as np
-import matplotlib.pyplot as plt
-from src.schedules import frange_cycle_linear
+
 from experiments.b_mnist.input_pipeline import build_input_queue
 from experiments.b_mnist.model_pipeline import build_criterion
 from experiments.b_mnist.model_pipeline import build_model
@@ -16,19 +16,19 @@ from experiments.evaluate import summarize_metric
 from experiments.evaluate import update_metric
 from experiments.init_wandb import init_wandb
 from experiments.utils import seed_everything
+from src.schedules import build_betas_schedule
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
 
-parser.add_argument("--epochs", type=int, default=20)
+parser.add_argument("--encoder_name", type=str, default="mlp")
+parser.add_argument("--decoder_name", type=str, default="mlp")
+
+parser.add_argument("--epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--beta", type=float, default=0.1)
 parser.add_argument("--schedule", type=str, default="constant")
-
-parser.add_argument("--encoder_name", type=str, default="mlp")
-parser.add_argument("--decoder_name", type=str, default="pixelcnn")
-
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
@@ -120,18 +120,10 @@ def main():
     seed_everything(args.seed)
     model = build_model(args.encoder_name, args.decoder_name, DEVICE)
 
-    if args.schedule == "constant":
-        beta_schedule = np.ones(args.epochs) * args.beta
-    elif args.schedule == "monotonic":
-        beta_schedule = frange_cycle_linear(0, args.beta, args.epochs, 1, 0.25)
-    elif args.schedule == "cyclic":
-        beta_schedule = frange_cycle_linear(0, args.beta, args.epochs, 4)
-    else:
-        raise ValueError("Invalid Schedule")
-
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     criterion = build_criterion(DEVICE)
-    train(model, optimizer, criterion, beta_schedule)
+    betas_schedule = build_betas_schedule(args.schedule, args.beta, args.epochs)
+    train(model, optimizer, criterion, betas_schedule)
     evaluate(model, criterion, args.epochs, "train_eval")
     evaluate(model, criterion, args.epochs, "test")
 

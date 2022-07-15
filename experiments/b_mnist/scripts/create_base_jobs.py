@@ -7,13 +7,15 @@ from experiments.job_arrays import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="train_jobs")
-parser.add_argument("--experiment_name", type=str, default="hv-b_mnist_mlp_train")
+parser.add_argument("--experiment_name", type=str, default="hv-b_mnist_mlp_train-v4")
 
 args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-3],
     "epochs": [200],
+    "encoder_name": ["mlp"],
+    "decoder_name": ["mlp"],
     "schedule": ["constant", "monotonic", "cyclic"],
     "beta": np.logspace(-3, 1, num=20)
 }
@@ -21,13 +23,19 @@ CONFIG = {
 BASE_CONFIG = {
     "lr": [1e-3],
     "epochs": [200],
+    "encoder_name": ["mlp"],
+    "decoder_name": ["mlp"],
     "schedule": ["constant"],
-    "beta": [0.]
+    "beta": [0., 100]
 }
 
 if __name__ == "__main__":
     jobs = generate_job_strings(
         CONFIG,
+        command_template=
+        "python train.py --experiment_name {} ".format(args.experiment_name))
+    jobs += generate_job_strings(
+        BASE_CONFIG,
         command_template=
         "python train.py --experiment_name {} ".format(args.experiment_name))
     with open(args.file_name, "w") as f:
