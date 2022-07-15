@@ -57,5 +57,6 @@ python train.py --experiment_name hv-b_mnist_mlp_train-v4 --lr 0.001 --epochs 20
 python train.py --experiment_name hv-b_mnist_mlp_train-v4 --lr 0.001 --epochs 200 --encoder_name mlp --decoder_name mlp --schedule cyclic --beta 2.3357214690901213 
 python train.py --experiment_name hv-b_mnist_mlp_train-v4 --lr 0.001 --epochs 200 --encoder_name mlp --decoder_name mlp --schedule cyclic --beta 3.792690190732246 
 python train.py --experiment_name hv-b_mnist_mlp_train-v4 --lr 0.001 --epochs 200 --encoder_name mlp --decoder_name mlp --schedule cyclic --beta 6.158482110660261 
-python train.py --experiment_name hv-b_mnist_mlp_train-v4 --lr 0.001 --epochs 200 --encoder_name mlp --decoder_name mlp --schedule cyclic --beta 10.0python train.py --experiment_name hv-b_mnist_mlp_train-v4 --lr 0.001 --epochs 200 --encoder_name mlp --decoder_name mlp --schedule constant --beta 0.0 
+python train.py --experiment_name hv-b_mnist_mlp_train-v4 --lr 0.001 --epochs 200 --encoder_name mlp --decoder_name mlp --schedule cyclic --beta 10.0
+python train.py --experiment_name hv-b_mnist_mlp_train-v4 --lr 0.001 --epochs 200 --encoder_name mlp --decoder_name mlp --schedule constant --beta 0.0 
 python train.py --experiment_name hv-b_mnist_mlp_train-v4 --lr 0.001 --epochs 200 --encoder_name mlp --decoder_name mlp --schedule constant --beta 100
