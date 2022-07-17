@@ -80,7 +80,6 @@ class HyperModule(nn.Module):
                 add_out = self.add_hyper_module(inputs)
                 hyper_out = self.hyper_module(self._beta)
                 hyper_out = self.hyper_mult(add_out, hyper_out)
-                # hyper_out = add_out * hyper_out
                 out = self.module(inputs) + hyper_out
 
         elif self.hyper_type == "mult":
@@ -89,7 +88,6 @@ class HyperModule(nn.Module):
             hyper_out = self.hyper_module(self._beta)
             orig_out = self.module(inputs)
             out = self.hyper_mult(orig_out, hyper_out)
-            # out = orig_out * hyper_out
 
         else:
             raise NotImplementedError

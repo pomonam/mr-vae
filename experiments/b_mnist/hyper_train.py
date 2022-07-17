@@ -9,19 +9,20 @@ import wandb
 from experiments.b_mnist.input_pipeline import build_input_queue
 from experiments.b_mnist.model_pipeline import build_criterion
 from experiments.b_mnist.model_pipeline import build_hyper_model
-from experiments.evaluate import generate_metric_str
-from experiments.evaluate import initialize_metric
-from experiments.evaluate import summarize_metric
-from experiments.evaluate import update_metric
+from src.evaluate import generate_metric_str
+from src.evaluate import initialize_metric
+from src.evaluate import summarize_metric
+from src.evaluate import update_metric
 from experiments.init_wandb import init_wandb
-from experiments.utils import seed_everything
+from src.utils import seed_everything
 from src.config import HyperConfig
+from src.config import TrainConfig
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
+parser.add_argument("--experiment_name", type=str, default="hyper_vae-hyper-b_mnist_mlp")
 
-parser.add_argument("--encoder_name", type=str, default="resnet")
-parser.add_argument("--decoder_name", type=str, default="cnn")
+parser.add_argument("--encoder_name", type=str, default="mlp")
+parser.add_argument("--decoder_name", type=str, default="mlp")
 
 # Configurations specific to the hypernet ...
 parser.add_argument("--training_method", type=str, default="simultaneous",
@@ -33,16 +34,14 @@ parser.add_argument("--include_sigmoid_activation", type=int, default=1)
 parser.add_argument("--sample_type", type=str, default="uniform")
 parser.add_argument("--sample_range", type=tuple, default=(0, 10))
 
-parser.add_argument("--epochs", type=int, default=3)
+parser.add_argument("--total_epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--beta", type=float, default=0.1)
-parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
 parser.add_argument("--save_freq", type=int, default=100)
-parser.add_argument("--eval_freq", type=int, default=100)
+parser.add_argument("--eval_freq", type=int, default=500)
 args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
@@ -53,7 +52,7 @@ def hyper_evaluate(model, criterion, epoch, name):
     model.eval()
 
     with torch.no_grad():
-        beta_lst = np.logspace(-5, 1, num=20)
+        beta_lst = np.logspace(-5, 1, num=2)
         loss_lst = []
         rate_lst = []
         dist_lst = []
@@ -66,9 +65,8 @@ def hyper_evaluate(model, criterion, epoch, name):
             for batch in p_bar:
                 inputs = batch["inputs"]
                 output_dict = model.fixed_forward(inputs, beta)
-                ones_beta = model.fixed_beta(inputs, 1)
                 # We want to compute exact ELBO here
-                _, loss_dict = criterion(output_dict, beta=ones_beta)
+                _, loss_dict = criterion.eval_forward(output_dict)
 
                 metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
                 summ_dict = summarize_metric(metric_dict)
@@ -79,6 +77,13 @@ def hyper_evaluate(model, criterion, epoch, name):
             loss_lst.append(summ_dict["loss"])
             rate_lst.append(summ_dict["rate"])
             dist_lst.append(summ_dict["distortion"])
+
+        wandb.log({
+            f"{name}/loss_lst": loss_lst,
+            f"{name}/rate_lst": rate_lst,
+            f"{name}/dist_lst": dist_lst,
+            f"{name}/beta_lst": beta_lst
+        })
 
         rd_data = [[x, y] for (x, y) in zip(rate_lst, dist_lst)]
         table = wandb.Table(data=rd_data, columns=["rate", "distortion"])
@@ -107,8 +112,9 @@ def hyper_evaluate(model, criterion, epoch, name):
         wandb.log(auc_dict)
 
 
-def hyper_train(model, optimizer, criterion):
-    if args.checkpoint_dir is not None and os.path.exists(os.path.join(args.checkpoint_dir, "checkpoint.pth")):
+def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
+    do_checkpoint = cfg.checkpoint_dir is not None
+    if do_checkpoint and os.path.exists(os.path.join(args.checkpoint_dir, "checkpoint.pth")):
         slurm_checkpoint = torch.load(os.path.join(args.checkpoint_dir, "checkpoint.pth"))
         model.load_state_dict(slurm_checkpoint["state_dict"])
         optimizer.load_state_dict(slurm_checkpoint["optimizer"])
@@ -116,12 +122,15 @@ def hyper_train(model, optimizer, criterion):
     else:
         epoch = 0
 
-    while epoch < args.epochs:
-        if epoch % args.eval_freq == 0 and epoch != 0:
+    while epoch < cfg.total_epochs:
+        do_evaluate = epoch % cfg.eval_freq == 0
+        do_save = epoch % cfg.save_freq == 0 and epoch != 0
+
+        if do_evaluate:
             hyper_evaluate(model, criterion, epoch, "train_eval")
             hyper_evaluate(model, criterion, epoch, "test")
 
-        if args.checkpoint_dir is not None:
+        if do_checkpoint and do_save:
             slurm_check_dir = os.path.join(args.checkpoint_dir, "checkpoint.pth")
             log_info = {
                 "id": wandb.run.id,
@@ -132,7 +141,7 @@ def hyper_train(model, optimizer, criterion):
             torch.save(log_info, slurm_check_dir)
 
         model.train()
-        loader = build_input_queue("train", args.batch_size, DEVICE)
+        loader = biq("train", cfg.batch_size, DEVICE)
         p_bar = tqdm.tqdm(loader)
         metric_dict = initialize_metric(criterion.get_metric_lst())
 
@@ -168,16 +177,17 @@ def hyper_train(model, optimizer, criterion):
 
 def main():
     init_wandb(args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
+    cfg = TrainConfig(args)
+    hyper_cfg = HyperConfig(args)
 
-    hyper_config = HyperConfig(args)
-    seed_everything(args.seed)
-    model = build_hyper_model(args.encoder_name, args.decoder_name, hyper_config, DEVICE)
+    seed_everything(cfg.seed)
+    model = build_hyper_model(args.encoder_name, args.decoder_name, hyper_cfg, DEVICE)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     criterion = build_criterion(DEVICE)
-    hyper_train(model, optimizer, criterion)
-    hyper_evaluate(model, criterion, args.epochs, "train_eval")
-    hyper_evaluate(model, criterion, args.epochs, "test")
+    hyper_train(model, build_input_queue, criterion, optimizer, cfg, hyper_cfg)
+    hyper_evaluate(model, criterion, cfg.total_epochs, "train_eval")
+    hyper_evaluate(model, criterion, cfg.total_epochs, "test")
 
 
 if __name__ == "__main__":
