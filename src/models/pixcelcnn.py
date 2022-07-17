@@ -8,6 +8,7 @@ import torch.nn.functional as F
 
 # from .decoder import DecoderBase
 
+
 class MaskedConv2d(nn.Conv2d):
     def __init__(self, mask_type, masked_channels, *args, **kwargs):
         super(MaskedConv2d, self).__init__(*args, **kwargs)

@@ -1,3 +1,17 @@
+class TrainConfig:
+    def __init__(self, args):
+        self.total_epochs = args.total_epochs
+        self.lr = args.lr
+        self.batch_size = args.batch_size
+        self.beta = args.beta
+        self.schedule = args.schedule
+
+        self.seed = args.seed
+        self.checkpoint_dir = args.checkpoint_dir
+        self.save_freq = args.checkpoint_dir
+        self.eval_freq = args.checkpoint_dir
+
+
 class HyperConfig:
     def __init__(self, args):
         self.hyper_type = args.hyper_type
