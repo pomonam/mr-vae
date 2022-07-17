@@ -21,54 +21,39 @@ def deconv3x3(in_planes, out_planes, stride=1, output_padding=0):
                               output_padding=output_padding, bias=False)
 
 
-class ResNetBlock(nn.Module):
-    def __init__(self, inplanes, planes, stride=1):
-        super(ResNetBlock, self).__init__()
-        self.conv1 = conv3x3(inplanes, planes, stride)
-        self.bn1 = nn.BatchNorm2d(planes)
-        self.activation = nn.ELU()
-        self.conv2 = conv3x3(planes, planes)
-        self.bn2 = nn.BatchNorm2d(planes)
-        downsample = None
-        if stride != 1 or inplanes != planes:
-            downsample = nn.Sequential(
-                nn.Conv2d(inplanes, planes, kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(planes),
-            )
-        self.downsample = downsample
-        self.stride = stride
-        self.reset_parameters()
+class BasicBlock(nn.Module):
+    expansion = 1
 
-    def reset_parameters(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
+    def __init__(self, in_planes, planes, stride=1):
+        super().__init__()
+
+        self.conv1 = nn.Conv2d(
+            in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+
+        self.conv2 = nn.Conv2d(
+            planes, planes, kernel_size=3, stride=1, padding=1, bias=False
+        )
+        self.bn2 = nn.BatchNorm2d(planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes,
+                          kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
 
     def forward(self, x):
-        # [batch, planes, ceil(h/stride), ceil(w/stride)]
-        residual = x if self.downsample is None else self.downsample(x)
-
-        # [batch, planes, ceil(h/stride), ceil(w/stride)]
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.activation(out)
-
-        # [batch, planes, ceil(h/stride), ceil(w/stride)]
-        out = self.conv2(out)
-        out = self.bn2(out)
-
-        out = self.activation(out + residual)
-
-        # [batch, planes, ceil(h/stride), ceil(w/stride)]
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = F.relu(out)
         return out
 
 
 class ResNet(nn.Module):
-    def __init__(self, inplanes, planes, strides):
+    def __init__(self, in_planes, planes, strides):
         super(ResNet, self).__init__()
         assert len(planes) == len(strides)
 
@@ -76,48 +61,11 @@ class ResNet(nn.Module):
         for i in range(len(planes)):
             plane = planes[i]
             stride = strides[i]
-            block = ResNetBlock(inplanes, plane, stride=stride)
+            block = BasicBlock(in_planes, plane, stride=stride)
             blocks.append(block)
-            inplanes = plane
+            in_planes = plane
 
-        self.main = nn.Sequential(*blocks)
+        self.layers = nn.Sequential(*blocks)
 
     def forward(self, x):
-        return self.main(x)
-
-#
-# class ResNetV2Encoder(BaseEncoder):
-#     def __init__(self, ngpu=1):
-#         super().__init__()
-#         self.ngpu = ngpu
-#         # self.nz = args.nz
-#         self.nc = 1
-#         hidden_units = 512
-#         self.main = nn.Sequential(
-#             ResNet(self.nc, [64, 64, 64], [2, 2, 2]),
-#             nn.Conv2d(64, hidden_units, 4, 1, 0, bias=False),
-#             nn.BatchNorm2d(hidden_units),
-#             nn.ELU(),
-#         )
-#         # self.linear = nn.Linear(hidden_units, 2 * self.nz)
-#         self.reset_parameters()
-#
-#     def reset_parameters(self):
-#         for m in self.main.modules():
-#             if isinstance(m, nn.Conv2d):
-#                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-#                 m.weight.data.normal_(0, math.sqrt(2. / n))
-#             elif isinstance(m, nn.BatchNorm2d):
-#                 m.weight.data.fill_(1)
-#                 m.bias.data.zero_()
-#         # nn.init.xavier_uniform_(self.linear.weight)
-#         # nn.init.constant_(self.linear.bias, 0.0)
-#
-#     def forward(self, input):
-#         # if isinstance(input.data, torch.cuda.FloatTensor) and self.ngpu > 1:
-#         #     output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
-#         # else:
-#         output = self.main(input)
-#         # output = self.linear(output.view(output.size()[:2]))
-#         # return output.chunk(2, 1)
-#         return output.view(output.shape[0], -1)
+        return self.layers(x)

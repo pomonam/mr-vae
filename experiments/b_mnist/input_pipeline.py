@@ -57,7 +57,7 @@ def load_binary_mnist(file_name):
 
 def load_data(split,
               batch_size,
-              workers=4,
+              workers=0,
               data_path="../../logs/data"):
     file_name = os.path.join(data_path, "binary_mnist.h5")
     if not os.path.exists(file_name):

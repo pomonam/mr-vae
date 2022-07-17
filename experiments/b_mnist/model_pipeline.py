@@ -18,7 +18,11 @@ class BinarizedMnistMlpModel(BaseVae):
     def forward(self, x):
         outputs_dict = self.encode(x)
         z = self.sampler.sample(outputs_dict)
-        logits = self.decode(z)
+        if self.decoder.require_inputs:
+            logits = self.decoder.special_decode(z, x)
+        else:
+            logits = self.decode(z)
+
         outputs_dict = {
             "inputs": x,
             "mean": outputs_dict["mean"],
@@ -101,7 +105,10 @@ class BinarizedMnistMlpCriterion(nn.Module):
         log_likelihood = -binary_cross_entropy(outputs_dict["inputs"], outputs_dict["logits"])
         kl = kl_gaussian(outputs_dict["mean"], outputs_dict["log_var"].exp())
         if isinstance(beta, int) or isinstance(beta, float):
-            elbo = log_likelihood - beta * kl
+            if beta == -1:
+                elbo = -kl
+            else:
+                elbo = log_likelihood - beta * kl
         else:
             elbo = log_likelihood - beta.view(-1) * kl
         elbo = -torch.mean(elbo)
@@ -111,6 +118,10 @@ class BinarizedMnistMlpCriterion(nn.Module):
             "rate": torch.mean(kl).item()
         }
         return elbo, loss_dict
+
+    @staticmethod
+    def eval_forward(outputs_dict: dict):
+        return BinarizedMnistMlpCriterion.forward(outputs_dict, beta=1.0)
 
 
 def build_criterion(device: torch.device) -> BinarizedMnistMlpCriterion:
