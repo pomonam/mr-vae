@@ -11,9 +11,9 @@ args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-3, 3e-4],
-    "epochs": [200],
-    "encoder_name": ["mlp"],
-    "decoder_name": ["mlp"],
+    "total_epochs": [200],
+    "encoder_name": ["cnn", "mlp"],
+    "decoder_name": ["cnn", "mlp"],
     "hyper_type": ["mult", "add"],
     "block_type": ["mlp", "linear", "residual"],
     "include_sigmoid_activation": [0, 1],

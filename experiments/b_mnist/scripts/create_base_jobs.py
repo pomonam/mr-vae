@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-3],
-    "epochs": [200],
+    "total_epochs": [200],
     "encoder_name": ["mlp", "cnn"],
     "decoder_name": ["mlp", "cnn"],
     "schedule": ["constant", "cyclic"],
