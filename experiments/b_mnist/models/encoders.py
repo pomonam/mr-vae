@@ -12,13 +12,16 @@ class MLPEncoder(BaseEncoder):
         super().__init__()
 
         self.linear1 = nn.Linear(784, 512)
-        self.linear2 = nn.Linear(512, 256)
+        self.linear2 = nn.Linear(512, 512)
+        self.linear3 = nn.Linear(512, 256)
 
     def forward(self, x):
         x = x.view(x.shape[0], 784)
         x = self.linear1(x)
         x = torch.relu(x)
         x = self.linear2(x)
+        x = torch.relu(x)
+        x = self.linear3(x)
         x = torch.relu(x)
         return x
 
@@ -27,7 +30,7 @@ class CNNEncoder(BaseEncoder):
     def __init__(self):
         super().__init__()
 
-        self.layers = nn.ModuleList([
+        self.layers = nn.Sequential(
             nn.Conv2d(1, 32, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
             nn.Conv2d(32, 32 * 2, kernel_size=4, stride=2, padding=1),
@@ -37,12 +40,10 @@ class CNNEncoder(BaseEncoder):
             nn.Conv2d(32 * 4, 32 * 8, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
             nn.Flatten()
-        ])
+        )
 
     def forward(self, x):
-        for i, layer in enumerate(self.layers):
-            x = layer(x)
-        return x
+        return self.layers(x)
 
 
 class ResNetEncoder(BaseEncoder):
@@ -50,22 +51,11 @@ class ResNetEncoder(BaseEncoder):
         super().__init__()
         self.layers = nn.Sequential(
             ResNet(1, [64, 64, 64], [2, 2, 2]),
-            nn.Conv2d(64, 256, 4, 1, 0, bias=False),
+            nn.Conv2d(64, 256, kernel_size=4, stride=1, padding=0, bias=False),
             nn.BatchNorm2d(256),
-            nn.ELU(),
+            nn.ReLU(),
             nn.Flatten()
         )
-        self.reset_parameters()
-
-    def reset_parameters(self):
-        for m in self.layers.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
 
     def forward(self, x):
-        out = self.layers(x)
-        return out
+        return self.layers(x)

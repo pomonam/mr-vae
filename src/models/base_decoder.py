@@ -3,6 +3,7 @@ import torch.nn as nn
 
 
 class BaseDecoder(nn.Module):
+  require_inputs = False
 
   def forward(self, x: torch.Tensor) -> torch.Tensor:
     raise NotImplementedError

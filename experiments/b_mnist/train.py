@@ -6,28 +6,28 @@ import numpy as np
 import torch
 import tqdm
 import wandb
+from src.config import TrainConfig
 
 from experiments.b_mnist.input_pipeline import build_input_queue
 from experiments.b_mnist.model_pipeline import build_criterion
 from experiments.b_mnist.model_pipeline import build_model
-from experiments.evaluate import generate_metric_str
-from experiments.evaluate import initialize_metric
-from experiments.evaluate import summarize_metric
-from experiments.evaluate import update_metric
+from src.evaluate import generate_metric_str
+from src.evaluate import initialize_metric
+from src.evaluate import summarize_metric
+from src.evaluate import update_metric
 from experiments.init_wandb import init_wandb
-from experiments.utils import seed_everything
-from src.schedules import build_betas_schedule
+from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
 
-parser.add_argument("--encoder_name", type=str, default="cnn")
-parser.add_argument("--decoder_name", type=str, default="cnn")
+parser.add_argument("--encoder_name", type=str, default="mlp")
+parser.add_argument("--decoder_name", type=str, default="mlp")
 
 parser.add_argument("--total_epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--beta", type=float, default=0.1)
+parser.add_argument("--beta", type=float, default=-1)
 parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
@@ -40,18 +40,18 @@ cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
 
-def evaluate(model, criterion, epoch, name):
+def evaluate(model, biq, criterion, epoch, name):
     model.eval()
 
     with torch.no_grad():
-        loader = build_input_queue(name, args.batch_size, DEVICE)
+        loader = biq(name, args.batch_size, DEVICE)
         p_bar = tqdm.tqdm(loader)
         metric_dict = initialize_metric(criterion.get_metric_lst())
 
         for batch in p_bar:
             inputs = batch["inputs"]
             output_dict = model(inputs)
-            _, loss_dict = criterion(output_dict, beta=1)
+            _, loss_dict = criterion.eval_forward(output_dict)
 
             metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
             summ_dict = summarize_metric(metric_dict)
@@ -62,22 +62,26 @@ def evaluate(model, criterion, epoch, name):
     wandb.log(summ_dict)
 
 
-def train(model, optimizer, criterion, beta):
-    if args.checkpoint_dir is not None and os.path.exists(os.path.join(args.checkpoint_dir, "checkpoint.pth")):
-        slurm_checkpoint = torch.load(os.path.join(args.checkpoint_dir, "checkpoint.pth"))
+def train(model, biq, criterion, optimizer, cfg):
+    do_checkpoint = cfg.checkpoint_dir is not None
+    if do_checkpoint and os.path.exists(os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
+        slurm_checkpoint = torch.load(os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
         model.load_state_dict(slurm_checkpoint["state_dict"])
         optimizer.load_state_dict(slurm_checkpoint["optimizer"])
         epoch = slurm_checkpoint["epoch"]
     else:
         epoch = 0
 
-    while epoch < args.epochs:
-        if epoch % args.eval_freq == 0:
-            evaluate(model, criterion, epoch, "train_eval")
-            evaluate(model, criterion, epoch, "test")
+    while epoch < cfg.total_epochs:
+        do_evaluate = epoch % cfg.eval_freq == 0
+        do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
-        if args.checkpoint_dir is not None and epoch % args.save_freq == 0 and epoch != 0:
-            slurm_check_dir = os.path.join(args.checkpoint_dir, "checkpoint.pth")
+        if do_evaluate:
+            evaluate(model, biq, criterion, epoch, "train_eval")
+            evaluate(model, biq, criterion, epoch, "test")
+
+        if do_checkpoint and do_save:
+            slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")
             log_info = {
                 "id": wandb.run.id,
                 "epoch": epoch,
@@ -87,15 +91,15 @@ def train(model, optimizer, criterion, beta):
             torch.save(log_info, slurm_check_dir)
 
         model.train()
-        loader = build_input_queue("train", args.batch_size, DEVICE)
+        loader = biq("train", cfg.batch_size, DEVICE)
         p_bar = tqdm.tqdm(loader)
         metric_dict = initialize_metric(criterion.get_metric_lst())
 
         for batch in p_bar:
+            optimizer.zero_grad()
             inputs = batch["inputs"]
             output_dict = model(inputs)
-            loss, loss_dict = criterion(output_dict, beta[epoch])
-            optimizer.zero_grad()
+            loss, loss_dict = criterion(output_dict, cfg.get_beta(epoch))
             loss.backward()
             optimizer.step()
 
@@ -105,7 +109,7 @@ def train(model, optimizer, criterion, beta):
             p_bar.set_description(summ_str)
 
         summ_dict = summarize_metric(metric_dict, name="train_step/")
-        summ_dict["beta"] = beta[epoch]
+        summ_dict["beta"] = cfg.get_beta(epoch)
         wandb.log(summ_dict)
         epoch = epoch + 1
 
@@ -116,19 +120,20 @@ def train(model, optimizer, criterion, beta):
 
 def main():
     init_wandb(args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
+    cfg = TrainConfig(args)
 
-    seed_everything(args.seed)
+    seed_everything(cfg.seed)
     model = build_model(args.encoder_name, args.decoder_name, DEVICE)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
     criterion = build_criterion(DEVICE)
-    betas_schedule = build_betas_schedule(args.schedule, args.beta, args.epochs)
-    train(model, optimizer, criterion, betas_schedule)
-    evaluate(model, criterion, args.epochs, "train_eval")
-    evaluate(model, criterion, args.epochs, "test")
+
+    train(model, build_input_queue, criterion, optimizer, cfg)
+    evaluate(model, build_input_queue, criterion, cfg.total_epochs, "train_eval")
+    evaluate(model, build_input_queue, criterion, cfg.total_epochs, "test")
 
     # Visualizing the reconstruction
-    test_loader = build_input_queue("test", args.batch_size, DEVICE)
+    test_loader = build_input_queue("test", cfg.batch_size, DEVICE)
     test_batch = next(test_loader)
     outputs_dict = model.forward(test_batch["inputs"])
     logits = outputs_dict["logits"].view(-1, 28, 28)
