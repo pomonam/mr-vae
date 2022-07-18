@@ -9,15 +9,16 @@ ENTITY = "bae-group"
 EXPERIMENT_NAME = "hv-b_mnist_mlp_train-v5"
 
 
-def get_summary(config_lst, summary_lst, lr=1e-3, schedule="constant"):
+def get_summary(config_lst, summary_lst, lr=1e-3, schedule="constant",
+                encoder_name="mlp", decoder_name="mlp"):
     beta_to_rate = {}
     beta_to_dist = {}
     beta_to_elbo = {}
 
     for i, c in enumerate(config_lst):
         if c["lr"] == lr and c["schedule"] == schedule \
-                and c["encoder_name"] == "cnn" \
-                and c["decoder_name"] == "cnn":
+                and c["encoder_name"] == encoder_name \
+                and c["decoder_name"] == decoder_name:
             beta_to_rate[c["beta"]] = summary_lst[i]["train_eval/rate"]
             beta_to_dist[c["beta"]] = summary_lst[i]["train_eval/distortion"]
             beta_to_elbo[c["beta"]] = summary_lst[i]["train_eval/loss"]
@@ -25,6 +26,33 @@ def get_summary(config_lst, summary_lst, lr=1e-3, schedule="constant"):
     sorted_beta_to_dist = dict(sorted(beta_to_dist.items(), key=lambda item: item[0]))
     sorted_beta_to_elbo = dict(sorted(beta_to_elbo.items(), key=lambda item: item[0]))
     return sorted_beta_to_rate, sorted_beta_to_dist, sorted_beta_to_elbo
+
+
+def get_rd(experiment_name):
+    api = init_api()
+    runs = api.runs(ENTITY + "/" + experiment_name)
+
+    summary_list, config_list, name_list = [], [], []
+    for run in runs:
+        if run.state == "finished":
+            summary_list.append(run.summary._json_dict)
+            config_list.append(
+                {k: v for k, v in run.config.items()
+                 if not k.startswith("_")})
+            name_list.append(run.name)
+
+    rate_dict, dist_dict, elbo_dict = get_summary(config_list,
+                                                  summary_list,
+                                                  schedule="cyclic",
+                                                  encoder_name="mlp",
+                                                  decoder_name="mlp")
+    keys = rate_dict.keys()
+    values = zip(rate_dict.values(), dist_dict.values())
+    combined_dict = dict(zip(keys, values))
+
+    rate = np.array([c[0] for c in combined_dict.values()])
+    dist = np.array([c[1] for c in combined_dict.values()])
+    return rate, dist
 
 
 def main():

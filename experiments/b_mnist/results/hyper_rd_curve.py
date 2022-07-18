@@ -2,21 +2,18 @@ from src.plotting import init_plotting
 import matplotlib.pyplot as plt
 import numpy as np
 from experiments.init_wandb import init_api
+from experiments.b_mnist.results.rd_curve import get_rd
 
 ENTITY = "bae-group"
-EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v5"
-ID = "1sabd4mj"
+EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v6"
+ID = "2o28o5wh"
 
 
 def get_summary(summary):
-    beta_to_rate = {}
-    beta_to_dist = {}
-    beta_lst = np.linspace(0.001, 10, num=20)
-
-    for beta in beta_lst:
-        beta_to_rate[beta] = summary["train_eval/{}/rate".format(beta)]
-        beta_to_dist[beta] = summary["train_eval/{}/distortion".format(beta)]
-    return beta_to_rate, beta_to_dist
+    beta_to_rate = dict(zip(summary["train_eval/beta_lst"], summary["train_eval/rate_lst"]))
+    beta_to_dist = dict(zip(summary["train_eval/beta_lst"], summary["train_eval/dist_lst"]))
+    beta_to_elbo = dict(zip(summary["train_eval/beta_lst"], summary["train_eval/loss_lst"]))
+    return beta_to_rate, beta_to_dist, beta_to_elbo
 
 
 def main():
@@ -34,15 +31,14 @@ def main():
                  if not k.startswith('_')})
             name_list.append(run.name)
 
-    rate_dict, dist_dict = get_summary(summary_list[0])
+    rate_dict, dist_dict, elbo_dict = get_summary(summary_list[0])
 
-    dist_dict_sorted = {i: dist_dict[i] for i in rate_dict.keys()}
     keys = rate_dict.keys()
-    values = zip(rate_dict.values(), dist_dict_sorted.values())
+    values = zip(rate_dict.values(), dist_dict.values())
     combined_dict = dict(zip(keys, values))
 
-    rate = np.array([c[0] for c in combined_dict.values()]) + [81]
-    dist = np.array([c[1] for c in combined_dict.values()]) + [51]
+    rate = np.array([c[0] for c in combined_dict.values()])
+    dist = np.array([c[1] for c in combined_dict.values()])
     plt.scatter(rate, dist)
 
     min_val = min(np.min(rate), np.min(dist)) - 10
@@ -52,6 +48,10 @@ def main():
 
     plt.xlabel("Rate")
     plt.ylabel("Distortion")
+    
+    rate, dist = get_rd("hv-b_mnist_mlp_train-v5")
+    plt.scatter(rate, dist)
+
     plt.show()
 
 
