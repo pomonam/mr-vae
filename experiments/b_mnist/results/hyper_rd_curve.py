@@ -1,11 +1,11 @@
-from experiments.plots import init_plotting
+from src.plotting import init_plotting
 import matplotlib.pyplot as plt
 import numpy as np
 from experiments.init_wandb import init_api
 
 ENTITY = "bae-group"
-EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v4"
-ID = "3mzm6gsi"
+EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v5"
+ID = "1sabd4mj"
 
 
 def get_summary(summary):
