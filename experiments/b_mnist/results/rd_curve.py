@@ -1,4 +1,4 @@
-from experiments.plots import init_plotting
+from src.plotting import init_plotting
 import matplotlib.pyplot as plt
 import numpy as np
 from experiments.init_wandb import init_api
@@ -6,7 +6,7 @@ from matplotlib.collections import LineCollection
 import matplotlib.colors as colors
 
 ENTITY = "bae-group"
-EXPERIMENT_NAME = "hv-b_mnist_mlp_train-v4"
+EXPERIMENT_NAME = "hv-b_mnist_mlp_train-v5"
 
 
 def get_summary(config_lst, summary_lst, lr=1e-3, schedule="constant"):
@@ -15,7 +15,9 @@ def get_summary(config_lst, summary_lst, lr=1e-3, schedule="constant"):
     beta_to_elbo = {}
 
     for i, c in enumerate(config_lst):
-        if c["lr"] == lr and c["schedule"] == schedule:
+        if c["lr"] == lr and c["schedule"] == schedule \
+                and c["encoder_name"] == "cnn" \
+                and c["decoder_name"] == "cnn":
             beta_to_rate[c["beta"]] = summary_lst[i]["train_eval/rate"]
             beta_to_dist[c["beta"]] = summary_lst[i]["train_eval/distortion"]
             beta_to_elbo[c["beta"]] = summary_lst[i]["train_eval/loss"]

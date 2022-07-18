@@ -52,7 +52,7 @@ def hyper_evaluate(model, criterion, epoch, name):
     model.eval()
 
     with torch.no_grad():
-        beta_lst = np.logspace(-5, 1, num=2)
+        beta_lst = np.logspace(-5, 1, num=20)
         loss_lst = []
         rate_lst = []
         dist_lst = []
