@@ -62,15 +62,20 @@ class HyperVae(BaseVae):
         b = self.hyper_config.sample_range[1]
         sample_dict = {}
 
-        if self.hyper_config.sample_type == "exp_uniform":
+        if self.hyper_config.sample_type == "log_uniform":
             a = math.log(a)
             b = math.log(b)
             sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(a, b).to(device)
             sample_dict["trans_beta"] = torch.exp(sample_dict["net_beta"])
 
-        elif self.hyper_config.sample_type == "normal":
-            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).normal_(0, std=1).to(device)
-            sample_dict["trans_beta"] = stretch_sigmoid(sample_dict["net_beta"], low=a, high=b)
+        elif self.hyper_config.sample_type == "fixed_log_uniform":
+            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-2, 2).to(device)
+            # Equivalent to setting a = -3 and b = 1
+            sample_dict["trans_beta"] = torch.pow(10, sample_dict["net_beta"] - 1)
+
+        elif self.hyper_config.sample_type == "fixed_normal":
+            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).normal_(mean=0, std=1).to(device)
+            sample_dict["trans_beta"] = stretch_sigmoid(sample_dict["net_beta"] - 2, low=a, high=b, slope=2)
 
         elif self.hyper_config.sample_type == "uniform":
             sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(a, b).to(device)
@@ -86,7 +91,7 @@ class HyperVae(BaseVae):
         device = x.device
         ones = torch.ones(batch_size, 1).to(device)
 
-        if self.hyper_config.sample_type == "exp_uniform":
+        if self.hyper_config.sample_type == "log_uniform":
             beta = ones * beta
             trans_beta = torch.log(beta)
 

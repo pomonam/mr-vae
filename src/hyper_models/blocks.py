@@ -79,6 +79,7 @@ class ResidualBlock(BaseBlock):
             nn.Linear(1, self.width),
             nn.ReLU()
         )
+        self.layers[-1].weight.data.fill_(0)
 
     def forward(self, beta: torch.Tensor) -> torch.Tensor:
         out = self.temp_layer(beta)

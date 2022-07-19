@@ -43,7 +43,7 @@ def get_rd(experiment_name):
 
     rate_dict, dist_dict, elbo_dict = get_summary(config_list,
                                                   summary_list,
-                                                  schedule="constant",
+                                                  schedule="cyclic",
                                                   encoder_name="mlp",
                                                   decoder_name="mlp")
     keys = rate_dict.keys()
