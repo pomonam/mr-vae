@@ -6,6 +6,7 @@ def get_ns(args, name):
         return getattr(args, name)
     return None
 
+
 class TrainConfig:
     def __init__(self, args):
         self.total_epochs = get_ns(args, "total_epochs")

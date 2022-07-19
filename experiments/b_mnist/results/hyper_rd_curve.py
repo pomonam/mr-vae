@@ -6,7 +6,7 @@ from experiments.b_mnist.results.rd_curve import get_rd
 
 ENTITY = "bae-group"
 EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v6"
-ID = "2o28o5wh"
+ID = "1nslpr5b"
 
 
 def get_summary(summary):
@@ -48,7 +48,7 @@ def main():
 
     plt.xlabel("Rate")
     plt.ylabel("Distortion")
-    
+
     rate, dist = get_rd("hv-b_mnist_mlp_train-v5")
     plt.scatter(rate, dist)
 
