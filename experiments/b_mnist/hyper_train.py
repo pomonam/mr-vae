@@ -27,7 +27,7 @@ parser.add_argument("--decoder_name", type=str, default="mlp")
 # Configurations specific to the hypernet ...
 parser.add_argument("--training_method", type=str, default="simultaneous",
                     choices=["simultaneous", "sequential"])
-parser.add_argument("--hyper_type", type=str, default="add")
+parser.add_argument("--hyper_type", type=str, default="mult")
 parser.add_argument("--block_type", type=str, default="linear")
 parser.add_argument("--include_output_linear", type=int, default=1)
 parser.add_argument("--include_sigmoid_activation", type=int, default=1)
