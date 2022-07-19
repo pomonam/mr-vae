@@ -124,5 +124,5 @@ class HyperVae(BaseVae):
         zero_beta = self.fixed_beta(x, 0)
         self.reset_beta()
         output_dict = self.forward(x)
-        output_dict["beta"] = zero_beta
+        output_dict["beta"] = torch.zeros(zero_beta.shape)
         return output_dict
