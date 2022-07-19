@@ -15,7 +15,7 @@ CONFIG = {
     "encoder_name": ["mlp"],
     "decoder_name": ["mlp"],
     "hyper_type": ["mult", "add"],
-    "block_type": ["mlp", "linear", "residual"],
+    "block_type": ["linear", "residual"],
     "include_sigmoid_activation": [0, 1],
     "training_method": ["simultaneous"],
 }
