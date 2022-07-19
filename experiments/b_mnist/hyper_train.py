@@ -31,8 +31,8 @@ parser.add_argument("--hyper_type", type=str, default="mult")
 parser.add_argument("--block_type", type=str, default="linear")
 parser.add_argument("--include_output_linear", type=int, default=1)
 parser.add_argument("--include_sigmoid_activation", type=int, default=1)
-parser.add_argument("--sample_type", type=str, default="uniform")
-parser.add_argument("--sample_range", type=tuple, default=(0, 10))
+parser.add_argument("--sample_type", type=str, default="exp_uniform")
+parser.add_argument("--sample_range", type=tuple, default=(1e-4, 10))
 
 parser.add_argument("--total_epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=1e-3)
@@ -123,7 +123,7 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
         epoch = 0
 
     while epoch < cfg.total_epochs:
-        do_evaluate = epoch % cfg.eval_freq == 0
+        do_evaluate = epoch % cfg.eval_freq == 0 and epoch != 0
         do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
         if do_evaluate:
@@ -148,7 +148,7 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
         for batch in p_bar:
             inputs = batch["inputs"]
 
-            if args.training_method == "sequential":
+            if hyper_cfg.training_method == "sequential":
                 output_dict = model.hyper_ignore_forward(inputs)
                 loss, loss_dict = criterion(output_dict, output_dict["beta"])
                 optimizer.zero_grad()

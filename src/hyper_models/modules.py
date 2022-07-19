@@ -66,6 +66,12 @@ class HyperModule(nn.Module):
 
         self._beta = None
 
+    def get_general_parameters(self):
+        return list(self.module.parameters())
+
+    def get_hyper_parameters(self):
+        return list(self.hyper_module.parameters)
+
     def set_beta(self, beta: torch.Tensor) -> None:
         self._beta = beta
 
