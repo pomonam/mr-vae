@@ -14,7 +14,7 @@ class BaseBlock(nn.Module):
         self.include_sigmoid_activation = include_sigmoid_activation
 
         if self.include_output_linear:
-            self.output_layer = nn.Linear(self.width, self.width, bias=False)
+            self.output_layer = nn.Linear(self.width, self.width, bias=True)
         else:
             self.output_layer = None
 
@@ -34,6 +34,8 @@ class LinearBlock(BaseBlock):
         self.layers = nn.Sequential(
             nn.Linear(1, self.width)
         )
+        self.layers[0].weight.data.fill_(0)
+        self.layers[0].bias.data.fill_(0)
 
     def forward(self, beta: torch.Tensor) -> torch.Tensor:
         out = self.layers(beta)

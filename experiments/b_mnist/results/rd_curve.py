@@ -103,7 +103,8 @@ def main():
     plt.xlabel("Rate")
     plt.ylabel("Distortion")
     plt.tight_layout()
-    plt.savefig("rd_curve.pdf")
+    # plt.savefig("rd_curve.pdf")
+    plt.show()
     plt.clf()
 
     keys = rate_dict.keys()

@@ -38,3 +38,5 @@ class HyperConfig:
 
         self.sample_type = args.sample_type
         self.sample_range = args.sample_range
+
+        self.training_method = args.training_method
