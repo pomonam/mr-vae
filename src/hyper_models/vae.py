@@ -2,7 +2,7 @@ import math
 
 import torch
 
-from src.hyper_models.transformations import stretch_sigmoid
+from src.hyper_models.transformations import stretch_sigmoid, stretch_sigmoid_inv
 from src.hyper_models.modules import HyperModule
 from src.hyper_models.modules import replace_module
 from src.models.vae import BaseVae
@@ -75,7 +75,7 @@ class HyperVae(BaseVae):
 
         elif self.hyper_config.sample_type == "fixed_normal":
             sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).normal_(mean=0, std=1).to(device)
-            sample_dict["trans_beta"] = stretch_sigmoid(sample_dict["net_beta"] - 2, low=a, high=b, slope=2)
+            sample_dict["trans_beta"] = stretch_sigmoid(sample_dict["net_beta"] - 2, low=1e-3, high=10, slope=2)
 
         elif self.hyper_config.sample_type == "uniform":
             sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(a, b).to(device)
@@ -94,6 +94,14 @@ class HyperVae(BaseVae):
         if self.hyper_config.sample_type == "log_uniform":
             beta = ones * beta
             trans_beta = torch.log(beta)
+
+        elif self.hyper_config.sample_type == "fixed_log_uniform":
+            beta = ones * beta
+            trans_beta = torch.log10(beta) + 1
+
+        elif self.hyper_config.sample_type == "fixed_normal":
+            beta = ones * beta
+            trans_beta = stretch_sigmoid_inv(beta, low=1e-3, high=10, slope=2) + 2
 
         elif self.hyper_config.sample_type == "normal":
             # sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).normal_(0, std=1).to(device)
