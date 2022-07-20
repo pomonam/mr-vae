@@ -5,7 +5,7 @@ from experiments.job_arrays import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
-parser.add_argument("--experiment_name", type=str, default="hv-b_mnist_mlp_hyper-v9")
+parser.add_argument("--experiment_name", type=str, default="hv-b_mnist_mlp_hyper-v11")
 
 args = parser.parse_args()
 
@@ -14,9 +14,9 @@ CONFIG = {
     "total_epochs": [200],
     "encoder_name": ["mlp"],
     "decoder_name": ["mlp"],
-    "hyper_type": ["mult", "add"],
+    "hyper_type": ["mult", "svd"],
     "block_type": ["linear", "residual", "mlp"],
-    "sample_type": ["fixed_log_uniform", "fixed_normal"],
+    "sample_type": ["fixed_normal"],
     "include_sigmoid_activation": [0, 1],
     "training_method": ["simultaneous"],
 }

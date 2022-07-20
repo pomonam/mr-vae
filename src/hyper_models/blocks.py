@@ -6,15 +6,14 @@ class BaseBlock(nn.Module):
 
     def __init__(self,
                  width: int,
-                 include_output_linear: bool = True,
-                 include_sigmoid_activation: bool = True):
+                 hyper_config):
         super().__init__()
         self.width = width
-        self.include_output_linear = include_output_linear
-        self.include_sigmoid_activation = include_sigmoid_activation
+        self.include_output_linear = hyper_config.include_output_linear
+        self.include_sigmoid_activation = hyper_config.include_output_linear
 
         if self.include_output_linear:
-            self.output_layer = nn.Linear(self.width, self.width, bias=True)
+            self.output_layer = nn.Linear(self.width, self.width, bias=False)
         else:
             self.output_layer = None
 
