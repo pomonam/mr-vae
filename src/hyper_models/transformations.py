@@ -46,8 +46,8 @@ def stretch_sigmoid(x, low=0., high=1., slope=1):
     return (high - low) * sigmoid(slope * x) + low
 
 
-def stretch_sigmoid_inv(x, low=0., high=1.):
-    return torch.log(x - low) - torch.log(high - x)
+def stretch_sigmoid_inv(x, low=0., high=1., slope=1):
+    return (torch.log(x - low) - torch.log(high - x)) / slope
 
 
 def lower_bound_softplus(x, low=0., high=0.):
