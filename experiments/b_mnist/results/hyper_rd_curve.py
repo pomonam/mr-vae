@@ -5,8 +5,8 @@ from experiments.init_wandb import init_api
 from experiments.b_mnist.results.rd_curve import get_rd
 
 ENTITY = "bae-group"
-EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v8"
-ID = "2fno1gt0"
+EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v9"
+ID = "165nxmkc"
 
 
 def get_summary(summary):
