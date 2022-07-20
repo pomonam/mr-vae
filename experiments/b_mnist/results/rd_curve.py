@@ -10,7 +10,7 @@ EXPERIMENT_NAME = "hv-b_mnist_mlp_train-v5"
 
 
 def get_summary(config_lst, summary_lst, lr=1e-3, schedule="constant",
-                encoder_name="mlp", decoder_name="mlp"):
+                encoder_name="cnn", decoder_name="cnn"):
     beta_to_rate = {}
     beta_to_dist = {}
     beta_to_elbo = {}
@@ -44,8 +44,8 @@ def get_rd(experiment_name):
     rate_dict, dist_dict, elbo_dict = get_summary(config_list,
                                                   summary_list,
                                                   schedule="cyclic",
-                                                  encoder_name="mlp",
-                                                  decoder_name="mlp")
+                                                  encoder_name="cnn",
+                                                  decoder_name="cnn")
     keys = rate_dict.keys()
     values = zip(rate_dict.values(), dist_dict.values())
     combined_dict = dict(zip(keys, values))

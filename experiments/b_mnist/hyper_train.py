@@ -25,13 +25,13 @@ parser.add_argument("--encoder_name", type=str, default="mlp")
 parser.add_argument("--decoder_name", type=str, default="mlp")
 
 # Configurations specific to the hypernet ...
-parser.add_argument("--training_method", type=str, default="simultaneous",
+parser.add_argument("--training_method", type=str, default="sequential",
                     choices=["simultaneous", "sequential"])
-parser.add_argument("--hyper_type", type=str, default="mult")
-parser.add_argument("--block_type", type=str, default="linear")
+parser.add_argument("--hyper_type", type=str, default="add")
+parser.add_argument("--block_type", type=str, default="bn_residual")
 parser.add_argument("--include_output_linear", type=int, default=1)
 parser.add_argument("--include_sigmoid_activation", type=int, default=1)
-parser.add_argument("--sample_type", type=str, default="fixed_normal")
+parser.add_argument("--sample_type", type=str, default="fixed_log_uniform")
 parser.add_argument("--sample_range", type=tuple, default=(1e-3, 10))
 
 parser.add_argument("--total_epochs", type=int, default=2)
@@ -149,7 +149,7 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
             inputs = batch["inputs"]
 
             if hyper_cfg.training_method == "sequential":
-                output_dict = model.hyper_ignore_forward(inputs)
+                output_dict = model.fixed_forward(inputs, 1)
                 loss, loss_dict = criterion(output_dict, output_dict["beta"])
                 optimizer.zero_grad()
                 loss.backward()

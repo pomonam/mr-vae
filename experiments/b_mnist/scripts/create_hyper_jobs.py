@@ -15,10 +15,10 @@ CONFIG = {
     "encoder_name": ["cnn"],
     "decoder_name": ["cnn"],
     "hyper_type": ["mult", "add"],
-    "block_type": ["linear", "residual", "mlp"],
-    "sample_type": ["fixed_log_uniform", "fixed_normal"],
-    "include_sigmoid_activation": [0, 1],
-    "training_method": ["simultaneous"],
+    "block_type": ["linear", "residual", "bn_residual"],
+    "sample_type": ["fixed_log_uniform"],
+    "include_sigmoid_activation": [0],
+    "training_method": ["simultaneous", "sequential"],
 }
 
 if __name__ == "__main__":

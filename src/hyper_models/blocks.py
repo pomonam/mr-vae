@@ -14,7 +14,7 @@ class BaseBlock(nn.Module):
         self.include_sigmoid_activation = include_sigmoid_activation
 
         if self.include_output_linear:
-            self.output_layer = nn.Linear(self.width, self.width, bias=True)
+            self.output_layer = nn.Linear(self.width, self.width, bias=False)
         else:
             self.output_layer = None
 
@@ -76,9 +76,10 @@ class ResidualBlock(BaseBlock):
             nn.Linear(self.width, self.width, bias=False),
         )
         self.temp_layer = nn.Sequential(
-            nn.Linear(1, self.width),
+            nn.Linear(1, self.width, bias=False),
             nn.ReLU()
         )
+        self.temp_layer[0].weight.data.fill_(0)
         self.layers[-1].weight.data.fill_(0)
 
     def forward(self, beta: torch.Tensor) -> torch.Tensor:
@@ -91,7 +92,7 @@ class ResidualBlock(BaseBlock):
         return out
 
 
-class BatchNormResidualBlock(nn.Module):
+class BatchNormResidualBlock(BaseBlock):
 
     def _construct_layers(self) -> None:
         self.layers = nn.Sequential(
@@ -105,9 +106,11 @@ class BatchNormResidualBlock(nn.Module):
             nn.BatchNorm1d(self.width),
         )
         self.temp_layer = nn.Sequential(
-            nn.Linear(1, self.width),
+            nn.Linear(1, self.width, bias=False),
             nn.ReLU()
         )
+        self.temp_layer[0].weight.data.fill_(0)
+        self.layers[-1].weight.data.fill_(0)
 
     def forward(self, beta: torch.Tensor) -> torch.Tensor:
         out = self.temp_layer(beta)
