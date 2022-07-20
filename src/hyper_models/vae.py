@@ -130,7 +130,10 @@ class HyperVae(BaseVae):
         fixed_beta = self.fixed_beta(x, beta)
         self.set_beta(fixed_beta)
         output_dict = self.forward(x)
-        # output_dict["beta"] = fixed_beta
+
+        batch_size = x.shape[0]
+        device = x.device
+        output_dict["beta"] = torch.ones(batch_size, 1).to(device) * beta
         return output_dict
 
     def hyper_ignore_forward(self, x):
