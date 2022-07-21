@@ -16,7 +16,7 @@ CONFIG = {
     "decoder_name": ["mlp"],
     "hyper_type": ["mult", "svd"],
     "block_type": ["linear", "residual", "mlp"],
-    "sample_type": ["fixed_normal"],
+    "sample_type": ["fixed_log_uniform"],
     "include_sigmoid_activation": [0, 1],
     "training_method": ["simultaneous"],
 }
