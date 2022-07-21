@@ -6,7 +6,7 @@ from experiments.b_mnist.results.rd_curve import get_rd
 
 ENTITY = "bae-group"
 EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v10"
-ID = "wola84il"
+ID = "18eng85b"
 
 
 def get_summary(summary):
@@ -39,7 +39,8 @@ def main():
 
     rate = np.array([c[0] for c in combined_dict.values()])
     dist = np.array([c[1] for c in combined_dict.values()])
-    plt.scatter(rate, dist)
+    plt.plot(rate, dist, label="Hypernetwork")
+    plt.scatter(rate, dist, facecolors="none", edgecolors="k")
 
     min_val = min(np.min(rate), np.min(dist)) - 10
     max_val = max(np.max(rate), np.max(dist)) + 10
@@ -50,8 +51,10 @@ def main():
     plt.ylabel("Distortion")
 
     rate, dist = get_rd("hv-b_mnist_mlp_train-v5")
-    plt.scatter(rate, dist)
+    plt.plot(rate, dist, label="Baseline")
+    plt.scatter(rate, dist, facecolors="none", edgecolors="k")
 
+    plt.legend()
     plt.show()
 
 

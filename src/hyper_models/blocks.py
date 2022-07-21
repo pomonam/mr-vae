@@ -33,8 +33,8 @@ class LinearBlock(BaseBlock):
         self.layers = nn.Sequential(
             nn.Linear(1, self.width)
         )
-        self.layers[0].weight.data.fill_(0)
-        self.layers[0].bias.data.fill_(0)
+        # self.layers[0].weight.data.fill_(0)
+        # self.layers[0].bias.data.fill_(0)
 
     def forward(self, beta: torch.Tensor) -> torch.Tensor:
         out = self.layers(beta)
@@ -78,8 +78,8 @@ class ResidualBlock(BaseBlock):
             nn.Linear(1, self.width, bias=False),
             nn.ReLU()
         )
-        self.temp_layer[0].weight.data.fill_(0)
-        self.layers[-1].weight.data.fill_(0)
+        # self.temp_layer[0].weight.data.fill_(0)
+        # self.layers[-1].weight.data.fill_(0)
 
     def forward(self, beta: torch.Tensor) -> torch.Tensor:
         out = self.temp_layer(beta)
