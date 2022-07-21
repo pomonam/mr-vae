@@ -55,7 +55,7 @@ class HyperVae(BaseVae):
         for hm in self._hyper_modules:
             hm.reset_beta()
 
-    def sample_beta(self, x: torch.Tensor):
+    def sample_beta(self, x: torch.Tensor, warmup=False):
         batch_size = x.shape[0]
         device = x.device
         a = self.hyper_config.sample_range[0]
@@ -69,9 +69,13 @@ class HyperVae(BaseVae):
             sample_dict["trans_beta"] = torch.exp(sample_dict["net_beta"])
 
         elif self.hyper_config.sample_type == "fixed_log_uniform":
-            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-2, 2).to(device)
-            # Equivalent to setting a = -3 and b = 1
-            sample_dict["trans_beta"] = torch.pow(10, sample_dict["net_beta"] - 1)
+            if warmup:
+                sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-2, 0.1).to(device)
+                sample_dict["trans_beta"] = torch.pow(10, sample_dict["net_beta"] - 1)
+            else:
+                sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-2, 2).to(device)
+                # Equivalent to setting a = -3 and b = 1
+                sample_dict["trans_beta"] = torch.pow(10, sample_dict["net_beta"] - 1)
 
         elif self.hyper_config.sample_type == "fixed_normal":
             sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).normal_(mean=0, std=1).to(device)
@@ -119,8 +123,8 @@ class HyperVae(BaseVae):
     def forward(self, x):
         raise NotImplementedError
 
-    def sample_forward(self, x):
-        sample_dict = self.sample_beta(x)
+    def sample_forward(self, x, warmup=False):
+        sample_dict = self.sample_beta(x, warmup)
         self.set_beta(sample_dict["net_beta"])
         output_dict = self.forward(x)
         output_dict["beta"] = sample_dict["trans_beta"]

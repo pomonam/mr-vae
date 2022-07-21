@@ -29,13 +29,14 @@ parser.add_argument("--training_method", type=str, default="sequential",
                     choices=["simultaneous", "sequential"])
 parser.add_argument("--hyper_type", type=str, default="svd")
 parser.add_argument("--block_type", type=str, default="linear")
-parser.add_argument("--include_output_linear", type=int, default=0)
+parser.add_argument("--include_output_linear", type=int, default=1)
 parser.add_argument("--include_sigmoid_activation", type=int, default=1)
 parser.add_argument("--sample_type", type=str, default="fixed_log_uniform")
 parser.add_argument("--sample_range", type=tuple, default=(1e-3, 10))
+parser.add_argument("--warmup", type=int, default=25)
 
-parser.add_argument("--total_epochs", type=int, default=2)
-parser.add_argument("--lr", type=float, default=1e-3)
+parser.add_argument("--total_epochs", type=int, default=5)
+parser.add_argument("--lr", type=float, default=1e-4)
 parser.add_argument("--batch_size", type=int, default=128)
 
 parser.add_argument("--seed", type=int, default=0)
@@ -155,7 +156,11 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
                 loss.backward()
                 optimizer.step()
 
-            output_dict = model.sample_forward(inputs)
+            if epoch <= hyper_cfg.warmup:
+                output_dict = model.sample_forward(inputs, warmup=True)
+            else:
+                output_dict = model.sample_forward(inputs)
+
             loss, loss_dict = criterion(output_dict, output_dict["beta"])
             optimizer.zero_grad()
             loss.backward()
