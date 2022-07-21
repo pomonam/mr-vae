@@ -116,7 +116,7 @@ class HyperModule(nn.Module):
             orig_out = self.module(inputs)
 
             out = self.hyper_mult(orig_out, hyper_w_out) @ self.weight_output_layer
-            out = out + hyper_b_out
+            # out = out + hyper_b_out
 
         else:
             raise NotImplementedError
