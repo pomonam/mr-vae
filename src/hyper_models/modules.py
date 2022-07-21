@@ -68,9 +68,10 @@ class HyperModule(nn.Module):
         if self.hyper_type == "add":
             self.add_hyper_module = copy.deepcopy(module)
         elif self.hyper_type == "svd":
-            self.add_hyper_module = copy.deepcopy(module)
-            self.weight_output_layer = nn.Parameter(torch.ones(self.output_dim, self.output_dim))
-            torch.nn.init.eye_(self.weight_output_layer.data)
+            # self.add_hyper_module = copy.deepcopy(module)
+            # self.weight_output_layer = nn.Parameter(torch.ones(self.output_dim, self.output_dim))
+            # torch.nn.init.eye_(self.weight_output_layer.data)
+            self.weight_output_layer = nn.Linear(self.output_dim, self.output_dim)
         else:
             self.add_hyper_module = None
             self.weight_output_layer = None
@@ -115,7 +116,8 @@ class HyperModule(nn.Module):
             hyper_b_out = hyper_out[:, self.output_dim:]
             orig_out = self.module(inputs)
 
-            out = self.hyper_mult(orig_out, hyper_w_out) @ self.weight_output_layer
+            out = self.hyper_mult(orig_out, hyper_w_out)
+            out = self.weight_output_layer(out)
             # out = out + hyper_b_out
 
         else:
