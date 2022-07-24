@@ -2,6 +2,16 @@ import torch
 from torch import nn
 
 
+def get_block(name):
+    _BLOCK_DICT = {
+        "linear": LinearBlock,
+        "mlp": MlpBlock,
+        "residual": ResidualBlock,
+        "bn_residual": BatchNormResidualBlock,
+    }
+    return _BLOCK_DICT[name]
+
+
 class BaseBlock(nn.Module):
 
     def __init__(self,
