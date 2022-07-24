@@ -33,7 +33,7 @@ class HyperConfig:
     def __init__(self, args):
         self.hyper_type = args.hyper_type
         self.block_type = args.block_type
-        self.include_output_linear = args.include_output_linear
+        self.include_output_layer = args.include_output_layer
         self.include_sigmoid_activation = args.include_sigmoid_activation
         self.warmup = args.warmup
 
