@@ -9,14 +9,14 @@ import wandb
 from experiments.b_mnist.input_pipeline import build_input_queue
 from experiments.b_mnist.model_pipeline import build_criterion
 from experiments.b_mnist.model_pipeline import build_hyper_model
+from experiments.init_wandb import init_wandb
+from src.config import HyperConfig
+from src.config import TrainConfig
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
-from experiments.init_wandb import init_wandb
 from src.utils import seed_everything
-from src.config import HyperConfig
-from src.config import TrainConfig
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-hyper-b_mnist_mlp")
@@ -26,13 +26,12 @@ parser.add_argument("--decoder_name", type=str, default="mlp")
 
 parser.add_argument("--training_method", type=str, default="sequential",
                     choices=["simultaneous", "sequential"])
-parser.add_argument("--hyper_type", type=str, default="svd")
+parser.add_argument("--hyper_type", type=str, default="mult")
 parser.add_argument("--block_type", type=str, default="linear")
 parser.add_argument("--include_output_layer", type=int, default=1)
 parser.add_argument("--include_sigmoid_activation", type=int, default=1)
 parser.add_argument("--sample_type", type=str, default="fixed_log_uniform")
 parser.add_argument("--sample_range", type=tuple, default=(1e-3, 10))
-parser.add_argument("--warmup", type=int, default=25)
 
 parser.add_argument("--total_epochs", type=int, default=5)
 parser.add_argument("--lr", type=float, default=1e-4)
@@ -155,10 +154,10 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
                 loss.backward()
                 optimizer.step()
 
-            if epoch <= hyper_cfg.warmup:
-                output_dict = model.sample_forward(inputs, warmup=True)
-            else:
-                output_dict = model.sample_forward(inputs)
+            # if epoch <= hyper_cfg.warmup:
+            #     output_dict = model.sample_forward(inputs, warmup=True)
+            # else:
+            output_dict = model.sample_forward(inputs)
 
             loss, loss_dict = criterion(output_dict, output_dict["beta"])
             optimizer.zero_grad()
