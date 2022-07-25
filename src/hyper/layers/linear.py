@@ -40,21 +40,22 @@ class HyperLinear(HyperModule):
                 self.hyper_bias = torch.nn.Parameter(torch.empty(self.out_features))
             else:
                 self.register_parameter("hyper_bias", None)
+        self.reset_hyper_parameters()
 
     def reset_parameters(self, module):
         self.weight.data.copy_(module.weight.data)
         if module.bias is not None:
             self.bias.data.copy_(module.bias.data)
 
-    def set_hyper_parameters(self):
+    def reset_hyper_parameters(self):
         if self.output_layer is not None:
             init.eye_(self.output_layer.weight.data)
         if self.hyper_type == "add":
-            init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+            init.kaiming_uniform_(self.hyper_weight, a=math.sqrt(5))
             if self.hyper_bias is not None:
-                fan_in, _ = init._calculate_fan_in_and_fan_out(self.weight)
+                fan_in, _ = init._calculate_fan_in_and_fan_out(self.hyper_weight)
                 bound = 1 / math.sqrt(fan_in) if fan_in > 0 else 0
-                init.uniform_(self.bias, -bound, bound)
+                init.uniform_(self.hyper_bias, -bound, bound)
 
     def forward(self, inputs):
         hyper_out = self.beta_block(self._beta)

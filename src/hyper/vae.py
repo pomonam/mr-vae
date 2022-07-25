@@ -89,13 +89,11 @@ class HyperVae(BaseVae):
             sample_dict["trans_beta"] = torch.exp(sample_dict["net_beta"])
 
         elif self.hyper_config.sample_type == "fixed_log_uniform":
-            if warmup:
-                sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-2, 0.1).to(device)
-                sample_dict["trans_beta"] = torch.pow(10, sample_dict["net_beta"] - 1)
-            else:
-                sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-2, 2).to(device)
-                # Equivalent to setting a = -3 and b = 1
-                sample_dict["trans_beta"] = torch.pow(10, sample_dict["net_beta"] - 1)
+            cons = math.sqrt(3)
+            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-cons, cons).to(device)
+            # Equivalent to setting a = -3 and b = 1
+            norm_beta = sample_dict["net_beta"] * (2 * cons) / 3
+            sample_dict["trans_beta"] = torch.pow(10, norm_beta - 1)
 
         elif self.hyper_config.sample_type == "fixed_normal":
             sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).normal_(mean=0, std=1).to(device)
@@ -120,7 +118,8 @@ class HyperVae(BaseVae):
             trans_beta = torch.log(beta)
 
         elif self.hyper_config.sample_type == "fixed_log_uniform":
-            beta = ones * beta
+            cons = math.sqrt(3)
+            beta = (ones * beta) * 3 / (2 * cons)
             trans_beta = torch.log10(beta) + 1
 
         elif self.hyper_config.sample_type == "fixed_normal":
