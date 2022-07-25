@@ -30,6 +30,8 @@ class TrainConfig:
 
 
 class HyperConfig:
+    preprocess_dim = 512
+
     def __init__(self, args):
         self.hyper_type = args.hyper_type
         self.block_type = args.block_type
@@ -40,3 +42,4 @@ class HyperConfig:
         self.sample_range = args.sample_range
 
         self.training_method = args.training_method
+        self.preprocess_beta = args.preprocess_beta

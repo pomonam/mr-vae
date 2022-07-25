@@ -30,6 +30,7 @@ parser.add_argument("--hyper_type", type=str, default="add")
 parser.add_argument("--block_type", type=str, default="linear")
 parser.add_argument("--include_output_layer", type=int, default=1)
 parser.add_argument("--include_sigmoid_activation", type=int, default=1)
+parser.add_argument("--preprocess_beta", type=int, default=0)
 parser.add_argument("--sample_type", type=str, default="fixed_log_uniform")
 parser.add_argument("--sample_range", type=tuple, default=(1e-3, 10))
 
@@ -147,18 +148,14 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
         for batch in p_bar:
             inputs = batch["inputs"]
 
-            if hyper_cfg.training_method == "sequential":
-                output_dict = model.fixed_forward(inputs, 1)
-                loss, loss_dict = criterion(output_dict, output_dict["beta"])
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+            # if hyper_cfg.training_method == "sequential":
+            #     output_dict = model.fixed_forward(inputs, 1)
+            #     loss, loss_dict = criterion(output_dict, output_dict["beta"])
+            #     optimizer.zero_grad()
+            #     loss.backward()
+            #     optimizer.step()
 
-            # if epoch <= hyper_cfg.warmup:
-            #     output_dict = model.sample_forward(inputs, warmup=True)
-            # else:
             output_dict = model.sample_forward(inputs)
-
             loss, loss_dict = criterion(output_dict, output_dict["beta"])
             optimizer.zero_grad()
             loss.backward()
