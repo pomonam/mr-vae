@@ -1,5 +1,5 @@
-import torch.nn.functional as F
 import torch
+import torch.nn.functional as F
 
 
 def linear(x, low=0., high=0.):

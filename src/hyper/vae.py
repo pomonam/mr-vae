@@ -1,11 +1,40 @@
 import math
 
 import torch
+from torch import nn
 
-from src.hyper_models.transformations import stretch_sigmoid, stretch_sigmoid_inv
-from src.hyper_models.modules import HyperModule
-from src.hyper_models.modules import replace_module
+from src.config import HyperConfig
+from src.hyper.layers.blocks import BatchNormResidualBlock
+from src.hyper.layers.blocks import LinearBlock
+from src.hyper.layers.blocks import MlpBlock
+from src.hyper.layers.blocks import ResidualBlock
+from src.hyper.layers.linear import HyperLinear
+from src.hyper.layers.module import HyperModule
+from src.hyper.transformations import stretch_sigmoid
+from src.hyper.transformations import stretch_sigmoid_inv
+# from src.hyper.layers.module import replace_module
 from src.models.vae import BaseVae
+
+_BLOCK_DICT = {
+    "linear": LinearBlock,
+    "mlp": MlpBlock,
+    "residual": ResidualBlock,
+    "bn_residual": BatchNormResidualBlock,
+}
+
+
+def replace_module(model: nn.Module, hyper_config: HyperConfig) -> None:
+    for name, module in model.named_children():
+        if len(list(module.children())) > 0:
+            replace_module(module, hyper_config)
+
+        if isinstance(module, nn.Linear):
+            hyper_module = HyperLinear(module, hyper_config)
+            setattr(model, name, hyper_module)
+
+        if isinstance(module, nn.Conv2d) or isinstance(module, nn.ConvTranspose2d):
+            hyper_module = HyperModule(module, hyper_config)
+            setattr(model, name, hyper_module)
 
 
 class HyperVae(BaseVae):
@@ -37,15 +66,6 @@ class HyperVae(BaseVae):
         for module in self.sampler.modules():
             if isinstance(module, HyperModule):
                 self._hyper_modules.append(module)
-
-    def get_general_parameters(self):
-        params = []
-        for m in self._hyper_modules:
-            params = params + list(m.parameters())
-        return params
-
-    def get_hyper_parameters(self):
-        pass
 
     def set_beta(self, beta: torch.Tensor) -> None:
         for hm in self._hyper_modules:
@@ -123,8 +143,8 @@ class HyperVae(BaseVae):
     def forward(self, x):
         raise NotImplementedError
 
-    def sample_forward(self, x, warmup=False):
-        sample_dict = self.sample_beta(x, warmup)
+    def sample_forward(self, x):
+        sample_dict = self.sample_beta(x)
         self.set_beta(sample_dict["net_beta"])
         output_dict = self.forward(x)
         output_dict["beta"] = sample_dict["trans_beta"]

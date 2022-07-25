@@ -6,16 +6,16 @@ import numpy as np
 import torch
 import tqdm
 import wandb
-from src.config import TrainConfig
 
 from experiments.b_mnist.input_pipeline import build_input_queue
 from experiments.b_mnist.model_pipeline import build_criterion
 from experiments.b_mnist.model_pipeline import build_model
+from experiments.init_wandb import init_wandb
+from src.config import TrainConfig
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
-from experiments.init_wandb import init_wandb
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
