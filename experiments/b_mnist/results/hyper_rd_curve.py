@@ -6,8 +6,8 @@ from experiments.init_wandb import init_api
 from src.plotting import init_plotting
 
 ENTITY = "bae-group"
-EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v13"
-ID = "2p5relqj"
+EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v15"
+ID = "3dikjv3g"
 
 
 def get_summary(summary):
@@ -45,8 +45,8 @@ def main():
 
     min_val = min(np.min(rate), np.min(dist)) - 10
     max_val = max(np.max(rate), np.max(dist)) + 10
-    plt.xlim(min_val, max_val)
-    plt.ylim(min_val, max_val)
+    # plt.xlim(min_val, max_val)
+    # plt.ylim(min_val, max_val)
 
     plt.xlabel("Rate")
     plt.ylabel("Distortion")
