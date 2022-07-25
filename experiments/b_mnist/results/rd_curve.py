@@ -1,9 +1,10 @@
-from src.plotting import init_plotting
-import matplotlib.pyplot as plt
-import numpy as np
-from experiments.init_wandb import init_api
 from matplotlib.collections import LineCollection
 import matplotlib.colors as colors
+import matplotlib.pyplot as plt
+import numpy as np
+
+from experiments.init_wandb import init_api
+from src.plotting import init_plotting
 
 ENTITY = "bae-group"
 EXPERIMENT_NAME = "hv-b_mnist_mlp_train-v5"

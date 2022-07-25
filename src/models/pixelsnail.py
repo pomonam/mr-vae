@@ -6,8 +6,9 @@ https://github.com/rosinality/vq-vae-2-pytorch/blob/master/pixelsnail.py
 """
 
 
+from functools import lru_cache
+from functools import partial
 from math import sqrt
-from functools import partial, lru_cache
 
 import numpy as np
 import torch
