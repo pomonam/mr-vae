@@ -32,7 +32,7 @@ class HyperLinear(HyperModule):
         if self.cfg.include_output_layer:
             self.output_layer = nn.Linear(self.out_features, self.out_features, bias=False)
         else:
-            self.register_module("output_layer", None)
+            self.output_layer = None
 
         if self.hyper_type == "add":
             self.hyper_weight = torch.nn.Parameter(torch.empty((self.out_features, self.in_features)))
@@ -66,7 +66,7 @@ class HyperLinear(HyperModule):
             hyper_out = F.linear(inputs, self.hyper_weight) * hyper_weight
             if self.cfg.include_output_layer:
                 hyper_out = self.output_layer(hyper_out)
-            if self.hyper_bias:
+            if self.hyper_bias is not None:
                 hyper_out = hyper_out + self.hyper_bias.repeat(inputs.shape[0], 1) * hyper_bias
             out = out + hyper_out
 
