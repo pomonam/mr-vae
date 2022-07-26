@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-import argparse
-from src.plotting import init_plotting
-=======
->>>>>>> e1578335623f300fbb62e5aece99684fa1dd1442
 import matplotlib.pyplot as plt
 import numpy as np
 
