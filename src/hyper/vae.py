@@ -1,11 +1,40 @@
 import math
 
 import torch
+from torch import nn
 
-from src.hyper_models.transformations import stretch_sigmoid, stretch_sigmoid_inv
-from src.hyper_models.modules import HyperModule
-from src.hyper_models.modules import replace_module
+from src.config import HyperConfig
+from src.hyper.layers.blocks import BatchNormResidualBlock
+from src.hyper.layers.blocks import LinearBlock
+from src.hyper.layers.blocks import MlpBlock
+from src.hyper.layers.blocks import ResidualBlock
+from src.hyper.layers.linear import HyperLinear
+from src.hyper.layers.module import HyperModule
+from src.hyper.transformations import stretch_sigmoid
+from src.hyper.transformations import stretch_sigmoid_inv
+# from src.hyper.layers.module import replace_module
 from src.models.vae import BaseVae
+
+_BLOCK_DICT = {
+    "linear": LinearBlock,
+    "mlp": MlpBlock,
+    "residual": ResidualBlock,
+    "bn_residual": BatchNormResidualBlock,
+}
+
+
+def replace_module(model: nn.Module, hyper_config: HyperConfig) -> None:
+    for name, module in model.named_children():
+        if len(list(module.children())) > 0:
+            replace_module(module, hyper_config)
+
+        if isinstance(module, nn.Linear):
+            hyper_module = HyperLinear(module, hyper_config)
+            setattr(model, name, hyper_module)
+
+        if isinstance(module, nn.Conv2d) or isinstance(module, nn.ConvTranspose2d):
+            hyper_module = HyperModule(module, hyper_config)
+            setattr(model, name, hyper_module)
 
 
 class HyperVae(BaseVae):
@@ -38,15 +67,6 @@ class HyperVae(BaseVae):
             if isinstance(module, HyperModule):
                 self._hyper_modules.append(module)
 
-    def get_general_parameters(self):
-        params = []
-        for m in self._hyper_modules:
-            params = params + list(m.parameters())
-        return params
-
-    def get_hyper_parameters(self):
-        pass
-
     def set_beta(self, beta: torch.Tensor) -> None:
         for hm in self._hyper_modules:
             hm.set_beta(beta)
@@ -55,7 +75,7 @@ class HyperVae(BaseVae):
         for hm in self._hyper_modules:
             hm.reset_beta()
 
-    def sample_beta(self, x: torch.Tensor):
+    def sample_beta(self, x: torch.Tensor, warmup=False):
         batch_size = x.shape[0]
         device = x.device
         a = self.hyper_config.sample_range[0]
@@ -69,9 +89,11 @@ class HyperVae(BaseVae):
             sample_dict["trans_beta"] = torch.exp(sample_dict["net_beta"])
 
         elif self.hyper_config.sample_type == "fixed_log_uniform":
-            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-2, 2).to(device)
+            cons = math.sqrt(3)
+            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-cons, cons).to(device)
             # Equivalent to setting a = -3 and b = 1
-            sample_dict["trans_beta"] = torch.pow(10, sample_dict["net_beta"] - 1)
+            norm_beta = sample_dict["net_beta"] * (2 * cons) / 3
+            sample_dict["trans_beta"] = torch.pow(10, norm_beta - 1)
 
         elif self.hyper_config.sample_type == "fixed_normal":
             sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).normal_(mean=0, std=1).to(device)
@@ -96,7 +118,8 @@ class HyperVae(BaseVae):
             trans_beta = torch.log(beta)
 
         elif self.hyper_config.sample_type == "fixed_log_uniform":
-            beta = ones * beta
+            cons = math.sqrt(3)
+            beta = (ones * beta) * 3 / (2 * cons)
             trans_beta = torch.log10(beta) + 1
 
         elif self.hyper_config.sample_type == "fixed_normal":
@@ -130,7 +153,10 @@ class HyperVae(BaseVae):
         fixed_beta = self.fixed_beta(x, beta)
         self.set_beta(fixed_beta)
         output_dict = self.forward(x)
-        # output_dict["beta"] = fixed_beta
+
+        batch_size = x.shape[0]
+        device = x.device
+        output_dict["beta"] = torch.ones(batch_size, 1).to(device) * beta
         return output_dict
 
     def hyper_ignore_forward(self, x):

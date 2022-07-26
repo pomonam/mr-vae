@@ -10,11 +10,13 @@ import wandb
 from experiments.b_mnist.input_pipeline import build_input_queue
 from experiments.b_mnist.model_pipeline import build_criterion
 from experiments.b_mnist.model_pipeline import build_hyper_model
+from experiments.init_wandb import init_wandb
+from src.config import HyperConfig
+from src.config import TrainConfig
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
-from experiments.init_wandb import init_wandb
 from src.utils import seed_everything
 from src.utils import analytic_rate_and_distortion
 from src.config import HyperConfig
@@ -26,18 +28,18 @@ parser.add_argument("--experiment_name", type=str, default="hyper_vae-hyper-b_mn
 parser.add_argument("--encoder_name", type=str, default="mlp")
 parser.add_argument("--decoder_name", type=str, default="mlp")
 
-# Configurations specific to the hypernet ...
-parser.add_argument("--training_method", type=str, default="simultaneous",
+parser.add_argument("--training_method", type=str, default="sequential",
                     choices=["simultaneous", "sequential"])
-parser.add_argument("--hyper_type", type=str, default="mult")
+parser.add_argument("--hyper_type", type=str, default="add")
 parser.add_argument("--block_type", type=str, default="linear")
-parser.add_argument("--include_output_linear", type=int, default=1)
+parser.add_argument("--include_output_layer", type=int, default=1)
 parser.add_argument("--include_sigmoid_activation", type=int, default=1)
-parser.add_argument("--sample_type", type=str, default="fixed_normal")
+parser.add_argument("--preprocess_beta", type=int, default=0)
+parser.add_argument("--sample_type", type=str, default="fixed_log_uniform")
 parser.add_argument("--sample_range", type=tuple, default=(1e-3, 10))
 
-parser.add_argument("--total_epochs", type=int, default=200)
-parser.add_argument("--lr", type=float, default=1e-3)
+parser.add_argument("--total_epochs", type=int, default=5)
+parser.add_argument("--lr", type=float, default=1e-4)
 parser.add_argument("--batch_size", type=int, default=128)
 
 parser.add_argument("--seed", type=int, default=0)
@@ -161,12 +163,12 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
         for batch in p_bar:
             inputs = batch["inputs"]
 
-            if hyper_cfg.training_method == "sequential":
-                output_dict = model.hyper_ignore_forward(inputs)
-                loss, loss_dict = criterion(output_dict, output_dict["beta"])
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+            # if hyper_cfg.training_method == "sequential":
+            #     output_dict = model.fixed_forward(inputs, 1)
+            #     loss, loss_dict = criterion(output_dict, output_dict["beta"])
+            #     optimizer.zero_grad()
+            #     loss.backward()
+            #     optimizer.step()
 
             output_dict = model.sample_forward(inputs)
             loss, loss_dict = criterion(output_dict, output_dict["beta"])
