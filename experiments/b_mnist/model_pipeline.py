@@ -11,7 +11,7 @@ from experiments.b_mnist.models.encoders import ResNetEncoder
 from experiments.b_mnist.models.encoders import LinearEncoder
 from src.criterions import binary_cross_entropy
 from src.criterions import kl_gaussian
-from src.hyper_models.vae import HyperVae
+from src.hyper.vae import HyperVae
 from src.models.samplers import IsotropicGaussianSampler
 from src.models.vae import BaseVae
 
