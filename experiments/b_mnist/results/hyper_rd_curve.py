@@ -69,7 +69,7 @@ def main():
 
         analytical_rate = np.array([c[0] for c in analytical_combined_dict.values()])
         analytical_dist = np.array([c[1] for c in analytical_combined_dict.values()])
-        analytical_rd = plt.plot(analytical_rate, analytical_dist, label='Analytical')
+        plt.plot(analytical_rate, analytical_dist, label='Analytical')
         min_val = min(min_val, np.min(analytical_rate), np.min(analytical_dist))
         max_val = min(max_val, np.max(analytical_rate), np.max(analytical_dist))
 
@@ -78,7 +78,7 @@ def main():
 
     plt.xlim(min_val, max_val)
     plt.ylim(min_val, max_val)
-    
+
     plt.xlabel("Rate")
     plt.ylabel("Distortion")
 
