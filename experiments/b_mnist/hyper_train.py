@@ -1,5 +1,6 @@
 import argparse
 import os
+os.environ["WANDB_API_KEY"] = "65a71cb86f66a117460fb632080693d4cc9ab979"
 
 import numpy as np
 import torch
@@ -15,6 +16,7 @@ from src.evaluate import summarize_metric
 from src.evaluate import update_metric
 from experiments.init_wandb import init_wandb
 from src.utils import seed_everything
+from src.utils import analytic_rate_and_distortion
 from src.config import HyperConfig
 from src.config import TrainConfig
 
@@ -34,7 +36,7 @@ parser.add_argument("--include_sigmoid_activation", type=int, default=1)
 parser.add_argument("--sample_type", type=str, default="fixed_normal")
 parser.add_argument("--sample_range", type=tuple, default=(1e-3, 10))
 
-parser.add_argument("--total_epochs", type=int, default=2)
+parser.add_argument("--total_epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
 
@@ -52,31 +54,42 @@ def hyper_evaluate(model, criterion, epoch, name):
     model.eval()
 
     with torch.no_grad():
-        beta_lst = np.logspace(-3, 1, num=20)
+        beta_lst = np.logspace(-3, 1, num=4)
         loss_lst = []
         rate_lst = []
         dist_lst = []
 
-        for beta in beta_lst:
-            loader = build_input_queue(name, args.batch_size, DEVICE)
-            p_bar = tqdm.tqdm(loader)
-            metric_dict = initialize_metric(criterion.get_metric_lst())
 
-            for batch in p_bar:
-                inputs = batch["inputs"]
-                output_dict = model.fixed_forward(inputs, beta)
-                # We want to compute exact ELBO here
-                _, loss_dict = criterion.eval_forward(output_dict)
+        if name == "analytical":
+            for beta in beta_lst:
+                loader = build_input_queue(name, args.batch_size, DEVICE)
+                rate, dist = analytic_rate_and_distortion(model, loader, beta)
+                rate_lst.append(rate)
+                dist_lst.append(dist)
 
-                metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
-                summ_dict = summarize_metric(metric_dict)
-                summ_str = generate_metric_str(name, epoch, summ_dict)
-                p_bar.set_description(summ_str)
+                # HACK: idk how to do loss_lst rn
+                loss_lst.append(0)
+        else:
+            for beta in beta_lst:
+                metric_dict = initialize_metric(criterion.get_metric_lst())
+                loader = build_input_queue(name, args.batch_size, DEVICE)
+                p_bar = tqdm.tqdm(loader)
 
-            summ_dict = summarize_metric(metric_dict, name="")
-            loss_lst.append(summ_dict["loss"])
-            rate_lst.append(summ_dict["rate"])
-            dist_lst.append(summ_dict["distortion"])
+                for batch in p_bar:
+                    inputs = batch["inputs"]
+                    output_dict = model.fixed_forward(inputs, beta)
+                    # We want to compute exact ELBO here
+                    _, loss_dict = criterion.eval_forward(output_dict)
+
+                    metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
+                    summ_dict = summarize_metric(metric_dict)
+                    summ_str = generate_metric_str(name, epoch, summ_dict)
+                    p_bar.set_description(summ_str)
+
+                summ_dict = summarize_metric(metric_dict, name="")
+                loss_lst.append(summ_dict["loss"])
+                rate_lst.append(summ_dict["rate"])
+                dist_lst.append(summ_dict["distortion"])
 
         wandb.log({
             f"{name}/loss_lst": loss_lst,
@@ -186,6 +199,8 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     criterion = build_criterion(DEVICE)
     hyper_train(model, build_input_queue, criterion, optimizer, cfg, hyper_cfg)
+    if args.encoder_name == "linear" and args.encoder_name == "linear":
+        hyper_evaluate(model, criterion, cfg.total_epochs, "analytical")
     hyper_evaluate(model, criterion, cfg.total_epochs, "train_eval")
     hyper_evaluate(model, criterion, cfg.total_epochs, "test")
 
