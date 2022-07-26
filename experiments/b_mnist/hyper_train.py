@@ -1,6 +1,5 @@
 import argparse
 import os
-os.environ["WANDB_API_KEY"] = "65a71cb86f66a117460fb632080693d4cc9ab979"
 
 import numpy as np
 import torch
@@ -56,7 +55,7 @@ def hyper_evaluate(model, criterion, epoch, name):
     model.eval()
 
     with torch.no_grad():
-        beta_lst = np.logspace(-3, 1, num=4)
+        beta_lst = np.logspace(-3, 1, num=20)
         loss_lst = []
         rate_lst = []
         dist_lst = []

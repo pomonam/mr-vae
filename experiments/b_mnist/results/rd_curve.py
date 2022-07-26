@@ -6,8 +6,8 @@ import numpy as np
 from experiments.init_wandb import init_api
 from src.plotting import init_plotting
 
-ENTITY = "lrscheduler114"
-EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper"
+ENTITY = "bae-group"
+EXPERIMENT_NAME = "hv-b_mnist_mlp_train-v5"
 
 
 def get_summary(config_lst, summary_lst, lr=1e-3, schedule="constant",
@@ -81,7 +81,7 @@ def main():
     rate_dict = results[0]
     dist_dict = results[1]
     elbo_dict = results[2]
-    
+
     keys = rate_dict.keys()
     values = zip(rate_dict.values(), dist_dict.values())
     combined_dict = dict(zip(keys, values))
