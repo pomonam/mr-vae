@@ -76,7 +76,7 @@ def load_data(split,
         dataset = test_data
     
     elif split == "analytical":
-        dataset = np.concatenate((train_data, valid_data, test_data), axis=0)
+        dataset = train_data
         
     else:
         raise ValueError("Invalid split {:split}")
