@@ -39,7 +39,7 @@ class HyperConfig:
         self.include_sigmoid_activation = args.include_sigmoid_activation
 
         self.sample_type = args.sample_type
-        self.sample_range = args.sample_range
+        # self.sample_range = args.sample_range
 
         self.training_method = args.training_method
         self.preprocess_beta = args.preprocess_beta

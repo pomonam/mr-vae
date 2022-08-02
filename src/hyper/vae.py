@@ -75,69 +75,51 @@ class HyperVae(BaseVae):
         for hm in self._hyper_modules:
             hm.reset_beta()
 
-    def sample_beta(self, x: torch.Tensor, warmup=False):
+    def sample_beta(self, x: torch.Tensor):
         batch_size = x.shape[0]
         device = x.device
-        a = self.hyper_config.sample_range[0]
-        b = self.hyper_config.sample_range[1]
         sample_dict = {}
 
-        if self.hyper_config.sample_type == "log_uniform":
-            a = math.log(a)
-            b = math.log(b)
-            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(a, b).to(device)
-            sample_dict["trans_beta"] = torch.exp(sample_dict["net_beta"])
+        if self.hyper_config.sample_type == "fixed_log_uniform0.1":
+            const = math.sqrt(3)
+            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-const, const).to(device)
+            norm_beta = (sample_dict["net_beta"] * (2 * const) / 3) - 1
+            sample_dict["trans_beta"] = torch.pow(10, norm_beta)
 
-        elif self.hyper_config.sample_type == "fixed_log_uniform":
-            cons = math.sqrt(3)
-            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-cons, cons).to(device)
-            # Equivalent to setting a = -3 and b = 1
-            norm_beta = sample_dict["net_beta"] * (2 * cons) / 3
-            sample_dict["trans_beta"] = torch.pow(10, norm_beta - 1)
-
-        elif self.hyper_config.sample_type == "fixed_normal":
-            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).normal_(mean=0, std=1).to(device)
-            sample_dict["trans_beta"] = stretch_sigmoid(sample_dict["net_beta"] - 2, low=1e-3, high=10, slope=2)
-
-        elif self.hyper_config.sample_type == "uniform":
-            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(a, b).to(device)
-            sample_dict["trans_beta"] = torch.exp(sample_dict["net_beta"])
+        elif self.hyper_config.sample_type == "fixed_log_uniform1.0":
+            const = math.sqrt(3)
+            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-const, const).to(device)
+            sample_dict["trans_beta"] = torch.FloatTensor(batch_size, 1).to(device)
+            sample_dict["trans_beta"][sample_dict["net_beta"] >= 0.] = \
+                torch.pow(10, sample_dict["net_beta"][sample_dict["net_beta"] >= 0.] * const / 3)
+            sample_dict["trans_beta"][sample_dict["net_beta"] < 0.] = \
+                torch.pow(10, sample_dict["net_beta"][sample_dict["net_beta"] < 0.] * const)
 
         else:
             raise NotImplementedError
 
         return sample_dict
 
-    def fixed_beta(self, x: torch.Tensor, beta: float):
+    def fixed_beta(self, x: torch.Tensor, trans_beta: float):
         batch_size = x.shape[0]
         device = x.device
         ones = torch.ones(batch_size, 1).to(device)
+        beta = trans_beta * ones
+        const = math.sqrt(3)
 
-        if self.hyper_config.sample_type == "log_uniform":
-            beta = ones * beta
-            trans_beta = torch.log(beta)
+        if self.hyper_config.sample_type == "fixed_log_uniform0.1":
+            net_beta = (torch.log10(beta) + 1) * (3 / (2 * const))
 
-        elif self.hyper_config.sample_type == "fixed_log_uniform":
-            cons = math.sqrt(3)
-            beta = (ones * beta) * 3 / (2 * cons)
-            trans_beta = torch.log10(beta) + 1
-
-        elif self.hyper_config.sample_type == "fixed_normal":
-            beta = ones * beta
-            trans_beta = stretch_sigmoid_inv(beta, low=1e-3, high=10, slope=2) + 2
-
-        elif self.hyper_config.sample_type == "normal":
-            # sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).normal_(0, std=1).to(device)
-            # sample_dict["trans_beta"] = stretch_sigmoid(sample_dict["net_beta"], low=a, high=b)
-            trans_beta = None
-
-        elif self.hyper_config.sample_type == "uniform":
-            trans_beta = ones * math.log(beta)
+        elif self.hyper_config.sample_type == "fixed_log_uniform1.0":
+            if trans_beta >= 1:
+                net_beta = torch.log10(beta) * (3 / const)
+            else:
+                net_beta = torch.log10(beta) * (1 / const)
 
         else:
             raise NotImplementedError
 
-        return trans_beta
+        return net_beta
 
     def forward(self, x):
         raise NotImplementedError
@@ -150,8 +132,8 @@ class HyperVae(BaseVae):
         return output_dict
 
     def fixed_forward(self, x, beta):
-        fixed_beta = self.fixed_beta(x, beta)
-        self.set_beta(fixed_beta)
+        net_beta = self.fixed_beta(x, beta)
+        self.set_beta(net_beta)
         output_dict = self.forward(x)
 
         batch_size = x.shape[0]
