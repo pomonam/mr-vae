@@ -4,11 +4,9 @@ from torch import nn
 from experiments.b_mnist.models.decoders import CNNDecoder
 from experiments.b_mnist.models.decoders import MLPDecoder
 from experiments.b_mnist.models.decoders import PixelCNNDecoder
-from experiments.b_mnist.models.decoders import LinearDecoder
 from experiments.b_mnist.models.encoders import CNNEncoder
 from experiments.b_mnist.models.encoders import MLPEncoder
 from experiments.b_mnist.models.encoders import ResNetEncoder
-from experiments.b_mnist.models.encoders import LinearEncoder
 from src.criterions import binary_cross_entropy
 from src.criterions import kl_gaussian
 from src.hyper.vae import HyperVae
@@ -55,8 +53,6 @@ def build_model(encoder_name, decoder_name, device):
         encoder = CNNEncoder()
     elif encoder_name == "resnet":
         encoder = ResNetEncoder()
-    elif encoder_name == "linear":
-        encoder = LinearEncoder()
     else:
         raise ValueError()
 
@@ -68,8 +64,6 @@ def build_model(encoder_name, decoder_name, device):
         decoder = CNNDecoder()
     elif decoder_name == "pixelcnn":
         decoder = PixelCNNDecoder()
-    elif decoder_name == "linear":
-        decoder = LinearDecoder()
     else:
         raise ValueError()
     model = BinarizedMnistMlpModel(encoder=encoder, decoder=decoder, sampler=sampler)
@@ -83,8 +77,6 @@ def build_hyper_model(encoder_name, decoder_name, hyper_config, device):
         encoder = CNNEncoder()
     elif encoder_name == "resnet":
         encoder = ResNetEncoder()
-    elif encoder_name == "linear":
-        encoder = LinearEncoder()
     else:
         raise ValueError()
 
@@ -96,8 +88,6 @@ def build_hyper_model(encoder_name, decoder_name, hyper_config, device):
         decoder = CNNDecoder()
     elif decoder_name == "pixelcnn":
         decoder = PixelCNNDecoder()
-    elif decoder_name == "linear":
-        decoder = LinearDecoder()
     else:
         raise ValueError()
     model = HyperBinarizedMnistMlpModel(encoder=encoder, decoder=decoder,

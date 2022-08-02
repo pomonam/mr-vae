@@ -60,13 +60,3 @@ class ResNetEncoder(BaseEncoder):
     def forward(self, x):
         return self.layers(x)
 
-
-class LinearEncoder(BaseEncoder):
-    def __init__(self):
-        super().__init__()
-        self.linear1 = nn.Linear(784, 256)
-
-    def forward(self, x):
-        x = x.view(x.shape[0], 784)
-        x = torch.relu(self.linear1(x))
-        return x

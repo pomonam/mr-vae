@@ -89,13 +89,3 @@ class PixelCNNDecoder(BaseDecoder):
     def special_forward(self, z, x):
         return self.special_decode(z, x)
 
-
-class LinearDecoder(BaseDecoder):
-    def __init__(self):
-        super().__init__()
-        self.linear1 = nn.Linear(64, 784)
-
-    def forward(self, z):
-        z = self.linear1(z)
-        z = z.view(z.shape[0], 1, 28, 28)
-        return z

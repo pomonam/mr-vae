@@ -17,7 +17,6 @@ from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
 from src.utils import seed_everything
-from src.utils import analytic_rate_and_distortion
 from src.config import HyperConfig
 from src.config import TrainConfig
 
@@ -60,37 +59,26 @@ def hyper_evaluate(model, criterion, epoch, name):
         rate_lst = []
         dist_lst = []
 
+        for beta in beta_lst:
+            metric_dict = initialize_metric(criterion.get_metric_lst())
+            loader = build_input_queue(name, args.batch_size, DEVICE)
+            p_bar = tqdm.tqdm(loader)
 
-        if name == "analytical":
-            for beta in beta_lst:
-                loader = build_input_queue(name, args.batch_size, DEVICE)
-                rate, dist = analytic_rate_and_distortion(model, loader, beta)
-                rate_lst.append(rate)
-                dist_lst.append(dist)
+            for batch in p_bar:
+                inputs = batch["inputs"]
+                output_dict = model.fixed_forward(inputs, beta)
+                # We want to compute exact ELBO here
+                _, loss_dict = criterion.eval_forward(output_dict)
 
-                # HACK: idk how to do loss_lst rn
-                loss_lst.append(0)
-        else:
-            for beta in beta_lst:
-                metric_dict = initialize_metric(criterion.get_metric_lst())
-                loader = build_input_queue(name, args.batch_size, DEVICE)
-                p_bar = tqdm.tqdm(loader)
+                metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
+                summ_dict = summarize_metric(metric_dict)
+                summ_str = generate_metric_str(name, epoch, summ_dict)
+                p_bar.set_description(summ_str)
 
-                for batch in p_bar:
-                    inputs = batch["inputs"]
-                    output_dict = model.fixed_forward(inputs, beta)
-                    # We want to compute exact ELBO here
-                    _, loss_dict = criterion.eval_forward(output_dict)
-
-                    metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
-                    summ_dict = summarize_metric(metric_dict)
-                    summ_str = generate_metric_str(name, epoch, summ_dict)
-                    p_bar.set_description(summ_str)
-
-                summ_dict = summarize_metric(metric_dict, name="")
-                loss_lst.append(summ_dict["loss"])
-                rate_lst.append(summ_dict["rate"])
-                dist_lst.append(summ_dict["distortion"])
+            summ_dict = summarize_metric(metric_dict, name="")
+            loss_lst.append(summ_dict["loss"])
+            rate_lst.append(summ_dict["rate"])
+            dist_lst.append(summ_dict["distortion"])
 
         wandb.log({
             f"{name}/loss_lst": loss_lst,
@@ -200,8 +188,6 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     criterion = build_criterion(DEVICE)
     hyper_train(model, build_input_queue, criterion, optimizer, cfg, hyper_cfg)
-    if args.encoder_name == "linear" and args.encoder_name == "linear":
-        hyper_evaluate(model, criterion, cfg.total_epochs, "analytical")
     hyper_evaluate(model, criterion, cfg.total_epochs, "train_eval")
     hyper_evaluate(model, criterion, cfg.total_epochs, "test")
 
