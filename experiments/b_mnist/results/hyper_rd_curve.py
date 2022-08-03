@@ -33,6 +33,7 @@ def main():
             name_list.append(run.name)
 
     rate_dict, dist_dict, elbo_dict = get_summary(summary_list[0])
+    
     keys = rate_dict.keys()
     values = zip(rate_dict.values(), dist_dict.values())
     combined_dict = dict(zip(keys, values))

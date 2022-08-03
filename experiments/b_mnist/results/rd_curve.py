@@ -47,7 +47,6 @@ def get_rd(experiment_name):
                                                   schedule="cyclic",
                                                   encoder_name="mlp",
                                                   decoder_name="mlp")
-
     keys = rate_dict.keys()
     values = zip(rate_dict.values(), dist_dict.values())
     combined_dict = dict(zip(keys, values))
