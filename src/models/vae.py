@@ -6,10 +6,7 @@ from src.models.samplers import BaseSampler
 
 
 class BaseVae(nn.Module):
-
-    def __init__(self,
-                 encoder: BaseEncoder,
-                 decoder: BaseDecoder,
+    def __init__(self, encoder: BaseEncoder, decoder: BaseDecoder,
                  sampler: BaseSampler):
         super().__init__()
 

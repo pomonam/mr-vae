@@ -10,36 +10,36 @@ def get_ns(args, name):
 class TrainConfig:
     def __init__(self, args):
         self.total_epochs = get_ns(args, "total_epochs")
-        self.lr = args.lr
-        self.batch_size = args.batch_size
+        self.lr = get_ns(args, "lr")
+        self.batch_size = get_ns(args, "batch_size")
         self.beta = get_ns(args, "beta")
         self.schedule = get_ns(args, "schedule")
 
-        self.seed = args.seed
-        self.checkpoint_dir = args.checkpoint_dir
-        self.save_freq = args.save_freq
-        self.eval_freq = args.eval_freq
+        self.seed = get_ns(args, "seed")
+        self.checkpoint_dir = get_ns(args, "checkpoint_dir")
+        self.save_freq = get_ns(args, "save_freq")
+        self.eval_freq = get_ns(args, "eval_freq")
 
         if self.schedule is not None and self.beta is not None:
-            self.beta_schedule = build_betas_schedule(self.schedule, self.beta, self.total_epochs)
+            self.beta_schedule = build_betas_schedule(self.schedule, self.beta,
+                                                      self.total_epochs)
         else:
             self.beta_schedule = None
 
     def get_beta(self, epoch):
-        return self.beta_schedule[epoch]
+        if self.beta_schedule is not None:
+            return self.beta_schedule[epoch]
 
 
 class HyperConfig:
-    preprocess_dim = 512
+    preprocess_dim = 1024
 
     def __init__(self, args):
-        self.hyper_type = args.hyper_type
-        self.block_type = args.block_type
-        self.include_output_layer = args.include_output_layer
-        self.include_sigmoid_activation = args.include_sigmoid_activation
+        self.hyper_type = get_ns(args, "hyper_type")
+        self.block_type = get_ns(args, "block_type")
+        self.include_output_layer = get_ns(args, "include_output_layer")
+        self.include_sigmoid_activation = get_ns(args, "include_sigmoid_activation")
 
-        self.sample_type = args.sample_type
-        # self.sample_range = args.sample_range
+        self.sample_type = get_ns(args, "sample_type")
 
-        self.training_method = args.training_method
-        self.preprocess_beta = args.preprocess_beta
+        self.preprocess_beta = get_ns(args, "preprocess_beta")

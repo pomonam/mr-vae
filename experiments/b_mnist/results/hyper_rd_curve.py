@@ -7,13 +7,16 @@ from src.plotting import init_plotting
 
 ENTITY = "bae-group"
 EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v16"
-ID = "k9m4y9yx"
+ID = "1x7lflva"
 
 
 def get_summary(summary):
-    beta_to_rate = dict(zip(summary["train_eval/beta_lst"], summary["train_eval/rate_lst"]))
-    beta_to_dist = dict(zip(summary["train_eval/beta_lst"], summary["train_eval/dist_lst"]))
-    beta_to_elbo = dict(zip(summary["train_eval/beta_lst"], summary["train_eval/loss_lst"]))
+    beta_to_rate = dict(
+        zip(summary["train_eval/beta_lst"], summary["train_eval/rate_lst"]))
+    beta_to_dist = dict(
+        zip(summary["train_eval/beta_lst"], summary["train_eval/dist_lst"]))
+    beta_to_elbo = dict(
+        zip(summary["train_eval/beta_lst"], summary["train_eval/loss_lst"]))
     return beta_to_rate, beta_to_dist, beta_to_elbo
 
 
@@ -28,8 +31,8 @@ def main():
         if run.state == "finished" and run.id == ID:
             summary_list.append(run.summary._json_dict)
             config_list.append(
-                {k: v for k, v in run.config.items()
-                 if not k.startswith('_')})
+                {k: v
+                 for k, v in run.config.items() if not k.startswith('_')})
             name_list.append(run.name)
 
     rate_dict, dist_dict, elbo_dict = get_summary(summary_list[0])

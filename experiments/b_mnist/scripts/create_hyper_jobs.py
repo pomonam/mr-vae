@@ -5,28 +5,30 @@ from experiments.job_arrays import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
-parser.add_argument("--experiment_name", type=str, default="hv-b_mnist_mlp_hyper-v16")
+parser.add_argument("--experiment_name",
+                    type=str,
+                    default="hv-b_mnist_mlp_hyper-v17")
 
 args = parser.parse_args()
 
 CONFIG = {
-    "lr": [1e-3, 1e-4],
+    "lr": [1e-3, 3e-4, 1e-4],
     "total_epochs": [200],
     "encoder_name": ["mlp"],
     "decoder_name": ["mlp"],
     "hyper_type": ["add", "s_add", "mult"],
     "block_type": ["linear", "residual", "mlp"],
-    "sample_type": ["fixed_log_uniform"],
+    "sample_type": ["fixed_log_uniform1.0", "fixed_log_uniform0.1"],
     "include_sigmoid_activation": [0, 1],
     "include_output_layer": [0, 1],
-    "training_method": ["simultaneous"],
+    "preprocess_beta": [0, 1],
 }
 
 if __name__ == "__main__":
     jobs = generate_job_strings(
         CONFIG,
-        command_template=
-        "python hyper_train.py --experiment_name {} ".format(args.experiment_name))
+        command_template="python hyper_train.py --experiment_name {} ".format(
+            args.experiment_name))
     with open(args.file_name, "w") as f:
         f.writelines(jobs)
     generate_sh_file(args.file_name, len(jobs))

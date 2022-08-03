@@ -22,13 +22,13 @@ def extract_Wb(model, hparams):
     decoder_bias = model.dec_mean.bias
     return decoder_weights, decoder_bias
 
+
 def plot_analytical_post(mean, covariance, beta, hparams):
     """ Plot analytical posterior for visualization. """
     mu = mean[:, 0]
     cov = covariance
-    print("analytical q mu at beta={} is {}".format(
-        beta,
-        mu.detach().cpu().numpy()))
+    print("analytical q mu at beta={} is {}".format(beta,
+                                                    mu.detach().cpu().numpy()))
     print("analytical q cov at beta={} is {}".format(
         beta,
         cov.detach().cpu().numpy()))
@@ -38,20 +38,19 @@ def plot_analytical_post(mean, covariance, beta, hparams):
     nbins = 300
     x = np.linspace(-2, 2, nbins)
     y = np.linspace(-2, 2, nbins)
-    x_grid, y_grid = np.meshgrid(
-        np.linspace(-2, 2, nbins), np.linspace(-2, 2, nbins))
+    x_grid, y_grid = np.meshgrid(np.linspace(-2, 2, nbins),
+                                 np.linspace(-2, 2, nbins))
     samples_grid = np.vstack([x_grid.flatten(), y_grid.flatten()]).transpose()
     density = torch.exp(
         m.log_prob(
             torch.from_numpy(samples_grid).to(hparams.tensor_type).to(
                 hparams.device)))
 
-    plt.contourf(
-        x_grid,
-        y_grid,
-        density.view((nbins, nbins)).detach().cpu().numpy(),
-        20,
-        cmap='jet')
+    plt.contourf(x_grid,
+                 y_grid,
+                 density.view((nbins, nbins)).detach().cpu().numpy(),
+                 20,
+                 cmap='jet')
     plt.colorbar()
     path = hparams.messenger.arxiv_dir + hparams.hparam_set + "_anaytical_q_b{}.pdf".format(
         beta)
@@ -128,8 +127,7 @@ def analytical_q(data, decoder_weights, decoder_bias, beta=1):
     _, s, _ = torch.svd(subsubcore_woodb)
     #Check condition number to ensure numerical stability.
     condition_number = torch.max(s) / torch.min(s)
-    print("Condition number for beta={} is: {}".format(
-        beta, condition_number))
+    print("Condition number for beta={} is: {}".format(beta, condition_number))
     inversed_subsubcore_woodb = torch.inverse(subsubcore_woodb)
     inversed_subcore = beta * I_x - (beta**2) * torch.matmul(
         torch.matmul(W, inversed_subsubcore_woodb), WT)
@@ -179,8 +177,9 @@ def analytical_distortion_point(data, mu, cov, decoder_weights, decoder_bias):
     b = torch.unsqueeze(b, dim=0)
     xb_dot_product = torch.sum(torch.mul((data - b), (data - b)), dim=1)
     xb_dot_batch_mean = torch.mean(xb_dot_product)
-    cross_term_batch = torch.sum(
-        torch.mul(torch.t(torch.matmul(W, mu)), (data - b)), dim=1)
+    cross_term_batch = torch.sum(torch.mul(torch.t(torch.matmul(W, mu)),
+                                           (data - b)),
+                                 dim=1)
     cross_term_batch_mean = torch.mean(cross_term_batch)
     E_Y = torch.matmul(W, mu)
     cov_Y = torch.matmul(torch.matmul(W, cov), WT)
@@ -208,12 +207,14 @@ def analytical_rate_distortion(decoder_weights,
                 device=hparams.device, dtype=hparams.tensor_type)
 
         if hparams.cholesky:
-            q_mean, q_cov = analytical_q_cholesky(
-                data, decoder_weights, decoder_bias, hparams.messenger.beta)
+            q_mean, q_cov = analytical_q_cholesky(data, decoder_weights,
+                                                  decoder_bias,
+                                                  hparams.messenger.beta)
 
         elif hparams.svd:
-            q_mean, q_cov, D = analytical_q_svd(
-                data, decoder_weights, decoder_bias, hparams.messenger.beta)
+            q_mean, q_cov, D = analytical_q_svd(data, decoder_weights,
+                                                decoder_bias,
+                                                hparams.messenger.beta)
 
         else:
             q_mean, q_cov = analytical_q(data, decoder_weights, decoder_bias,
@@ -293,8 +294,6 @@ def run_analytical_rd(model, hparams, data, rd_data_loader, writer):
         "analytic_beta_range": hparams.messenger.beta_list,
     }
 
-    hparams.messenger.result_dict.update({
-        "rd_analytical_" + data:
-        temp_result_dict
-    })
+    hparams.messenger.result_dict.update(
+        {"rd_analytical_" + data: temp_result_dict})
     return analytic_rate_list, analytic_distortion_list

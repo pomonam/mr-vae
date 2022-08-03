@@ -3,7 +3,6 @@ from torch import nn
 
 
 class BaseSampler(nn.Module):
-
     def forward(self, x: torch.Tensor) -> dict:
         raise NotImplementedError
 
@@ -25,10 +24,7 @@ class IsotropicGaussianSampler(BaseSampler):
     def forward(self, x: torch.Tensor) -> dict:
         mean = self.mean(x)
         log_var = self.log_var(x)
-        outputs_dict = {
-            "mean": mean,
-            "log_var": log_var
-        }
+        outputs_dict = {"mean": mean, "log_var": log_var}
         return outputs_dict
 
     @staticmethod
