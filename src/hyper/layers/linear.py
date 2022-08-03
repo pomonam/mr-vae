@@ -89,6 +89,17 @@ class HyperLinear(HyperModule):
                                                          1) * hyper_bias
             out = out + hyper_out
 
+        elif self.hyper_type == "ss_add":
+            out = F.linear(inputs, self.weight)
+            hyper_out = out + F.linear(inputs, self.weight) * hyper_weight
+            if self.cfg.include_output_layer:
+                hyper_out = self.output_layer(hyper_out)
+            if self.bias is not None:
+                hyper_out = hyper_out + self.bias
+                hyper_out = hyper_out + self.bias.repeat(inputs.shape[0],
+                                                         1) * hyper_bias
+            out = out + hyper_out
+
         elif self.hyper_type == "mult":
             out = F.linear(inputs, self.weight)
             out = out * hyper_weight

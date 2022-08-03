@@ -10,7 +10,7 @@ class HyperModule(nn.Module):
 
         self.cfg = hyper_config
         self.hyper_type = self.cfg.hyper_type
-        if self.hyper_type not in ["add", "s_add", "mult"]:
+        if self.hyper_type not in ["add", "s_add", "ss_add", "mult"]:
             raise ValueError("Invalid hyper_type {}".format(
                 str(self.hyper_type)))
 
