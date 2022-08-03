@@ -88,4 +88,3 @@ class PixelCNNDecoder(BaseDecoder):
 
     def special_forward(self, z, x):
         return self.special_decode(z, x)
-

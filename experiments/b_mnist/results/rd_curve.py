@@ -43,10 +43,10 @@ def get_rd(experiment_name):
             name_list.append(run.name)
 
     rate_dict, dist_dict, elbo_dict = get_summary(config_list,
-                                                    summary_list,
-                                                    schedule="cyclic",
-                                                    encoder_name="mlp",
-                                                    decoder_name="mlp")
+                                                  summary_list,
+                                                  schedule="cyclic",
+                                                  encoder_name="mlp",
+                                                  decoder_name="mlp")
 
     keys = rate_dict.keys()
     values = zip(rate_dict.values(), dist_dict.values())
@@ -73,8 +73,8 @@ def main():
             name_list.append(run.name)
 
     rate_dict, dist_dict, elbo_dict = get_summary(config_list,
-                                                    summary_list,
-                                                    schedule="cyclic")
+                                                  summary_list,
+                                                  schedule="cyclic")
 
     keys = rate_dict.keys()
     values = zip(rate_dict.values(), dist_dict.values())
