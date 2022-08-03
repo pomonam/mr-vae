@@ -59,4 +59,3 @@ class ResNetEncoder(BaseEncoder):
 
     def forward(self, x):
         return self.layers(x)
-

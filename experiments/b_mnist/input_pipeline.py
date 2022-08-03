@@ -65,6 +65,7 @@ def load_data(split,
     if not os.path.exists(file_name):
         download_binary_mnist(file_name)
 
+
     train_data, valid_data, test_data = load_binary_mnist(file_name)
     if split == "train" or split == "train_eval":
         dataset = train_data

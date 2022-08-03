@@ -17,8 +17,6 @@ from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
 from src.utils import seed_everything
-from src.config import HyperConfig
-from src.config import TrainConfig
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-hyper-b_mnist_mlp")
@@ -60,9 +58,9 @@ def hyper_evaluate(model, criterion, epoch, name):
         dist_lst = []
 
         for beta in beta_lst:
-            metric_dict = initialize_metric(criterion.get_metric_lst())
             loader = build_input_queue(name, args.batch_size, DEVICE)
             p_bar = tqdm.tqdm(loader)
+            metric_dict = initialize_metric(criterion.get_metric_lst())
 
             for batch in p_bar:
                 inputs = batch["inputs"]

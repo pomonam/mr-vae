@@ -41,13 +41,11 @@ def main():
     dist = np.array([c[1] for c in combined_dict.values()])
     plt.plot(rate, dist, label="Hypernetwork")
     plt.scatter(rate, dist, facecolors="none", edgecolors="k")
-    plt.scatter(rate, dist)
 
     min_val = min(np.min(rate), np.min(dist)) - 10
     max_val = max(np.max(rate), np.max(dist)) + 10
-
-    plt.xlim(min_val, max_val)
-    plt.ylim(min_val, max_val)
+    # plt.xlim(min_val, max_val)
+    # plt.ylim(min_val, max_val)
 
     plt.xlabel("Rate")
     plt.ylabel("Distortion")
