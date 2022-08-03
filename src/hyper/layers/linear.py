@@ -72,9 +72,11 @@ class HyperLinear(HyperModule):
         if self.hyper_type == "add":
             out = F.linear(inputs, self.weight, self.bias)
             hyper_out = F.linear(inputs, self.hyper_weight) * hyper_weight
+            hyper_out = F.linear(inputs, self.hyper_weight) + hyper_out
             if self.cfg.include_output_layer:
                 hyper_out = self.output_layer(hyper_out)
             if self.hyper_bias is not None:
+                hyper_out = hyper_out + self.hyper_bias
                 hyper_out = hyper_out + self.hyper_bias.repeat(
                     inputs.shape[0], 1) * hyper_bias
             out = out + hyper_out
