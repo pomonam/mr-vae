@@ -32,7 +32,7 @@ class TrainConfig:
 
 
 class HyperConfig:
-    preprocess_dim = 1024
+    preprocess_dim = 2048
 
     def __init__(self, args):
         self.hyper_type = get_ns(args, "hyper_type")
