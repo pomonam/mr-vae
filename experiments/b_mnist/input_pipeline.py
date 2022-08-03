@@ -32,8 +32,7 @@ def download_binary_mnist(file_name):
     for subdataset in subdatasets:
         fn = "binarized_mnist_{}.amat".format(subdataset)
         url = "http://www.cs.toronto.edu/~larocheh/public/datasets/binarized_mnist/binarized_mnist_{}.amat".format(
-            subdataset
-        )
+            subdataset)
         local_filename = os.path.join(data_dir, fn)
         urllib.request.urlretrieve(url, local_filename)
 
@@ -55,10 +54,7 @@ def load_binary_mnist(file_name):
     return x_train, x_val, x_test
 
 
-def load_data(split,
-              batch_size,
-              workers=0,
-              data_path="../../logs/data"):
+def load_data(split, batch_size, workers=0, data_path="../../logs/data"):
     file_name = os.path.join(data_path, "binary_mnist.h5")
     if not os.path.exists(file_name):
         download_binary_mnist(file_name)
@@ -93,6 +89,10 @@ def build_input_queue(split, batch_size, device, data_path="../../logs/data"):
 
     for batch in loader:
         yield {
-            "inputs": batch.view(batch.shape[0], 1, 28, 28).to(device, non_blocking=True),
-            "targets": batch.view(batch.shape[0], 1, 28, 28).to(device, non_blocking=True),
+            "inputs":
+            batch.view(batch.shape[0], 1, 28, 28).to(device,
+                                                     non_blocking=True),
+            "targets":
+            batch.view(batch.shape[0], 1, 28, 28).to(device,
+                                                     non_blocking=True),
         }

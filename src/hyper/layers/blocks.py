@@ -1,8 +1,6 @@
 import torch
 from torch import nn
 
-from src.config import HyperConfig
-
 
 def get_block(name: str):
     _BLOCK_DICT = {
@@ -15,14 +13,13 @@ def get_block(name: str):
 
 
 class BaseBlock(nn.Module):
-
-    def __init__(self,
-                 width: int,
-                 hyper_config: HyperConfig):
+    def __init__(self, input_dim: int, width: int,
+                 include_sigmoid_activation: bool):
         super().__init__()
-        self.input_dim = 1 if not hyper_config.preprocess_beta else hyper_config.preprocess_dim
+        self.input_dim = input_dim
         self.width = width
-        self.include_sigmoid_activation = hyper_config.include_sigmoid_activation
+        # self.include_sigmoid_activation = hyper_config.include_sigmoid_activation
+        self.include_sigmoid_activation = include_sigmoid_activation
 
         self.layers = None
         self._construct_layers()
@@ -36,9 +33,7 @@ class BaseBlock(nn.Module):
 
 class LinearBlock(BaseBlock):
     def _construct_layers(self) -> None:
-        self.layers = nn.Sequential(
-            nn.Linear(self.input_dim, self.width)
-        )
+        self.layers = nn.Sequential(nn.Linear(self.input_dim, self.width))
 
     def forward(self, beta: torch.Tensor) -> torch.Tensor:
         out = self.layers(beta)
@@ -65,7 +60,34 @@ class MlpBlock(BaseBlock):
 
 
 class ResidualBlock(BaseBlock):
+    def _construct_layers(self) -> None:
+        self.layers1 = nn.Sequential(
+            nn.Linear(self.width, self.width, bias=False),
+            nn.ReLU(),
+            nn.Linear(self.width, self.width, bias=False),
+            nn.ReLU(),
+            nn.Linear(self.width, self.width, bias=False),
+        )
+        self.layers2 = nn.Sequential(
+            nn.Linear(self.width, self.width, bias=False),
+            nn.ReLU(),
+            nn.Linear(self.width, self.width, bias=False),
+            nn.ReLU(),
+            nn.Linear(self.width, self.width, bias=False),
+        )
+        self.temp_layer = nn.Sequential(
+            nn.Linear(self.input_dim, self.width, bias=True), nn.ReLU())
 
+    def forward(self, beta: torch.Tensor) -> torch.Tensor:
+        out = self.temp_layer(beta)
+        out = out + self.layers1(out)
+        out = out + self.layers2(out)
+        if self.include_sigmoid_activation:
+            out = torch.sigmoid(out)
+        return out
+
+
+class TransformerBlock(BaseBlock):
     def _construct_layers(self) -> None:
         self.layers = nn.Sequential(
             nn.Linear(self.width, self.width, bias=False),
@@ -75,9 +97,7 @@ class ResidualBlock(BaseBlock):
             nn.Linear(self.width, self.width, bias=False),
         )
         self.temp_layer = nn.Sequential(
-            nn.Linear(self.input_dim, self.width, bias=True),
-            nn.ReLU()
-        )
+            nn.Linear(self.input_dim, self.width, bias=True), nn.ReLU())
 
     def forward(self, beta: torch.Tensor) -> torch.Tensor:
         out = self.temp_layer(beta)
@@ -87,8 +107,8 @@ class ResidualBlock(BaseBlock):
         return out
 
 
-class BatchNormResidualBlock(BaseBlock):
 
+class BatchNormResidualBlock(BaseBlock):
     def _construct_layers(self) -> None:
         self.layers = nn.Sequential(
             nn.Linear(self.width, self.width, bias=False),
@@ -101,9 +121,7 @@ class BatchNormResidualBlock(BaseBlock):
             nn.BatchNorm1d(self.width),
         )
         self.temp_layer = nn.Sequential(
-            nn.Linear(self.input_dim, self.width, bias=False),
-            nn.ReLU()
-        )
+            nn.Linear(self.input_dim, self.width, bias=False), nn.ReLU())
 
     def forward(self, beta: torch.Tensor) -> torch.Tensor:
         out = self.temp_layer(beta)
@@ -125,10 +143,8 @@ class MultiheadAttention(BaseBlock):
             nn.Linear(self.width, self.width, bias=False),
             nn.BatchNorm1d(self.width),
         )
-        self.temp_layer = nn.Sequential(
-            nn.Linear(1, self.width, bias=False),
-            nn.ReLU()
-        )
+        self.temp_layer = nn.Sequential(nn.Linear(1, self.width, bias=False),
+                                        nn.ReLU())
 
     def forward(self, beta: torch.Tensor) -> torch.Tensor:
         out = self.temp_layer(beta)

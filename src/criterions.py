@@ -8,7 +8,8 @@ def log_sum_exp(value, dim=None, keepdim=False):
         value0 = value - m
         if keepdim is False:
             m = m.squeeze(dim)
-        return m + torch.log(torch.sum(torch.exp(value0), dim=dim, keepdim=keepdim))
+        return m + torch.log(
+            torch.sum(torch.exp(value0), dim=dim, keepdim=keepdim))
     else:
         m = torch.max(value)
         sum_exp = torch.sum(torch.exp(value - m))
@@ -27,5 +28,5 @@ def binary_cross_entropy(x, logits):
 
 
 def kl_gaussian(mean, var):
-    return 0.5 * torch.sum(-torch.log(var) - 1.0 + var + torch.square(mean), dim=-1)
-
+    return 0.5 * torch.sum(-torch.log(var) - 1.0 + var + torch.square(mean),
+                           dim=-1)

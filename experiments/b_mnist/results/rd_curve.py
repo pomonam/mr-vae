@@ -10,8 +10,12 @@ ENTITY = "bae-group"
 EXPERIMENT_NAME = "hv-b_mnist_mlp_train-v5"
 
 
-def get_summary(config_lst, summary_lst, lr=1e-3, schedule="constant",
-                encoder_name="cnn", decoder_name="cnn"):
+def get_summary(config_lst,
+                summary_lst,
+                lr=1e-3,
+                schedule="constant",
+                encoder_name="cnn",
+                decoder_name="cnn"):
     beta_to_rate = {}
     beta_to_dist = {}
     beta_to_elbo = {}
@@ -23,9 +27,12 @@ def get_summary(config_lst, summary_lst, lr=1e-3, schedule="constant",
             beta_to_rate[c["beta"]] = summary_lst[i]["train_eval/rate"]
             beta_to_dist[c["beta"]] = summary_lst[i]["train_eval/distortion"]
             beta_to_elbo[c["beta"]] = summary_lst[i]["train_eval/loss"]
-    sorted_beta_to_rate = dict(sorted(beta_to_rate.items(), key=lambda item: item[0]))
-    sorted_beta_to_dist = dict(sorted(beta_to_dist.items(), key=lambda item: item[0]))
-    sorted_beta_to_elbo = dict(sorted(beta_to_elbo.items(), key=lambda item: item[0]))
+    sorted_beta_to_rate = dict(
+        sorted(beta_to_rate.items(), key=lambda item: item[0]))
+    sorted_beta_to_dist = dict(
+        sorted(beta_to_dist.items(), key=lambda item: item[0]))
+    sorted_beta_to_elbo = dict(
+        sorted(beta_to_elbo.items(), key=lambda item: item[0]))
     return sorted_beta_to_rate, sorted_beta_to_dist, sorted_beta_to_elbo
 
 
@@ -38,8 +45,8 @@ def get_rd(experiment_name):
         if run.state == "finished":
             summary_list.append(run.summary._json_dict)
             config_list.append(
-                {k: v for k, v in run.config.items()
-                 if not k.startswith("_")})
+                {k: v
+                 for k, v in run.config.items() if not k.startswith("_")})
             name_list.append(run.name)
 
     rate_dict, dist_dict, elbo_dict = get_summary(config_list,
@@ -67,8 +74,8 @@ def main():
         if run.state == "finished":
             summary_list.append(run.summary._json_dict)
             config_list.append(
-                {k: v for k, v in run.config.items()
-                 if not k.startswith("_")})
+                {k: v
+                 for k, v in run.config.items() if not k.startswith("_")})
             name_list.append(run.name)
 
     rate_dict, dist_dict, elbo_dict = get_summary(config_list,

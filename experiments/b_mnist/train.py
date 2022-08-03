@@ -19,7 +19,9 @@ from src.evaluate import update_metric
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
+parser.add_argument("--experiment_name",
+                    type=str,
+                    default="hyper_vae-b_mnist_mlp")
 
 parser.add_argument("--encoder_name", type=str, default="mlp")
 parser.add_argument("--decoder_name", type=str, default="mlp")
@@ -64,8 +66,10 @@ def evaluate(model, biq, criterion, epoch, name):
 
 def train(model, biq, criterion, optimizer, cfg):
     do_checkpoint = cfg.checkpoint_dir is not None
-    if do_checkpoint and os.path.exists(os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
-        slurm_checkpoint = torch.load(os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
+    if do_checkpoint and os.path.exists(
+            os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
+        slurm_checkpoint = torch.load(
+            os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
         model.load_state_dict(slurm_checkpoint["state_dict"])
         optimizer.load_state_dict(slurm_checkpoint["optimizer"])
         epoch = slurm_checkpoint["epoch"]
@@ -81,7 +85,8 @@ def train(model, biq, criterion, optimizer, cfg):
             evaluate(model, biq, criterion, epoch, "test")
 
         if do_checkpoint and do_save:
-            slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")
+            slurm_check_dir = os.path.join(cfg.checkpoint_dir,
+                                           "checkpoint.pth")
             log_info = {
                 "id": wandb.run.id,
                 "epoch": epoch,
@@ -119,7 +124,9 @@ def train(model, biq, criterion, optimizer, cfg):
 
 
 def main():
-    init_wandb(args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
+    init_wandb(args.checkpoint_dir,
+               project_name=args.experiment_name,
+               config=vars(args))
     cfg = TrainConfig(args)
 
     seed_everything(cfg.seed)
@@ -129,7 +136,8 @@ def main():
     criterion = build_criterion(DEVICE)
 
     train(model, build_input_queue, criterion, optimizer, cfg)
-    evaluate(model, build_input_queue, criterion, cfg.total_epochs, "train_eval")
+    evaluate(model, build_input_queue, criterion, cfg.total_epochs,
+             "train_eval")
     evaluate(model, build_input_queue, criterion, cfg.total_epochs, "test")
 
     # Visualizing the reconstruction
@@ -142,10 +150,10 @@ def main():
     for i in range(50):
         data_i = test_batch["inputs"].view(-1, 28, 28)[i].data.cpu().numpy()
         recon_i = torch.sigmoid(logits[i]).data.cpu().numpy()
-        plt.subplot(10, 10, 2*i+1)
+        plt.subplot(10, 10, 2 * i + 1)
         plt.imshow(data_i, cmap="Greys")
         plt.axis("off")
-        plt.subplot(10, 10, 2*i+2)
+        plt.subplot(10, 10, 2 * i + 2)
         plt.imshow(recon_i, cmap="Greys")
         plt.axis("off")
     wandb.log({"reconstruction": plt})

@@ -5,7 +5,6 @@ Adapted from:
 https://github.com/rosinality/vq-vae-2-pytorch/blob/master/pixelsnail.py
 """
 
-
 from functools import lru_cache
 from functools import partial
 from math import sqrt
@@ -41,8 +40,7 @@ class WNConv2d(nn.Module):
                 stride=stride,
                 padding=padding,
                 bias=bias,
-            )
-        )
+            ))
 
         self.out_channel = out_channel
 
@@ -63,11 +61,11 @@ class WNConv2d(nn.Module):
 
 
 def shift_down(input, size=1):
-    return F.pad(input, [0, 0, size, 0])[:, :, : input.shape[2], :]
+    return F.pad(input, [0, 0, size, 0])[:, :, :input.shape[2], :]
 
 
 def shift_right(input, size=1):
-    return F.pad(input, [size, 0, 0, 0])[:, :, :, : input.shape[3]]
+    return F.pad(input, [size, 0, 0, 0])[:, :, :, :input.shape[3]]
 
 
 class CausalConv2d(nn.Module):
@@ -114,7 +112,7 @@ class CausalConv2d(nn.Module):
         out = self.pad(input)
 
         if self.causal > 0:
-            self.conv.conv.weight_v.data[:, :, -1, self.causal :].zero_()
+            self.conv.conv.weight_v.data[:, :, -1, self.causal:].zero_()
 
         out = self.conv(out)
 
@@ -156,7 +154,10 @@ class GatedResBlock(nn.Module):
 
         if condition_dim > 0:
             # self.condition = nn.Linear(condition_dim, in_channel * 2, bias=False)
-            self.condition = WNConv2d(condition_dim, in_channel * 2, 1, bias=False)
+            self.condition = WNConv2d(condition_dim,
+                                      in_channel * 2,
+                                      1,
+                                      bias=False)
 
         self.gate = nn.GLU(1)
 
@@ -195,7 +196,12 @@ def causal_mask(size):
 
 
 class CausalAttention(nn.Module):
-    def __init__(self, query_channel, key_channel, channel, n_head=8, dropout=0.1):
+    def __init__(self,
+                 query_channel,
+                 key_channel,
+                 channel,
+                 n_head=8,
+                 dropout=0.1):
         super().__init__()
 
         self.query = wn_linear(query_channel, channel)
@@ -211,7 +217,8 @@ class CausalAttention(nn.Module):
         batch, _, height, width = key.shape
 
         def reshape(input):
-            return input.view(batch, -1, self.n_head, self.dim_head).transpose(1, 2)
+            return input.view(batch, -1, self.n_head,
+                              self.dim_head).transpose(1, 2)
 
         query_flat = query.view(batch, query.shape[1], -1).transpose(1, 2)
         key_flat = key.view(batch, key.shape[1], -1).transpose(1, 2)
@@ -228,9 +235,8 @@ class CausalAttention(nn.Module):
         attn = self.dropout(attn)
 
         out = attn @ value
-        out = out.transpose(1, 2).reshape(
-            batch, height, width, self.dim_head * self.n_head
-        )
+        out = out.transpose(1, 2).reshape(batch, height, width,
+                                          self.dim_head * self.n_head)
         out = out.permute(0, 3, 1, 2)
 
         return out
@@ -259,24 +265,26 @@ class PixelBlock(nn.Module):
                     conv='causal',
                     dropout=dropout,
                     condition_dim=condition_dim,
-                )
-            )
+                ))
 
         self.resblocks = nn.ModuleList(resblocks)
 
         self.attention = attention
 
         if attention:
-            self.key_resblock = GatedResBlock(
-                in_channel * 2 + 2, in_channel, 1, dropout=dropout
-            )
-            self.query_resblock = GatedResBlock(
-                in_channel + 2, in_channel, 1, dropout=dropout
-            )
+            self.key_resblock = GatedResBlock(in_channel * 2 + 2,
+                                              in_channel,
+                                              1,
+                                              dropout=dropout)
+            self.query_resblock = GatedResBlock(in_channel + 2,
+                                                in_channel,
+                                                1,
+                                                dropout=dropout)
 
-            self.causal_attention = CausalAttention(
-                in_channel + 2, in_channel * 2 + 2, in_channel // 2, dropout=dropout
-            )
+            self.causal_attention = CausalAttention(in_channel + 2,
+                                                    in_channel * 2 + 2,
+                                                    in_channel // 2,
+                                                    dropout=dropout)
 
             self.out_resblock = GatedResBlock(
                 in_channel,
@@ -314,7 +322,12 @@ class CondResNet(nn.Module):
     def __init__(self, in_channel, channel, kernel_size, n_res_block):
         super().__init__()
 
-        blocks = [WNConv2d(in_channel, channel, kernel_size, padding=kernel_size // 2)]
+        blocks = [
+            WNConv2d(in_channel,
+                     channel,
+                     kernel_size,
+                     padding=kernel_size // 2)
+        ]
 
         for i in range(n_res_block):
             blocks.append(GatedResBlock(channel, channel, kernel_size))
@@ -354,12 +367,12 @@ class PixelSNAIL(nn.Module):
         else:
             kernel = kernel_size
 
-        self.horizontal = CausalConv2d(
-            n_class, channel, [kernel // 2, kernel], padding='down'
-        )
-        self.vertical = CausalConv2d(
-            n_class, channel, [(kernel + 1) // 2, kernel // 2], padding='downright'
-        )
+        self.horizontal = CausalConv2d(n_class,
+                                       channel, [kernel // 2, kernel],
+                                       padding='down')
+        self.vertical = CausalConv2d(n_class,
+                                     channel, [(kernel + 1) // 2, kernel // 2],
+                                     padding='downright')
 
         coord_x = (torch.arange(height).float() - height / 2) / height
         coord_x = coord_x.view(1, 1, height, 1).expand(1, 1, height, width)
@@ -379,13 +392,11 @@ class PixelSNAIL(nn.Module):
                     attention=attention,
                     dropout=dropout,
                     condition_dim=cond_res_channel,
-                )
-            )
+                ))
 
         if n_cond_res_block > 0:
-            self.cond_resnet = CondResNet(
-                n_class, cond_res_channel, cond_res_kernel, n_cond_res_block
-            )
+            self.cond_resnet = CondResNet(n_class, cond_res_channel,
+                                          cond_res_kernel, n_cond_res_block)
 
         out = []
 
@@ -400,14 +411,15 @@ class PixelSNAIL(nn.Module):
         if cache is None:
             cache = {}
         batch, height, width = input.shape
-        input = (
-            F.one_hot(input, self.n_class).permute(0, 3, 1, 2).type_as(self.background)
-        )
+        input = (F.one_hot(input,
+                           self.n_class).permute(0, 3, 1,
+                                                 2).type_as(self.background))
         horizontal = shift_down(self.horizontal(input))
         vertical = shift_right(self.vertical(input))
         out = horizontal + vertical
 
-        background = self.background[:, :, :height, :].expand(batch, 2, height, width)
+        background = self.background[:, :, :height, :].expand(
+            batch, 2, height, width)
 
         if condition is not None:
             if 'condition' in cache:
@@ -415,11 +427,8 @@ class PixelSNAIL(nn.Module):
                 condition = condition[:, :, :height, :]
 
             else:
-                condition = (
-                    F.one_hot(condition, self.n_class)
-                    .permute(0, 3, 1, 2)
-                    .type_as(self.background)
-                )
+                condition = (F.one_hot(condition, self.n_class).permute(
+                    0, 3, 1, 2).type_as(self.background))
                 condition = self.cond_resnet(condition)
                 condition = F.interpolate(condition, scale_factor=2)
                 cache['condition'] = condition.detach().clone()

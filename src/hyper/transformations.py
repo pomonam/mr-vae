@@ -69,80 +69,147 @@ def upper_bound_softplus_inv(x, low=0., high=0.):
 if __name__ == "__main__":
     # Sanity Check:
     lists = torch.arange(-5, 5).float()
-    if torch.all(torch.lt(torch.abs(torch.add(softplus_inv(softplus(lists)), -lists)), 1e-3)):
+    if torch.all(
+            torch.lt(
+                torch.abs(torch.add(softplus_inv(softplus(lists)), -lists)),
+                1e-3)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(softplus_inv(softplus(lists, low=3, high=5),
-                                                           low=3, high=5), -lists)), 1e-3)):
+    if torch.all(
+            torch.lt(
+                torch.abs(
+                    torch.add(
+                        softplus_inv(softplus(lists, low=3, high=5),
+                                     low=3,
+                                     high=5), -lists)), 1e-3)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(exp_inv(exp(lists)), -lists)), 1e-3)):
+    if torch.all(
+            torch.lt(torch.abs(torch.add(exp_inv(exp(lists)), -lists)), 1e-3)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(exp_inv(exp(lists, low=3, high=5),
-                                                      low=3, high=5), -lists)), 1e-3)):
+    if torch.all(
+            torch.lt(
+                torch.abs(
+                    torch.add(
+                        exp_inv(exp(lists, low=3, high=5), low=3, high=5),
+                        -lists)), 1e-3)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(sigmoid_inv(sigmoid(lists)), -lists)), 1e-3)):
+    if torch.all(
+            torch.lt(torch.abs(torch.add(sigmoid_inv(sigmoid(lists)), -lists)),
+                     1e-3)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(sigmoid_inv(sigmoid(lists, low=3, high=5),
-                                                          low=3, high=5), -lists)), 1e-3)):
+    if torch.all(
+            torch.lt(
+                torch.abs(
+                    torch.add(
+                        sigmoid_inv(sigmoid(lists, low=3, high=5),
+                                    low=3,
+                                    high=5), -lists)), 1e-3)):
         print("success")
     else:
         print("fail")
     temp_lists = torch.Tensor([0.1, 0.3, 0.5, 0.7, 0.9]).float()
-    if torch.all(torch.lt(torch.abs(torch.add(logit_inv(logit(temp_lists)), -temp_lists)), 1e-3)):
+    if torch.all(
+            torch.lt(
+                torch.abs(torch.add(logit_inv(logit(temp_lists)),
+                                    -temp_lists)), 1e-3)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(logit_inv(logit(temp_lists, low=3, high=5),
-                                                        low=3, high=5), -temp_lists)), 1e-3)):
+    if torch.all(
+            torch.lt(
+                torch.abs(
+                    torch.add(
+                        logit_inv(logit(temp_lists, low=3, high=5),
+                                  low=3,
+                                  high=5), -temp_lists)), 1e-3)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(stretch_sigmoid_inv(stretch_sigmoid(lists)),
-                                              -lists)), 1e-3)):
+    if torch.all(
+            torch.lt(
+                torch.abs(
+                    torch.add(stretch_sigmoid_inv(stretch_sigmoid(lists)),
+                              -lists)), 1e-3)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(stretch_sigmoid_inv(
-            stretch_sigmoid(lists, low=3, high=5), low=3, high=5), -lists)), 1e-5)):
+    if torch.all(
+            torch.lt(
+                torch.abs(
+                    torch.add(
+                        stretch_sigmoid_inv(stretch_sigmoid(lists,
+                                                            low=3,
+                                                            high=5),
+                                            low=3,
+                                            high=5), -lists)), 1e-5)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(softplus_inv(softplus(lists)),
-                                              -lists)), 1e-5)):
+    if torch.all(
+            torch.lt(
+                torch.abs(torch.add(softplus_inv(softplus(lists)), -lists)),
+                1e-5)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(softplus_inv(
-            softplus(lists, low=3, high=5), low=3, high=5), -lists)), 1e-5)):
+    if torch.all(
+            torch.lt(
+                torch.abs(
+                    torch.add(
+                        softplus_inv(softplus(lists, low=3, high=5),
+                                     low=3,
+                                     high=5), -lists)), 1e-5)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(lower_bound_softplus_inv(lower_bound_softplus(lists)),
-                                              -lists)), 1e-5)):
+    if torch.all(
+            torch.lt(
+                torch.abs(
+                    torch.add(
+                        lower_bound_softplus_inv(lower_bound_softplus(lists)),
+                        -lists)), 1e-5)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(lower_bound_softplus_inv(
-            lower_bound_softplus(lists, low=3, high=5), low=3, high=5), -lists)), 1e-5)):
+    if torch.all(
+            torch.lt(
+                torch.abs(
+                    torch.add(
+                        lower_bound_softplus_inv(lower_bound_softplus(lists,
+                                                                      low=3,
+                                                                      high=5),
+                                                 low=3,
+                                                 high=5), -lists)), 1e-5)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(upper_bound_softplus_inv(upper_bound_softplus(lists)),
-                                              -lists)), 1e-5)):
+    if torch.all(
+            torch.lt(
+                torch.abs(
+                    torch.add(
+                        upper_bound_softplus_inv(upper_bound_softplus(lists)),
+                        -lists)), 1e-5)):
         print("success")
     else:
         print("fail")
-    if torch.all(torch.lt(torch.abs(torch.add(upper_bound_softplus_inv(
-            upper_bound_softplus(lists, low=3, high=5), low=3, high=5), -lists)), 1e-5)):
+    if torch.all(
+            torch.lt(
+                torch.abs(
+                    torch.add(
+                        upper_bound_softplus_inv(upper_bound_softplus(lists,
+                                                                      low=3,
+                                                                      high=5),
+                                                 low=3,
+                                                 high=5), -lists)), 1e-5)):
         print("success")
     else:
         print("fail")

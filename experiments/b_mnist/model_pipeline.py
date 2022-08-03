@@ -66,7 +66,9 @@ def build_model(encoder_name, decoder_name, device):
         decoder = PixelCNNDecoder()
     else:
         raise ValueError()
-    model = BinarizedMnistMlpModel(encoder=encoder, decoder=decoder, sampler=sampler)
+    model = BinarizedMnistMlpModel(encoder=encoder,
+                                   decoder=decoder,
+                                   sampler=sampler)
     return model.to(device)
 
 
@@ -90,8 +92,10 @@ def build_hyper_model(encoder_name, decoder_name, hyper_config, device):
         decoder = PixelCNNDecoder()
     else:
         raise ValueError()
-    model = HyperBinarizedMnistMlpModel(encoder=encoder, decoder=decoder,
-                                        sampler=sampler, hyper_config=hyper_config)
+    model = HyperBinarizedMnistMlpModel(encoder=encoder,
+                                        decoder=decoder,
+                                        sampler=sampler,
+                                        hyper_config=hyper_config)
     return model.to(device)
 
 
@@ -102,7 +106,8 @@ class BinarizedMnistMlpCriterion(nn.Module):
 
     @staticmethod
     def forward(outputs_dict: dict, beta: torch.Tensor = 1.0):
-        log_likelihood = -binary_cross_entropy(outputs_dict["inputs"], outputs_dict["logits"])
+        log_likelihood = -binary_cross_entropy(outputs_dict["inputs"],
+                                               outputs_dict["logits"])
         kl = kl_gaussian(outputs_dict["mean"], outputs_dict["log_var"].exp())
         if isinstance(beta, int) or isinstance(beta, float):
             if beta == -1:

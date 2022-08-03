@@ -19,20 +19,23 @@ from src.evaluate import update_metric
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--experiment_name", type=str, default="hyper_vae-hyper-b_mnist_mlp")
+parser.add_argument("--experiment_name",
+                    type=str,
+                    default="hyper_vae-hyper-b_mnist_mlp")
 
 parser.add_argument("--encoder_name", type=str, default="mlp")
 parser.add_argument("--decoder_name", type=str, default="mlp")
 
-parser.add_argument("--training_method", type=str, default="sequential",
+parser.add_argument("--training_method",
+                    type=str,
+                    default="sequential",
                     choices=["simultaneous", "sequential"])
 parser.add_argument("--hyper_type", type=str, default="add")
 parser.add_argument("--block_type", type=str, default="linear")
 parser.add_argument("--include_output_layer", type=int, default=1)
 parser.add_argument("--include_sigmoid_activation", type=int, default=1)
 parser.add_argument("--preprocess_beta", type=int, default=0)
-parser.add_argument("--sample_type", type=str, default="fixed_log_uniform")
-parser.add_argument("--sample_range", type=tuple, default=(1e-3, 10))
+parser.add_argument("--sample_type", type=str, default="fixed_log_uniform1.0")
 
 parser.add_argument("--total_epochs", type=int, default=5)
 parser.add_argument("--lr", type=float, default=1e-4)
@@ -52,7 +55,7 @@ def hyper_evaluate(model, criterion, epoch, name):
     model.eval()
 
     with torch.no_grad():
-        beta_lst = np.logspace(-3, 1, num=20)
+        beta_lst = np.logspace(-3, 1, num=20, base=10)
         loss_lst = []
         rate_lst = []
         dist_lst = []
@@ -68,7 +71,8 @@ def hyper_evaluate(model, criterion, epoch, name):
                 # We want to compute exact ELBO here
                 _, loss_dict = criterion.eval_forward(output_dict)
 
-                metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
+                metric_dict = update_metric(metric_dict, loss_dict,
+                                            inputs.size(0))
                 summ_dict = summarize_metric(metric_dict)
                 summ_str = generate_metric_str(name, epoch, summ_dict)
                 p_bar.set_description(summ_str)
@@ -87,8 +91,10 @@ def hyper_evaluate(model, criterion, epoch, name):
 
         rd_data = [[x, y] for (x, y) in zip(rate_lst, dist_lst)]
         table = wandb.Table(data=rd_data, columns=["rate", "distortion"])
-        wandb.log({f"{name}/rd_curve":
-                   wandb.plot.line(table, "rate", "distortion", title="RD Curve")})
+        wandb.log({
+            f"{name}/rd_curve":
+            wandb.plot.line(table, "rate", "distortion", title="RD Curve")
+        })
 
         loss_lst = np.array(loss_lst)
         rate_lst = np.array(rate_lst)
@@ -107,15 +113,16 @@ def hyper_evaluate(model, criterion, epoch, name):
             f"{name}/max_dist": np.max(dist_lst),
             f"{name}/min_dist": np.min(dist_lst),
             f"{name}/abs_dist": np.max(dist_lst) - np.min(dist_lst),
-
         }
         wandb.log(auc_dict)
 
 
 def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
     do_checkpoint = cfg.checkpoint_dir is not None
-    if do_checkpoint and os.path.exists(os.path.join(args.checkpoint_dir, "checkpoint.pth")):
-        slurm_checkpoint = torch.load(os.path.join(args.checkpoint_dir, "checkpoint.pth"))
+    if do_checkpoint and os.path.exists(
+            os.path.join(args.checkpoint_dir, "checkpoint.pth")):
+        slurm_checkpoint = torch.load(
+            os.path.join(args.checkpoint_dir, "checkpoint.pth"))
         model.load_state_dict(slurm_checkpoint["state_dict"])
         optimizer.load_state_dict(slurm_checkpoint["optimizer"])
         epoch = slurm_checkpoint["epoch"]
@@ -131,7 +138,8 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
             hyper_evaluate(model, criterion, epoch, "test")
 
         if do_checkpoint and do_save:
-            slurm_check_dir = os.path.join(args.checkpoint_dir, "checkpoint.pth")
+            slurm_check_dir = os.path.join(args.checkpoint_dir,
+                                           "checkpoint.pth")
             log_info = {
                 "id": wandb.run.id,
                 "epoch": epoch,
@@ -147,13 +155,6 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
 
         for batch in p_bar:
             inputs = batch["inputs"]
-
-            # if hyper_cfg.training_method == "sequential":
-            #     output_dict = model.fixed_forward(inputs, 1)
-            #     loss, loss_dict = criterion(output_dict, output_dict["beta"])
-            #     optimizer.zero_grad()
-            #     loss.backward()
-            #     optimizer.step()
 
             output_dict = model.sample_forward(inputs)
             loss, loss_dict = criterion(output_dict, output_dict["beta"])
@@ -176,12 +177,15 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
 
 
 def main():
-    init_wandb(args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
+    init_wandb(args.checkpoint_dir,
+               project_name=args.experiment_name,
+               config=vars(args))
     cfg = TrainConfig(args)
     hyper_cfg = HyperConfig(args)
 
     seed_everything(cfg.seed)
-    model = build_hyper_model(args.encoder_name, args.decoder_name, hyper_cfg, DEVICE)
+    model = build_hyper_model(args.encoder_name, args.decoder_name, hyper_cfg,
+                              DEVICE)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     criterion = build_criterion(DEVICE)
