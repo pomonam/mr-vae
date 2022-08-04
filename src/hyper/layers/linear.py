@@ -89,12 +89,14 @@ class HyperLinear(HyperModule):
   def forward(self, inputs):
     hyper_out = self.beta_block(self._beta["net_beta"])
     # hyper_out = hyper_out * (self._beta["beta"] < 1.).int().float()
-    chunk_hyper_out = self.chunk_beta_block(self._beta["net_beta"])
     # chunk_hyper_out = chunk_hyper_out * (self._beta["beta"] >= 1.).int().float()
     hyper_weight = hyper_out[:, :-1]
     hyper_bias = hyper_out[:, -1].unsqueeze(-1)
-    chunk_hyper_weight = chunk_hyper_out[:, :-1]
-    chunk_hyper_bias = chunk_hyper_out[:, -1].unsqueeze(-1)
+
+    if self.cfg.chunked:
+      chunk_hyper_out = self.chunk_beta_block(self._beta["net_beta"])
+      chunk_hyper_weight = chunk_hyper_out[:, :-1]
+      chunk_hyper_bias = chunk_hyper_out[:, -1].unsqueeze(-1)
 
     if self.hyper_type == "add":
       out = F.linear(inputs, self.weight, self.bias)
@@ -127,17 +129,18 @@ class HyperLinear(HyperModule):
                                                  1) * hyper_bias
       out = out + hyper_out
 
-      chunk_out = F.linear(inputs, self.chunk_weight)
-      chunk_hyper_out = chunk_out + F.linear(inputs, self.chunk_weight) * chunk_hyper_weight
-      if self.cfg.include_output_layer:
-        chunk_hyper_out = self.chunk_output_layer(chunk_hyper_out)
-      if self.bias is not None:
-        chunk_hyper_out = chunk_hyper_out + self.chunk_bias
-        chunk_hyper_out = chunk_hyper_out + self.chunk_bias.repeat(inputs.shape[0],
-                                                 1) * chunk_hyper_bias
-      chunk_out = chunk_out + chunk_hyper_out
+      if self.cfg.chunked:
+        chunk_out = F.linear(inputs, self.chunk_weight)
+        chunk_hyper_out = chunk_out + F.linear(inputs, self.chunk_weight) * chunk_hyper_weight
+        if self.cfg.include_output_layer:
+          chunk_hyper_out = self.chunk_output_layer(chunk_hyper_out)
+        if self.bias is not None:
+          chunk_hyper_out = chunk_hyper_out + self.chunk_bias
+          chunk_hyper_out = chunk_hyper_out + self.chunk_bias.repeat(inputs.shape[0],
+                                                   1) * chunk_hyper_bias
+        chunk_out = chunk_out + chunk_hyper_out
 
-      out = out * (self._beta["beta"] < 1.).int().float() + chunk_out * (self._beta["beta"] >= 1.).int().float()
+        out = out * (self._beta["beta"] < 1.).int().float() + chunk_out * (self._beta["beta"] >= 1.).int().float()
 
     elif self.hyper_type == "mult":
       out = F.linear(inputs, self.weight)
