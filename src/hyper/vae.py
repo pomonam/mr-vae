@@ -136,7 +136,7 @@ class HyperVae(BaseVae):
         log_mid_const = (log_a_const + log_b_const) / 2
         diff_const = (log_mid_const - log_a_const)
 
-        sample_dict["beta"] = torch.ones(batch_size, 1).to(device) * beta
+        sample_dict["trans_beta"] = torch.ones(batch_size, 1).to(device) * beta
 
         if self.hyper_config.sample_type == "fixed_log_uniform":
             net_beta = (torch.log(beta) - log_mid_const) / diff_const
