@@ -41,5 +41,5 @@ class HyperConfig:
         self.include_sigmoid_activation = get_ns(args, "include_sigmoid_activation")
 
         self.sample_type = get_ns(args, "sample_type")
-
+        self.chunked = True
         self.preprocess_beta = get_ns(args, "preprocess_beta")
