@@ -26,7 +26,7 @@ parser.add_argument("--experiment_name",
 parser.add_argument("--encoder_name", type=str, default="mlp")
 parser.add_argument("--decoder_name", type=str, default="mlp")
 
-parser.add_argument("--hyper_type", type=str, default="add")
+parser.add_argument("--hyper_type", type=str, default="ss_add")
 parser.add_argument("--block_type", type=str, default="residual")
 parser.add_argument("--include_output_layer", type=int, default=1)
 parser.add_argument("--include_sigmoid_activation", type=int, default=1)
