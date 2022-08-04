@@ -127,6 +127,7 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
 
     while epoch < cfg.total_epochs:
         do_evaluate = epoch % cfg.eval_freq == 0 and epoch != 0
+        # do_evaluate = epoch % cfg.eval_freq == 0
         do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
         if do_evaluate:
