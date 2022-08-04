@@ -53,7 +53,7 @@ class HyperLinear(HyperModule):
                                             self.out_features,
                                             bias=False)
       else:
-        self.output_layer = None
+        self.chunk_output_layer = None
 
     if self.hyper_type == "add":
       self.hyper_weight = torch.nn.Parameter(
@@ -125,9 +125,8 @@ class HyperLinear(HyperModule):
         hyper_out = self.output_layer(hyper_out)
       if self.bias is not None:
         hyper_out = hyper_out + self.bias
-        hyper_out = hyper_out + self.bias.repeat(inputs.shape[0],
-                                                 1) * hyper_bias
-      out = out + hyper_out
+        hyper_out = hyper_out + self.bias.repeat(inputs.shape[0], 1) * hyper_bias
+      out = hyper_out
 
       if self.cfg.chunked:
         chunk_out = F.linear(inputs, self.chunk_weight)
@@ -136,9 +135,8 @@ class HyperLinear(HyperModule):
           chunk_hyper_out = self.chunk_output_layer(chunk_hyper_out)
         if self.bias is not None:
           chunk_hyper_out = chunk_hyper_out + self.chunk_bias
-          chunk_hyper_out = chunk_hyper_out + self.chunk_bias.repeat(inputs.shape[0],
-                                                   1) * chunk_hyper_bias
-        chunk_out = chunk_out + chunk_hyper_out
+          chunk_hyper_out = chunk_hyper_out + self.chunk_bias.repeat(inputs.shape[0], 1) * chunk_hyper_bias
+        chunk_out = chunk_hyper_out
 
         out = out * (self._beta["beta"] < 1.).int().float() + chunk_out * (self._beta["beta"] >= 1.).int().float()
 
