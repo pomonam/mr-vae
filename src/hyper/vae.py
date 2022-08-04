@@ -118,6 +118,17 @@ class HyperVae(BaseVae):
             trans_beta = sample_dict["net_beta"] * (const / 3)
             trans_beta = trans_beta * diff_const + log_mid_const
             sample_dict["trans_beta"] = torch.exp(trans_beta)
+
+        elif self.hyper_config.sample_type == "fixed_log_uniform1.0":
+            sample_dict["net_beta"] = torch.FloatTensor(
+                batch_size, 1).uniform_(-const, const).to(device)
+            sample_dict["trans_beta"] = torch.FloatTensor(batch_size,
+                                                          1).to(device)
+            sample_dict["trans_beta"][sample_dict["net_beta"] >= 0.] = \
+              torch.pow(10, sample_dict["net_beta"][sample_dict["net_beta"] >= 0.] * const / 3)
+            sample_dict["trans_beta"][sample_dict["net_beta"] < 0.] = \
+              torch.pow(10, sample_dict["net_beta"][sample_dict["net_beta"] < 0.] * const)
+
         else:
             raise NotImplementedError
 
@@ -142,6 +153,13 @@ class HyperVae(BaseVae):
             net_beta = (torch.log(beta) - log_mid_const) / diff_const
             net_beta = net_beta * (3 / const)
             sample_dict["net_beta"] = net_beta
+
+        elif self.hyper_config.sample_type == "fixed_log_uniform1.0":
+            if trans_beta >= 1:
+                sample_dict["net_beta"] = torch.log10(beta) * (3 / const)
+            else:
+                sample_dict["net_beta"] = torch.log10(beta) * (1 / const)
+
         else:
             raise NotImplementedError
 
