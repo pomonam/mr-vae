@@ -7,12 +7,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
 parser.add_argument("--experiment_name",
                     type=str,
-                    default="hv-b_mnist_mlp_hyper-v23")
+                    default="hv-b_mnist_mlp_hyper-v24")
 
 args = parser.parse_args()
 
 CONFIG = {
-    "lr": [1e-4],
+    "lr": [1e-3, 1e-4],
     "total_epochs": [200, 400],
     "encoder_name": ["mlp"],
     "decoder_name": ["mlp"],
