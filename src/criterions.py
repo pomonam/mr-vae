@@ -16,6 +16,24 @@ def log_sum_exp(value, dim=None, keepdim=False):
         return m + torch.log(sum_exp)
 
 
+def calc_au(model, test_loader, delta=0.01):
+    means = []
+    for datum in test_loader:
+        output_dict = model(datum["inputs"])
+        means.append(output_dict["mean"])
+
+    means = torch.cat(means, dim=0)
+    au_mean = means.mean(0, keepdim=True)
+
+    # (batch_size, nz)
+    au_var = means - au_mean
+    ns = au_var.size(0)
+
+    au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
+
+    return (au_var >= delta).sum().item(), au_var
+
+
 def binary_cross_entropy(x, logits):
     if x.shape != logits.shape:
         raise ValueError("Inputs x and logits must be of the same shape")

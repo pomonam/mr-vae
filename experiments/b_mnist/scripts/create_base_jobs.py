@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="train_jobs")
 parser.add_argument("--experiment_name",
                     type=str,
-                    default="hv-b_mnist_mlp_train-v5")
+                    default="hv-b_mnist_mlp_train-v6")
 
 args = parser.parse_args()
 

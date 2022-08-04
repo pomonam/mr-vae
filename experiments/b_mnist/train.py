@@ -16,6 +16,7 @@ from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
+from src.criterions import calc_au
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
@@ -42,17 +43,19 @@ cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
 
-def evaluate(model, biq, criterion, epoch, name):
+def evaluate(model, biq, criterion, epoch, name, delta=0.01):
     model.eval()
 
     with torch.no_grad():
         loader = biq(name, args.batch_size, DEVICE)
         p_bar = tqdm.tqdm(loader)
         metric_dict = initialize_metric(criterion.get_metric_lst())
+        means = []
 
         for batch in p_bar:
             inputs = batch["inputs"]
             output_dict = model(inputs)
+            means.append(output_dict["mean"])
             _, loss_dict = criterion.eval_forward(output_dict)
 
             metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
@@ -60,7 +63,17 @@ def evaluate(model, biq, criterion, epoch, name):
             summ_str = generate_metric_str(name, epoch, summ_dict)
             p_bar.set_description(summ_str)
 
+    means = torch.cat(means, dim=0)
+    au_mean = means.mean(0, keepdim=True)
+
+    au_var = means - au_mean
+    ns = au_var.size(0)
+    au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
+
     summ_dict = summarize_metric(metric_dict, name=name + "/")
+
+    summ_dict[name + "/" + "au"] = (au_var >= delta).sum().item()
+    summ_dict[name + "/" + "au_var"] = au_var
     wandb.log(summ_dict)
 
 

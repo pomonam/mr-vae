@@ -16,6 +16,8 @@ from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
+from src.criterions import calc_au
+
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
@@ -47,7 +49,7 @@ cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
 
-def hyper_evaluate(model, criterion, epoch, name):
+def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
     model.eval()
 
     with torch.no_grad():
@@ -55,15 +57,19 @@ def hyper_evaluate(model, criterion, epoch, name):
         loss_lst = []
         rate_lst = []
         dist_lst = []
+        au_lst = []
 
         for beta in beta_lst:
             loader = build_input_queue(name, args.batch_size, DEVICE)
             p_bar = tqdm.tqdm(loader)
             metric_dict = initialize_metric(criterion.get_metric_lst())
+            means = []
 
             for batch in p_bar:
                 inputs = batch["inputs"]
                 output_dict = model.fixed_forward(inputs, beta)
+                means.append(output_dict["mean"])
+
                 # We want to compute exact ELBO here
                 _, loss_dict = criterion.eval_forward(output_dict)
 
@@ -74,15 +80,25 @@ def hyper_evaluate(model, criterion, epoch, name):
                 p_bar.set_description(summ_str)
 
             summ_dict = summarize_metric(metric_dict, name="")
+
+            means = torch.cat(means, dim=0)
+            au_mean = means.mean(0, keepdim=True)
+            au_var = means - au_mean
+            ns = au_var.size(0)
+            au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
+
             loss_lst.append(summ_dict["loss"])
             rate_lst.append(summ_dict["rate"])
             dist_lst.append(summ_dict["distortion"])
+            au_lst.append((au_var >= delta).sum().item())
 
         wandb.log({
+            f"{name}/beta": beta,
             f"{name}/loss_lst": loss_lst,
             f"{name}/rate_lst": rate_lst,
             f"{name}/dist_lst": dist_lst,
-            f"{name}/beta_lst": beta_lst
+            f"{name}/beta_lst": beta_lst,
+            f"{name}/au_lst": au_lst
         })
 
         rd_data = [[x, y] for (x, y) in zip(rate_lst, dist_lst)]
@@ -95,6 +111,7 @@ def hyper_evaluate(model, criterion, epoch, name):
         loss_lst = np.array(loss_lst)
         rate_lst = np.array(rate_lst)
         dist_lst = np.array(dist_lst)
+        # au_lst = np.array(au_lst)
 
         total_auc = np.sum(loss_lst)
         top_auc = np.sum(loss_lst[:5])
