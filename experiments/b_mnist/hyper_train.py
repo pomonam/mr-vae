@@ -31,7 +31,7 @@ parser.add_argument("--block_type", type=str, default="residual")
 parser.add_argument("--include_output_layer", type=int, default=1)
 parser.add_argument("--include_sigmoid_activation", type=int, default=1)
 parser.add_argument("--preprocess_beta", type=int, default=1)
-parser.add_argument("--sample_type", type=str, default="fixed_log_uniform")
+parser.add_argument("--sample_type", type=str, default="fixed_log_uniform1.0")
 
 parser.add_argument("--total_epochs", type=int, default=5)
 parser.add_argument("--lr", type=float, default=1e-4)
