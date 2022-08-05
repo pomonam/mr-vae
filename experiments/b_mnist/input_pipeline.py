@@ -28,6 +28,8 @@ def parse_binary_mnist(data_dir):
 
 def download_binary_mnist(file_name):
     data_dir = "/tmp/"
+    if not os.path.isdir(data_dir):
+        os.mkdir(data_dir)
     subdatasets = ["train", "valid", "test"]
     for subdataset in subdatasets:
         fn = "binarized_mnist_{}.amat".format(subdataset)
@@ -60,7 +62,7 @@ def load_data(split, batch_size, workers=0, data_path="../../logs/data"):
         download_binary_mnist(file_name)
 
     train_data, valid_data, test_data = load_binary_mnist(file_name)
-
+    
     if split == "train" or split == "train_eval":
         dataset = train_data
 
@@ -69,6 +71,10 @@ def load_data(split, batch_size, workers=0, data_path="../../logs/data"):
 
     elif split == "test":
         dataset = test_data
+    
+    elif split == "analytical":
+        dataset = train_data
+        
     else:
         raise ValueError("Invalid split {:split}")
 
