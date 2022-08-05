@@ -98,7 +98,7 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
             f"{name}/rate_lst": rate_lst,
             f"{name}/dist_lst": dist_lst,
             f"{name}/beta_lst": beta_lst,
-            f"{name}/au_lst": au_lst
+            f"{name}/au": (au_var >= delta).sum().item()
         })
 
         rd_data = [[x, y] for (x, y) in zip(rate_lst, dist_lst)]
