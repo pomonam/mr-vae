@@ -36,9 +36,9 @@ class HyperLinear(HyperModule):
     hyper_bias = hyper_out[:, self.width:]
 
     if self.hyper_config.include_sigmoid_activation:
-      hyper_bias = torch.sigmoid(hyper_weight)
+      hyper_weight = torch.sigmoid(hyper_weight)
 
     out = F.linear(inputs, self.weight, self.bias)
-    out = out + out * hyper_weight
+    out = out + out * hyper_weight + hyper_bias
 
     return out
