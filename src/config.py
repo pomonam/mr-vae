@@ -32,7 +32,7 @@ class TrainConfig:
 
 
 class HyperConfig:
-    preprocess_dim = 2048
+    preprocess_dim = 1024
 
     def __init__(self, args):
         self.block_type = get_ns(args, "block_type")
@@ -40,5 +40,4 @@ class HyperConfig:
         self.preact_hyper = get_ns(args, "preact_hyper")
 
         self.sample_type = get_ns(args, "sample_type")
-        self.chunked = False
         self.preprocess_beta = get_ns(args, "preprocess_beta")

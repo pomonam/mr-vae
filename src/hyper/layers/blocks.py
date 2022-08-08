@@ -33,7 +33,7 @@ class BaseBlock(nn.Module):
 
 class LinearBlock(BaseBlock):
   def _construct_layers(self) -> None:
-    self.layers = nn.Sequential(nn.Linear(self.input_dim, self.width))
+    self.layers = nn.Linear(self.input_dim, self.width)
 
   def forward(self, beta: torch.Tensor) -> torch.Tensor:
     out = self.layers(beta)
