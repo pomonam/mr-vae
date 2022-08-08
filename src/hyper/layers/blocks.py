@@ -16,13 +16,11 @@ def get_block(name: str):
 
 
 class BaseBlock(nn.Module):
-  def __init__(self, input_dim: int, width: int,
-               include_sigmoid_activation: bool):
+  def __init__(self, input_dim: int, width: int):
     super().__init__()
     self.input_dim = input_dim
     self.width = width
     # self.include_sigmoid_activation = hyper_config.include_sigmoid_activation
-    self.include_sigmoid_activation = include_sigmoid_activation
 
     self.layers = None
     self._construct_layers()

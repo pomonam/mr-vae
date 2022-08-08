@@ -35,10 +35,9 @@ class HyperConfig:
     preprocess_dim = 2048
 
     def __init__(self, args):
-        self.hyper_type = get_ns(args, "hyper_type")
         self.block_type = get_ns(args, "block_type")
-        self.include_output_layer = get_ns(args, "include_output_layer")
         self.include_sigmoid_activation = get_ns(args, "include_sigmoid_activation")
+        self.preact_hyper = get_ns(args, "preact_hyper")
 
         self.sample_type = get_ns(args, "sample_type")
         self.chunked = False

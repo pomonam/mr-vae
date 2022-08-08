@@ -7,10 +7,15 @@ from experiments.b_mnist.models.decoders import PixelCNNDecoder
 from experiments.b_mnist.models.encoders import CNNEncoder
 from experiments.b_mnist.models.encoders import MLPEncoder
 from experiments.b_mnist.models.encoders import ResNetEncoder
+from experiments.b_mnist.models.hyper_encoders import HyperMLPEncoder
+from experiments.b_mnist.models.hyper_decoders import HyperMLPDecoder
+
 from src.criterions import binary_cross_entropy
 from src.criterions import kl_gaussian
 from src.hyper.vae import HyperVae
 from src.models.samplers import IsotropicGaussianSampler
+from src.hyper.models import HyperIsotropicGaussianSampler
+
 from src.models.vae import BaseVae
 
 
@@ -74,7 +79,7 @@ def build_model(encoder_name, decoder_name, device):
 
 def build_hyper_model(encoder_name, decoder_name, hyper_config, device):
     if encoder_name == "mlp":
-        encoder = MLPEncoder()
+        encoder = HyperMLPEncoder(hyper_config)
     elif encoder_name == "cnn":
         encoder = CNNEncoder()
     elif encoder_name == "resnet":
@@ -82,10 +87,10 @@ def build_hyper_model(encoder_name, decoder_name, hyper_config, device):
     else:
         raise ValueError()
 
-    sampler = IsotropicGaussianSampler(nh=256, nz=64)
+    sampler = HyperIsotropicGaussianSampler(nh=256, nz=64, hyper_config=hyper_config)
 
     if decoder_name == "mlp":
-        decoder = MLPDecoder()
+        decoder = HyperMLPDecoder(hyper_config)
     elif decoder_name == "cnn":
         decoder = CNNDecoder()
     elif decoder_name == "pixelcnn":
