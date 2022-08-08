@@ -21,8 +21,8 @@ class HyperLinear(HyperModule):
     self.reset_parameters()
 
     input_dim = hyper_config.preprocess_dim if hyper_config.preprocess_beta else 1
-    block_type = "linear" if hyper_config.preprocess_beta else self.cfg.block_type
-    self.beta_block = get_block(block_type)(input_dim, self.width * 2)
+    self.beta_block_weight = get_block("linear")(input_dim, self.width)
+    self.beta_block_bias = get_block("linear")(input_dim, self.width)
 
   def reset_parameters(self) -> None:
     init.kaiming_uniform_(self.weight, a=math.sqrt(5))
@@ -31,14 +31,13 @@ class HyperLinear(HyperModule):
     init.uniform_(self.bias, -bound, bound)
 
   def forward(self, inputs):
-    hyper_out = self.beta_block(self._net_beta)
-    hyper_weight = hyper_out[:, :self.width]
-    hyper_bias = hyper_out[:, self.width:]
+    hyper_weight = self.beta_block_weight(self._net_beta)
+    hyper_bias = self.beta_block_bias(self._net_beta)
 
     if self.hyper_config.include_sigmoid_activation:
       hyper_weight = torch.sigmoid(hyper_weight)
 
     out = F.linear(inputs, self.weight, self.bias)
-    out = out + out * hyper_weight
+    out = out * hyper_weight + hyper_bias
 
     return out
