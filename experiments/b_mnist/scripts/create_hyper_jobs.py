@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
 parser.add_argument("--experiment_name",
                     type=str,
-                    default="hv-b_mnist_mlp_hyper-v40")
+                    default="hv-b_mnist_mlp_hyper-v41")
 
 args = parser.parse_args()
 
@@ -20,6 +20,7 @@ CONFIG = {
     "sample_type": ["fixed_log_uniform1.0", "fixed_log_uniform0.1"],
     "preact_hyper": [0, 1],
     "preprocess_beta": [1],
+    "include_sigmoid_activation": [0, 1],
 }
 
 if __name__ == "__main__":
