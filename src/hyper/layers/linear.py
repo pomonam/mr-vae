@@ -32,7 +32,7 @@ class HyperLinear(HyperModule):
     init.uniform_(self.bias, -bound, bound)
 
   def forward(self, inputs):
-    hyper_out = self.beta_block(self._net_beta["net_beta"])
+    hyper_out = self.beta_block(self._net_beta)
     hyper_weight = hyper_out[:, :self.width]
     hyper_bias = hyper_out[:, self.width:]
 
