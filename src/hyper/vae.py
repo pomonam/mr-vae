@@ -9,8 +9,6 @@ from src.hyper.layers.blocks import get_block
 from src.hyper.layers.blocks import LinearBlock
 from src.hyper.layers.blocks import MlpBlock
 from src.hyper.layers.blocks import ResidualBlock
-from src.hyper.layers.linear import HyperLinear
-from src.hyper.layers.module import HyperModule
 from src.models.vae import BaseVae
 
 _BLOCK_DICT = {
