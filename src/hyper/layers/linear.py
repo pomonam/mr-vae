@@ -1,7 +1,6 @@
 import math
 
 import torch
-from torch import nn
 from torch.nn import init
 import torch.nn.functional as F
 
@@ -40,6 +39,6 @@ class HyperLinear(HyperModule):
       hyper_bias = torch.sigmoid(hyper_weight)
 
     out = F.linear(inputs, self.weight, self.bias)
-    out = out * hyper_weight + hyper_bias
+    out = out + out * hyper_weight + hyper_bias
 
     return out
