@@ -7,7 +7,7 @@ from src.plotting import init_plotting
 
 ENTITY = "bae-group"
 EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v27"
-ID = "1rymge6c"
+ID = "3sdyq5kl"
 
 
 def get_summary(summary):
