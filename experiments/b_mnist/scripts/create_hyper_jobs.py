@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-3, 1e-4, 1e-5],
-    "total_epochs": [200],
+    "total_epochs": [400],
     "encoder_name": ["mlp"],
     "decoder_name": ["mlp"],
     "block_type": ["linear", "mlp"],
