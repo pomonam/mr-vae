@@ -17,7 +17,7 @@ DEVICE = torch.device("cuda" if cuda else "cpu")
 # ================================================================================================
 
 def log_normal_likelihood(x, mean, logvar):
-    """Implementation WITH constant
+    """Implementation WITHOUT constant
     based on https://github.com/lxuechen/BDMC/blob/master/utils.py
     Args:
         x: [B,Z]
@@ -28,8 +28,7 @@ def log_normal_likelihood(x, mean, logvar):
 
     dim = list(mean.size())[1]
     logvar = (torch.zeros(mean.size()) + logvar).to(DEVICE)
-    return -0.5 * ((logvar + (x - mean)**2 / torch.exp(logvar)).sum(1) +
-                   torch.log(torch.tensor(2 * pi)) * dim)
+    return -0.5 * ((logvar + (x - mean)**2 / torch.exp(logvar)).sum(1))
 
 
 def log_mean_exp(x, dim=1):
