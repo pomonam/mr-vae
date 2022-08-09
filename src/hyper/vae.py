@@ -78,14 +78,14 @@ class HyperVae(BaseVae):
         diff_const = (log_mid_const - log_a_const)
 
         if self.hyper_config.sample_type == "fixed_log_uniform0.1":
-            # sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-const, const).to(device)
-            # trans_beta = sample_dict["net_beta"] * (const / 3)
-            # trans_beta = trans_beta * diff_const + log_mid_const
-            # sample_dict["beta"] = torch.exp(trans_beta)
-            const = math.sqrt(3)
             sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-const, const).to(device)
-            norm_beta = (sample_dict["net_beta"] * (2 * const) / 3) - 1
-            sample_dict["beta"] = torch.pow(10, norm_beta)
+            trans_beta = sample_dict["net_beta"] * (const / 3)
+            trans_beta = trans_beta * diff_const + log_mid_const
+            sample_dict["beta"] = torch.exp(trans_beta)
+            # const = math.sqrt(3)
+            # sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-const, const).to(device)
+            # norm_beta = (sample_dict["net_beta"] * (2 * const) / 3) - 1
+            # sample_dict["beta"] = torch.pow(10, norm_beta)
 
         elif self.hyper_config.sample_type == "fixed_log_uniform1.0":
             sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-const, const).to(device)
@@ -118,10 +118,10 @@ class HyperVae(BaseVae):
         sample_dict["beta"] = torch.ones(batch_size, 1).to(device) * beta
 
         if self.hyper_config.sample_type == "fixed_log_uniform0.1":
-            # net_beta = (torch.log(beta) - log_mid_const) / diff_const
-            # net_beta = net_beta * (3 / const)
+            net_beta = (torch.log(beta) - log_mid_const) / diff_const
+            sample_dict["net_beta"] = net_beta * (3 / const)
             # sample_dict["net_beta"] = net_beta
-            sample_dict["net_beta"] = (torch.log10(beta) + 1) * (3 / (2 * const))
+            # sample_dict["net_beta"] = (torch.log10(beta) + 1) * (3 / (2 * const))
 
         elif self.hyper_config.sample_type == "fixed_log_uniform1.0":
             if trans_beta >= 1.:
