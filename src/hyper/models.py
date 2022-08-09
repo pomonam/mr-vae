@@ -53,8 +53,6 @@ class BaseHyperDecoder(HyperStructure):
 class HyperIsotropicGaussianSampler(BaseSampler):
     def __init__(self, nh, nz, hyper_config):
         super().__init__()
-        self._hyper_modules = []
-
         self.nh = nh
         self.nz = nz
 
@@ -63,26 +61,23 @@ class HyperIsotropicGaussianSampler(BaseSampler):
 
         self.hyper_mean = HyperLinear(self.nz, hyper_config)
         self.hyper_log_var = HyperLinear(self.nz, hyper_config)
+        self._hyper_modules = [self.hyper_mean, self.hyper_log_var]
 
     def forward(self, x: torch.Tensor) -> dict:
         mean = self.mean(x)
-        log_var = self.log_var(x)
         mean = self.hyper_mean(mean)
+        log_var = self.log_var(x)
         log_var = self.hyper_log_var(log_var)
         outputs_dict = {"mean": mean, "log_var": log_var}
         return outputs_dict
 
     @staticmethod
     def sample(outputs_dict, num_samples=1) -> torch.Tensor:
-        # TODO(JB): Add support for num_samples > 1
         std = outputs_dict["log_var"].mul(0.5).exp()
         eps = torch.randn_like(std)
         return eps.mul(std).add_(outputs_dict["mean"])
 
     def register_hyper_modules(self):
-        # self._hyper_modules = [self.hyper_mean, self.hyper_log_var]
-        self._hyper_modules.append(self.hyper_mean)
-        self._hyper_modules.append(self.hyper_log_var)
         return self._hyper_modules
 
     def set_beta(self, beta: torch.Tensor) -> None:

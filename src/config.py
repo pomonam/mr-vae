@@ -32,12 +32,13 @@ class TrainConfig:
 
 
 class HyperConfig:
-    preprocess_dim = 1024
+    preprocess_dim = 2048
 
     def __init__(self, args):
         self.block_type = get_ns(args, "block_type")
         self.include_sigmoid_activation = get_ns(args, "include_sigmoid_activation")
         self.preact_hyper = get_ns(args, "preact_hyper")
 
+        self.include_linear_transformation = get_ns(args, "include_linear_transformation")
         self.sample_type = get_ns(args, "sample_type")
         self.preprocess_beta = get_ns(args, "preprocess_beta")
