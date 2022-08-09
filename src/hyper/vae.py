@@ -36,9 +36,9 @@ class HyperVae(BaseVae):
         self._register_hyper_modules()
 
         if hyper_config.preprocess_beta:
-            self.encoder_trans = get_block(self.hyper_config.block_type)(1, hyper_config.preprocess_dim)
-            self.decoder_trans = get_block(self.hyper_config.block_type)(1, hyper_config.preprocess_dim)
-            self.sampler_trans = get_block(self.hyper_config.block_type)(1, hyper_config.preprocess_dim)
+            self.encoder_block = get_block(self.hyper_config.block_type)(1, hyper_config.preprocess_dim)
+            self.decoder_block = get_block(self.hyper_config.block_type)(1, hyper_config.preprocess_dim)
+            self.sampler_block = get_block(self.hyper_config.block_type)(1, hyper_config.preprocess_dim)
 
     def _register_hyper_modules(self):
         self._encoder_modules = self.encoder.register_hyper_modules()
@@ -47,13 +47,13 @@ class HyperVae(BaseVae):
 
     def set_beta(self, beta: torch.Tensor) -> None:
         if self.hyper_config.preprocess_beta:
-            encoder_beta = self.encoder_trans(beta)
+            encoder_beta = self.encoder_block(beta)
             self.encoder.set_beta(encoder_beta)
 
-            decoder_beta = self.decoder_trans(beta)
+            decoder_beta = self.decoder_block(beta)
             self.decoder.set_beta(decoder_beta)
 
-            sampler_beta = self.sampler_trans(beta)
+            sampler_beta = self.sampler_block(beta)
             self.sampler.set_beta(sampler_beta)
 
         else:
@@ -61,9 +61,9 @@ class HyperVae(BaseVae):
             self.decoder.set_beta(beta)
             self.sampler.set_beta(beta)
 
-    def reset_beta(self) -> None:
-        for hm in self._hyper_modules:
-            hm.reset_beta()
+    # def reset_beta(self) -> None:
+    #     for hm in self._hyper_modules:
+    #         hm.reset_beta()
 
     def sample_beta(self, x: torch.Tensor):
         batch_size = x.shape[0]
@@ -82,10 +82,6 @@ class HyperVae(BaseVae):
             trans_beta = sample_dict["net_beta"] * (const / 3)
             trans_beta = trans_beta * diff_const + log_mid_const
             sample_dict["beta"] = torch.exp(trans_beta)
-            # const = math.sqrt(3)
-            # sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-const, const).to(device)
-            # norm_beta = (sample_dict["net_beta"] * (2 * const) / 3) - 1
-            # sample_dict["beta"] = torch.pow(10, norm_beta)
 
         elif self.hyper_config.sample_type == "fixed_log_uniform1.0":
             sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-const, const).to(device)
@@ -120,8 +116,6 @@ class HyperVae(BaseVae):
         if self.hyper_config.sample_type == "fixed_log_uniform0.1":
             net_beta = (torch.log(beta) - log_mid_const) / diff_const
             sample_dict["net_beta"] = net_beta * (3 / const)
-            # sample_dict["net_beta"] = net_beta
-            # sample_dict["net_beta"] = (torch.log10(beta) + 1) * (3 / (2 * const))
 
         elif self.hyper_config.sample_type == "fixed_log_uniform1.0":
             if trans_beta >= 1.:

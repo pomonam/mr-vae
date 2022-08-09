@@ -16,9 +16,10 @@ class HyperLinear(HyperModule):
     self.width = width
     self.hyper_config = hyper_config
 
-    self.weight = torch.nn.Parameter(torch.empty((self.width, self.width)))
-    self.bias = torch.nn.Parameter(torch.empty(self.width))
-    self.reset_parameters()
+    if self.hyper_config.include_linear_transformation:
+      self.weight = torch.nn.Parameter(torch.empty((self.width, self.width)))
+      self.bias = torch.nn.Parameter(torch.empty(self.width))
+      self.reset_parameters()
 
     input_dim = hyper_config.preprocess_dim if hyper_config.preprocess_beta else 1
     self.beta_block_weight = get_block("linear")(input_dim, self.width)
@@ -37,7 +38,11 @@ class HyperLinear(HyperModule):
     if self.hyper_config.include_sigmoid_activation:
       hyper_weight = torch.sigmoid(hyper_weight)
 
-    out = F.linear(inputs + inputs * hyper_weight, self.weight)
-    # out = out * hyper_weight + hyper_bias
+    if self.hyper_config.include_linear_transformation:
+      out = inputs * hyper_weight + hyper_bias
+      out = inputs + F.linear(out, self.weight, self.bias)
+      # out = inputs + inputs * hyper_weight
+    else:
+      out = inputs + inputs * hyper_weight + hyper_bias
 
     return out
