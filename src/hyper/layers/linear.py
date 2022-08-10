@@ -54,7 +54,7 @@ class HyperLinear(HyperModule):
     if self.hyper_config.include_linear_transformation:
       out = inputs * hyper_weight2 + hyper_bias2
       out = F.linear(out, self.weight, self.bias)
-      out = inputs * hyper_weight + hyper_bias + out
+      out = inputs + inputs * hyper_weight + hyper_bias + out
     else:
       # out = inputs + inputs * hyper_weight + hyper_bias
       out = inputs + inputs * hyper_weight + hyper_bias
