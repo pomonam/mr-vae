@@ -25,6 +25,9 @@ class HyperLinear(HyperModule):
     self.beta_block_weight = get_block("linear")(input_dim, self.width)
     self.beta_block_bias = get_block("linear")(input_dim, self.width)
 
+    self.beta_block_weight2 = get_block("linear")(input_dim, self.width)
+    self.beta_block_bias2 = get_block("linear")(input_dim, self.width)
+
   def reset_parameters(self) -> None:
     init.kaiming_uniform_(self.weight, a=math.sqrt(5))
     fan_in, _ = init._calculate_fan_in_and_fan_out(self.weight)
@@ -34,15 +37,25 @@ class HyperLinear(HyperModule):
   def forward(self, inputs):
     hyper_weight = self.beta_block_weight(self._net_beta)
     hyper_bias = self.beta_block_bias(self._net_beta)
+    hyper_weight2 = self.beta_block_weight(self._net_beta)
+    hyper_bias2 = self.beta_block_bias(self._net_beta)
 
     if self.hyper_config.include_sigmoid_activation:
       hyper_weight = torch.sigmoid(hyper_weight)
 
+    # if self.hyper_config.include_linear_transformation:
+    #   out = inputs * hyper_weight + hyper_bias
+    #   out = F.linear(out, self.weight, self.bias)
+    # else:
+    #   # out = inputs + inputs * hyper_weight + hyper_bias
+    #   out = inputs * hyper_weight + hyper_bias
+
     if self.hyper_config.include_linear_transformation:
-      out = inputs * hyper_weight + hyper_bias
+      out = inputs * hyper_weight2 + hyper_bias2
       out = F.linear(out, self.weight, self.bias)
+      out = inputs * hyper_weight + hyper_bias + out
     else:
       # out = inputs + inputs * hyper_weight + hyper_bias
-      out = inputs * hyper_weight + hyper_bias
+      out = inputs + inputs * hyper_weight + hyper_bias
 
     return out
