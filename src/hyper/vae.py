@@ -72,7 +72,7 @@ class HyperVae(BaseVae):
 
         # These are useful constants ...
         const = math.sqrt(3)
-        log_a_const = math.log(0.0001)
+        log_a_const = math.log(0.001)
         log_b_const = math.log(10)
         log_mid_const = (log_a_const + log_b_const) / 2
         diff_const = (log_mid_const - log_a_const)
