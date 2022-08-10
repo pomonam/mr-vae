@@ -42,6 +42,7 @@ class HyperLinear(HyperModule):
       out = inputs * hyper_weight + hyper_bias
       out = F.linear(out, self.weight, self.bias)
     else:
-      out = inputs + inputs * hyper_weight + hyper_bias
+      # out = inputs + inputs * hyper_weight + hyper_bias
+      out = inputs * hyper_weight + hyper_bias
 
     return out
