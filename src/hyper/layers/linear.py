@@ -37,11 +37,12 @@ class HyperLinear(HyperModule):
   def forward(self, inputs):
     hyper_weight = self.beta_block_weight(self._net_beta)
     hyper_bias = self.beta_block_bias(self._net_beta)
-    hyper_weight2 = self.beta_block_weight(self._net_beta)
-    hyper_bias2 = self.beta_block_bias(self._net_beta)
+    hyper_weight2 = self.beta_block_weight2(self._net_beta)
+    hyper_bias2 = self.beta_block_bias2(self._net_beta)
 
     if self.hyper_config.include_sigmoid_activation:
       hyper_weight = torch.sigmoid(hyper_weight)
+      hyper_weight2 = torch.sigmoid(hyper_weight2)
 
     # if self.hyper_config.include_linear_transformation:
     #   out = inputs * hyper_weight + hyper_bias
