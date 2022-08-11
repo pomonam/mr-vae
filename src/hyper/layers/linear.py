@@ -22,11 +22,28 @@ class HyperLinear(HyperModule):
       self.reset_parameters()
 
     input_dim = hyper_config.preprocess_dim if hyper_config.preprocess_beta else 1
-    self.beta_block_weight = get_block("linear")(input_dim, self.width)
-    self.beta_block_bias = get_block("linear")(input_dim, self.width)
+    chunk_lst = []
+    chunk_linear_lst = []
+    if self.hyper_config.include_chunk:
+      for _ in range(self.hyper_config.include_chunk):
+        chunk_lst.append(torch.nn.Linear(input_dim, width))
+        if self.hyper_config.include_linear_transformation:
+          chunk_linear_lst.append(torch.nn.Linear(width, width))
+      self.beta_scale_layers = torch.nn.ModuleList(chunk_lst)
+      self.chunk_linear_layers = torch.nn.ModuleList(chunk_linear_lst)
 
-    self.beta_block_weight2 = get_block("linear")(input_dim, self.width)
-    self.beta_block_bias2 = get_block("linear")(input_dim, self.width)
+    else:
+      chunk_lst = [torch.nn.Linear(input_dim, width)]
+      chunk_linear_lst = [torch.nn.Linear(width, width)]
+      self.beta_scale_layers = torch.nn.ModuleList(chunk_lst)
+      self.chunk_linear_layers = torch.nn.ModuleList(chunk_linear_lst)
+
+    self.beta_bias_layer = torch.nn.Linear(input_dim, width)
+
+    if self.hyper_config.include_moe and self.hyper_config.include_chunk > 1:
+      self.beta_moe_layer = torch.nn.Linear(input_dim, self.hyper_config.include_chunk)
+    else:
+      self.beta_moe_layer = None
 
   def reset_parameters(self) -> None:
     init.kaiming_uniform_(self.weight, a=math.sqrt(5))
@@ -35,28 +52,50 @@ class HyperLinear(HyperModule):
     init.uniform_(self.bias, -bound, bound)
 
   def forward(self, inputs):
-    hyper_weight = self.beta_block_weight(self._net_beta)
-    hyper_bias = self.beta_block_bias(self._net_beta)
-    hyper_weight2 = self.beta_block_weight2(self._net_beta)
-    hyper_bias2 = self.beta_block_bias2(self._net_beta)
+    if self.beta_moe_layer is not None:
+      moe_scale = torch.softmax(self.beta_moe_layer(self._net_beta), 1)
+    else:
+      moe_scale = None
 
-    if self.hyper_config.include_sigmoid_activation:
-      hyper_weight = torch.sigmoid(hyper_weight)
-      hyper_weight2 = torch.sigmoid(hyper_weight2)
+    scale_lst = []
+    for i in range(len(self.beta_scale_layers)):
+      if self.hyper_config.include_sigmoid_activation:
+        scale = torch.sigmoid(self.beta_scale_layers[i](self._net_beta))
+      else:
+        scale = self.beta_scale_layers[i](self._net_beta)
 
+      if self.hyper_config.include_linear_transformation:
+        scale = self.chunk_linear_layers[i](scale)
+
+      if moe_scale is not None:
+        scale = scale * moe_scale[:, i].unsqueeze(-1)
+      scale_lst.append(scale)
+
+    hyper_bias = self.beta_bias_layer(self._net_beta)
+
+    return inputs + inputs * sum(scale_lst) + hyper_bias
+    # hyper_weight = self.beta_block_weight(self._net_beta)
+    # hyper_bias = self.beta_block_bias(self._net_beta)
+    # hyper_weight2 = self.beta_block_weight2(self._net_beta)
+    # hyper_bias2 = self.beta_block_bias2(self._net_beta)
+    #
+    # if self.hyper_config.include_sigmoid_activation:
+    #   hyper_weight = torch.sigmoid(hyper_weight)
+    #   hyper_weight2 = torch.sigmoid(hyper_weight2)
+    #
+    # # if self.hyper_config.include_linear_transformation:
+    # #   out = inputs * hyper_weight + hyper_bias
+    # #   out = F.linear(out, self.weight, self.bias)
+    # # else:
+    # #   # out = inputs + inputs * hyper_weight + hyper_bias
+    # #   out = inputs * hyper_weight + hyper_bias
+    #
     # if self.hyper_config.include_linear_transformation:
-    #   out = inputs * hyper_weight + hyper_bias
+    #   out = inputs * hyper_weight2 + hyper_bias2
     #   out = F.linear(out, self.weight, self.bias)
+    #   out = inputs + inputs * hyper_weight + hyper_bias + out
     # else:
     #   # out = inputs + inputs * hyper_weight + hyper_bias
-    #   out = inputs * hyper_weight + hyper_bias
-
-    if self.hyper_config.include_linear_transformation:
-      out = inputs * hyper_weight2 + hyper_bias2
-      out = F.linear(out, self.weight, self.bias)
-      out = inputs + inputs * hyper_weight + hyper_bias + out
-    else:
-      # out = inputs + inputs * hyper_weight + hyper_bias
-      out = inputs + inputs * hyper_weight + hyper_bias
-
-    return out
+    #   out = inputs + inputs * hyper_weight + hyper_bias
+    #
+    # return out

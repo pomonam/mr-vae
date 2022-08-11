@@ -31,6 +31,9 @@ parser.add_argument("--block_type", type=str, default="mlp")
 parser.add_argument("--preact_hyper", type=int, default=1)
 parser.add_argument("--include_sigmoid_activation", type=int, default=1)
 parser.add_argument("--include_linear_transformation", type=int, default=1)
+parser.add_argument("--include_chunk", type=int, default=0)
+parser.add_argument("--include_moe", type=int, default=1)
+
 parser.add_argument("--preprocess_beta", type=int, default=1)
 parser.add_argument("--sample_type", type=str, default="fixed_log_uniform0.1")
 
