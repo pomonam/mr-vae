@@ -14,7 +14,7 @@ parser.add_argument("--experiment_name",
 args = parser.parse_args()
 
 CONFIG = {
-    "lr": [1e-3],
+    "lr": [1e-3, 1e-4],
     "total_epochs": [200],
     "encoder_name": ["mlp", "cnn"],
     "decoder_name": ["mlp", "cnn"],
