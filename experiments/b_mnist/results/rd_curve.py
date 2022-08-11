@@ -51,9 +51,9 @@ def get_rd(experiment_name):
 
     rate_dict, dist_dict, elbo_dict = get_summary(config_list,
                                                   summary_list,
-                                                  schedule="constant",
-                                                  encoder_name="mlp",
-                                                  decoder_name="mlp")
+                                                  schedule="cyclic",
+                                                  encoder_name="cnn",
+                                                  decoder_name="cnn")
     keys = rate_dict.keys()
     values = zip(rate_dict.values(), dist_dict.values())
     combined_dict = dict(zip(keys, values))
