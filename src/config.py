@@ -42,7 +42,3 @@ class HyperConfig:
         self.include_linear_transformation = get_ns(args, "include_linear_transformation")
         self.sample_type = get_ns(args, "sample_type")
         self.preprocess_beta = get_ns(args, "preprocess_beta")
-
-        self.include_chunk = get_ns(args, "include_chunk")
-        self.include_moe = get_ns(args, "include_moe")
-
