@@ -16,24 +16,23 @@ from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
-from src.criterions import calc_au
+
 
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--experiment_name",
-                    type=str,
+parser.add_argument("--experiment_name", type=str,
                     default="hyper_vae-hyper-b_mnist_mlp")
 
 parser.add_argument("--encoder_name", type=str, default="mlp")
 parser.add_argument("--decoder_name", type=str, default="mlp")
 
-parser.add_argument("--hyper_type", type=str, default="ss_add")
-parser.add_argument("--block_type", type=str, default="residual")
-parser.add_argument("--include_output_layer", type=int, default=1)
+parser.add_argument("--block_type", type=str, default="mlp")
+parser.add_argument("--preact_hyper", type=int, default=1)
 parser.add_argument("--include_sigmoid_activation", type=int, default=1)
+parser.add_argument("--include_linear_transformation", type=int, default=1)
 parser.add_argument("--preprocess_beta", type=int, default=1)
-parser.add_argument("--sample_type", type=str, default="fixed_log_uniform1.0")
+parser.add_argument("--sample_type", type=str, default="fixed_log_uniform0.1")
 
 parser.add_argument("--total_epochs", type=int, default=5)
 parser.add_argument("--lr", type=float, default=1e-4)
@@ -191,15 +190,13 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
 
 
 def main():
-    init_wandb(args.checkpoint_dir,
-               project_name=args.experiment_name,
-               config=vars(args))
+    init_wandb(args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
     cfg = TrainConfig(args)
     hyper_cfg = HyperConfig(args)
 
     seed_everything(cfg.seed)
-    model = build_hyper_model(args.encoder_name, args.decoder_name, hyper_cfg,
-                              DEVICE)
+    model = build_hyper_model(args.encoder_name, args.decoder_name, hyper_cfg, DEVICE)
+    wandb.watch(model)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     criterion = build_criterion(DEVICE)
