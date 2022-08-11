@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 from src.hyper.layers.linear import HyperLinear
+from src.hyper.layers.conv2d import HyperConv2d
 
 from src.models.base_decoder import BaseDecoder
 from src.hyper.models import BaseHyperDecoder
@@ -53,33 +54,66 @@ class HyperMLPDecoder(BaseHyperDecoder):
         return z
 
 
-class CNNDecoder(BaseDecoder):
-    def __init__(self):
+class HyperCNNDecoder(BaseHyperDecoder):
+    def __init__(self, hyper_config):
         super().__init__()
 
+        self.hyper_config = hyper_config
         self.initial_layer = nn.Linear(64, 32 * 8)
-        self.layers = nn.Sequential(
-            nn.ConvTranspose2d(32 * 8,
-                               32 * 4,
-                               kernel_size=4,
-                               stride=2,
-                               padding=1,
-                               output_padding=1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(32 * 4,
-                               32 * 2,
-                               kernel_size=4,
-                               stride=2,
-                               padding=1,
-                               output_padding=1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(32 * 2, 32, kernel_size=4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(32, 1, kernel_size=4, stride=2, padding=1),
-        )
+        self.hyper_layer = HyperLinear(32 * 8, hyper_config)
+
+        if self.hyper_config.preact_hyper:
+            self.layers = nn.Sequential(
+                nn.ConvTranspose2d(32 * 8,
+                                   32 * 4,
+                                   kernel_size=4,
+                                   stride=2,
+                                   padding=1,
+                                   output_padding=1),
+                HyperConv2d(32 * 4, hyper_config),
+                nn.ReLU(),
+                nn.ConvTranspose2d(32 * 4,
+                                   32 * 2,
+                                   kernel_size=4,
+                                   stride=2,
+                                   padding=1,
+                                   output_padding=1),
+                HyperConv2d(32 * 2, hyper_config),
+                nn.ReLU(),
+                nn.ConvTranspose2d(32 * 2, 32, kernel_size=4, stride=2, padding=1),
+                HyperConv2d(32, hyper_config),
+                nn.ReLU(),
+                nn.ConvTranspose2d(32, 1, kernel_size=4, stride=2, padding=1),
+                HyperConv2d(1, hyper_config),
+
+            )
+        else:
+            self.layers = nn.Sequential(
+                nn.ConvTranspose2d(32 * 8,
+                                   32 * 4,
+                                   kernel_size=4,
+                                   stride=2,
+                                   padding=1,
+                                   output_padding=1),
+                nn.ReLU(),
+                HyperConv2d(32 * 4, hyper_config),
+                nn.ConvTranspose2d(32 * 4,
+                                   32 * 2,
+                                   kernel_size=4,
+                                   stride=2,
+                                   padding=1,
+                                   output_padding=1),
+                nn.ReLU(),
+                HyperConv2d(32 * 2, hyper_config),
+                nn.ConvTranspose2d(32 * 2, 32, kernel_size=4, stride=2, padding=1),
+                nn.ReLU(),
+                HyperConv2d(32, hyper_config),
+                nn.ConvTranspose2d(32, 1, kernel_size=4, stride=2, padding=1),
+            )
 
     def forward(self, z):
         z = self.initial_layer(z)
+        z = self.hyper_layer(z)
         z = z.view(z.shape[0], z.shape[1], 1, 1)
         z = self.layers(z)
         return z

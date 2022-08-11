@@ -7,8 +7,8 @@ from experiments.b_mnist.models.decoders import PixelCNNDecoder
 from experiments.b_mnist.models.encoders import CNNEncoder
 from experiments.b_mnist.models.encoders import MLPEncoder
 from experiments.b_mnist.models.encoders import ResNetEncoder
-from experiments.b_mnist.models.hyper_encoders import HyperMLPEncoder
-from experiments.b_mnist.models.hyper_decoders import HyperMLPDecoder
+from experiments.b_mnist.models.hyper_encoders import HyperMLPEncoder, HyperCNNEncoder
+from experiments.b_mnist.models.hyper_decoders import HyperMLPDecoder, HyperCNNDecoder
 
 from src.criterions import binary_cross_entropy
 from src.criterions import kl_gaussian
@@ -81,7 +81,7 @@ def build_hyper_model(encoder_name, decoder_name, hyper_config, device):
     if encoder_name == "mlp":
         encoder = HyperMLPEncoder(hyper_config)
     elif encoder_name == "cnn":
-        encoder = CNNEncoder()
+        encoder = HyperCNNEncoder(hyper_config)
     elif encoder_name == "resnet":
         encoder = ResNetEncoder()
     else:
@@ -92,7 +92,7 @@ def build_hyper_model(encoder_name, decoder_name, hyper_config, device):
     if decoder_name == "mlp":
         decoder = HyperMLPDecoder(hyper_config)
     elif decoder_name == "cnn":
-        decoder = CNNDecoder()
+        decoder = HyperCNNDecoder(hyper_config)
     elif decoder_name == "pixelcnn":
         decoder = PixelCNNDecoder()
     else:

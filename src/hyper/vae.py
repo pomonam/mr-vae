@@ -61,10 +61,6 @@ class HyperVae(BaseVae):
             self.decoder.set_beta(beta)
             self.sampler.set_beta(beta)
 
-    # def reset_beta(self) -> None:
-    #     for hm in self._hyper_modules:
-    #         hm.reset_beta()
-
     def sample_beta(self, x: torch.Tensor):
         batch_size = x.shape[0]
         device = x.device
@@ -77,7 +73,7 @@ class HyperVae(BaseVae):
         log_mid_const = (log_a_const + log_b_const) / 2
         diff_const = (log_mid_const - log_a_const)
 
-        if self.hyper_config.sample_type == "fixed_log_uniform0.1":
+        if self.hyper_config.sample_type == "fixed_log_uniform":
             sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-const, const).to(device)
             trans_beta = sample_dict["net_beta"] * (const / 3)
             trans_beta = trans_beta * diff_const + log_mid_const
@@ -113,7 +109,7 @@ class HyperVae(BaseVae):
 
         sample_dict["beta"] = torch.ones(batch_size, 1).to(device) * beta
 
-        if self.hyper_config.sample_type == "fixed_log_uniform0.1":
+        if self.hyper_config.sample_type == "fixed_log_uniform":
             net_beta = (torch.log(beta) - log_mid_const) / diff_const
             sample_dict["net_beta"] = net_beta * (3 / const)
 
