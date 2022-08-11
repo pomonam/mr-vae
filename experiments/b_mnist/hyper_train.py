@@ -91,13 +91,16 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
             dist_lst.append(summ_dict["distortion"])
             au_lst.append((au_var >= delta).sum().item())
 
+            wandb.log({
+                f"{name}/beta": beta,
+                f"{name}/au": (au_var >= delta).sum().item()
+            })
+
         wandb.log({
-            f"{name}/beta": beta,
             f"{name}/loss_lst": loss_lst,
             f"{name}/rate_lst": rate_lst,
             f"{name}/dist_lst": dist_lst,
             f"{name}/beta_lst": beta_lst,
-            f"{name}/au": (au_var >= delta).sum().item()
         })
 
         rd_data = [[x, y] for (x, y) in zip(rate_lst, dist_lst)]
