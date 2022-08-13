@@ -7,21 +7,22 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
 parser.add_argument("--experiment_name",
                     type=str,
-                    default="hv-b_mnist_mlp_hyper-v101")
+                    default="hypvae-mnist_mlp_hyper-v1")
 
 args = parser.parse_args()
 
 CONFIG = {
-    "lr": [1e-4, 1e-5],
+    "lr": [1e-3, 1e-4],
     "total_epochs": [400],
-    "encoder_name": ["cnn"],
-    "decoder_name": ["cnn"],
+    "encoder_name": ["mlp"],
+    "decoder_name": ["mlp"],
     "block_type": ["linear", "mlp"],
-    "sample_type": ["fixed_log_uniform"],
+    "sample_type": ["beta_log_uniform", "alpha_uniform", "alpha_normal"],
     "preact_hyper": [0, 1],
     "preprocess_beta": [1],
-    "include_sigmoid_activation": [0, 1],
-    "include_linear_transformation": [0, 1],
+    "hyper_activation": ["none", "sigmoid", "tanh"],
+    "include_layer_norm": [0, 1],
+    "include_residual_connection": [0, 1],
 }
 
 if __name__ == "__main__":

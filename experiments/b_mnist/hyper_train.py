@@ -29,8 +29,10 @@ parser.add_argument("--decoder_name", type=str, default="mlp")
 
 parser.add_argument("--block_type", type=str, default="mlp")
 parser.add_argument("--preact_hyper", type=int, default=1)
-parser.add_argument("--include_sigmoid_activation", type=int, default=1)
-parser.add_argument("--include_linear_transformation", type=int, default=1)
+parser.add_argument("--hyper_activation", type=str, default="tanh")
+parser.add_argument("--include_layer_norm", type=int, default=1)
+parser.add_argument("--include_residual_connection", type=int, default=1)
+
 parser.add_argument("--preprocess_beta", type=int, default=1)
 parser.add_argument("--sample_type", type=str, default="alpha_normal")
 
