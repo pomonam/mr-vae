@@ -2,6 +2,7 @@ import math
 
 import torch
 from torch import nn
+import numpy as np
 
 from src.config import HyperConfig
 from src.hyper.layers.blocks import BatchNormResidualBlock
@@ -17,6 +18,12 @@ _BLOCK_DICT = {
     "residual": ResidualBlock,
     "bn_residual": BatchNormResidualBlock,
 }
+
+_SQRT3 = math.sqrt(3)
+_LOG_A = math.log(0.001)
+_LOG_B = math.log(10)
+_LOG_M = (_LOG_A + _LOG_B) / 2
+_LOG_DIFF = (_LOG_M - _LOG_A)
 
 
 class HyperVae(BaseVae):
@@ -61,63 +68,55 @@ class HyperVae(BaseVae):
             self.decoder.set_beta(beta)
             self.sampler.set_beta(beta)
 
-    def sample_beta(self, x: torch.Tensor):
+    def sample(self, x: torch.Tensor):
         batch_size = x.shape[0]
         device = x.device
         sample_dict = {}
 
-        # These are useful constants ...
-        const = math.sqrt(3)
-        log_a_const = math.log(0.001)
-        log_b_const = math.log(10)
-        log_mid_const = (log_a_const + log_b_const) / 2
-        diff_const = (log_mid_const - log_a_const)
+        if self.hyper_config.sample_type == "beta_log_uniform":
+            sample_dict["net"] = torch.FloatTensor(batch_size, 1).uniform_(-_SQRT3, _SQRT3).to(device)
+            beta = sample_dict["net"] * (_SQRT3 / 3)
+            beta = beta * _LOG_DIFF + _LOG_M
+            sample_dict["beta"] = torch.exp(beta)
 
-        if self.hyper_config.sample_type == "fixed_log_uniform":
-            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-const, const).to(device)
-            trans_beta = sample_dict["net_beta"] * (const / 3)
-            trans_beta = trans_beta * diff_const + log_mid_const
-            sample_dict["beta"] = torch.exp(trans_beta)
+        elif self.hyper_config.sample_type == "alpha_uniform":
+            sample_dict["net"] = torch.FloatTensor(batch_size, 1).uniform_(-_SQRT3, _SQRT3).to(device)
+            alpha = sample_dict["net"] * (_SQRT3 / 6)
+            sample_dict["alpha"] = alpha + 0.5
 
-        elif self.hyper_config.sample_type == "fixed_log_uniform1.0":
-            sample_dict["net_beta"] = torch.FloatTensor(batch_size, 1).uniform_(-const, const).to(device)
-            sample_dict["beta"] = torch.FloatTensor(batch_size, 1).to(device)
-            sample_dict["beta"][sample_dict["net_beta"] >= 0.] = \
-              torch.pow(10, sample_dict["net_beta"][sample_dict["net_beta"] >= 0.] * const / 3)
-            sample_dict["beta"][sample_dict["net_beta"] < 0.] = \
-              torch.pow(10, sample_dict["net_beta"][sample_dict["net_beta"] < 0.] * const)
+        elif self.hyper_config.sample_type == "alpha_normal":
+            sample_dict["net"] = torch.FloatTensor(batch_size, 1).normal_(0, 1).to(device)
+            sample_dict["alpha"] = torch.sigmoid(sample_dict["net"])
 
         else:
             raise NotImplementedError
 
         return sample_dict
 
-    def fixed_beta(self, x: torch.Tensor, trans_beta: float):
+    def sample_inverse(self, x: torch.Tensor, value: float):
         batch_size = x.shape[0]
         device = x.device
         sample_dict = {}
 
         ones = torch.ones(batch_size, 1).to(device)
-        beta = trans_beta * ones
 
-        # These are useful constants ...
-        const = math.sqrt(3)
-        log_a_const = math.log(0.001)
-        log_b_const = math.log(10)
-        log_mid_const = (log_a_const + log_b_const) / 2
-        diff_const = (log_mid_const - log_a_const)
+        if self.hyper_config.sample_type == "beta_log_uniform":
+            beta = value * ones
+            sample_dict["beta"] = torch.ones(batch_size, 1).to(device) * beta
+            net_beta = (torch.log(sample_dict["beta"]) - _LOG_B) / _LOG_DIFF
+            sample_dict["net"] = net_beta * (3 / _SQRT3)
 
-        sample_dict["beta"] = torch.ones(batch_size, 1).to(device) * beta
+        elif self.hyper_config.sample_type == "alpha_uniform":
+            alpha = value * ones
+            sample_dict["alpha"] = torch.ones(batch_size, 1).to(device) * alpha
+            net_alpha = sample_dict["alpha"] - 0.5
+            sample_dict["net"] = net_alpha * (6 / _SQRT3)
 
-        if self.hyper_config.sample_type == "fixed_log_uniform":
-            net_beta = (torch.log(beta) - log_mid_const) / diff_const
-            sample_dict["net_beta"] = net_beta * (3 / const)
-
-        elif self.hyper_config.sample_type == "fixed_log_uniform1.0":
-            if trans_beta >= 1.:
-                sample_dict["net_beta"] = torch.log10(beta) * (3 / const)
-            else:
-                sample_dict["net_beta"] = torch.log10(beta) * (1 / const)
+        elif self.hyper_config.sample_type == "alpha_normal":
+            alpha = value * ones
+            sample_dict["alpha"] = torch.ones(batch_size, 1).to(device) * alpha
+            net_alpha = sample_dict["alpha"] - 0.5
+            sample_dict["net"] = net_alpha * (6 / _SQRT3)
 
         else:
             raise NotImplementedError
@@ -125,15 +124,34 @@ class HyperVae(BaseVae):
         return sample_dict
 
     def sample_forward(self, x):
-        sample_dict = self.sample_beta(x)
-        self.set_beta(sample_dict["net_beta"])
+        sample_dict = self.sample(x)
+        self.set_beta(sample_dict["net"])
         output_dict = self.forward(x)
-        output_dict["beta"] = sample_dict["beta"]
+
+        if "beta" in self.hyper_config.sample_type:
+            output_dict["beta"] = sample_dict["beta"]
+        if "alpha" in self.hyper_config.sample_type:
+            output_dict["alpha"] = sample_dict["alpha"]
+
         return output_dict
 
-    def fixed_forward(self, x, beta):
-        sample_dict = self.fixed_beta(x, beta)
-        self.set_beta(sample_dict["net_beta"])
+    def inverse_forward(self, x, value):
+        sample_dict = self.sample_inverse(x, value)
+        self.set_beta(sample_dict["net"])
         output_dict = self.forward(x)
-        output_dict["beta"] = sample_dict["beta"]
+
+        if "beta" in self.hyper_config.sample_type:
+            output_dict["beta"] = sample_dict["beta"]
+        if "alpha" in self.hyper_config.sample_type:
+            output_dict["alpha"] = sample_dict["alpha"]
+
         return output_dict
+
+    def get_test_samples(self, num=20):
+        if "beta" in self.hyper_config.sample_type:
+            return np.logspace(-3, 1, num=num, base=10)
+
+        if "alpha" in self.hyper_config.sample_type:
+            return np.linspace(0.1, 0.9, num=num)
+
+        raise NotImplementedError
