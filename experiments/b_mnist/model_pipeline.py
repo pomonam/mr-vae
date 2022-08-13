@@ -111,8 +111,7 @@ class BinarizedMnistMlpCriterion(nn.Module):
 
     @staticmethod
     def forward(outputs_dict: dict, beta: torch.Tensor = 1.0):
-        log_likelihood = -binary_cross_entropy(outputs_dict["inputs"],
-                                               outputs_dict["logits"])
+        log_likelihood = -binary_cross_entropy(outputs_dict["inputs"], outputs_dict["logits"])
         kl = kl_gaussian(outputs_dict["mean"], outputs_dict["log_var"].exp())
         if isinstance(beta, int) or isinstance(beta, float):
             if beta == -1:
@@ -134,6 +133,42 @@ class BinarizedMnistMlpCriterion(nn.Module):
         return BinarizedMnistMlpCriterion.forward(outputs_dict, beta=1.0)
 
 
+class HyperBinarizedMnistMlpCriterion(nn.Module):
+    @staticmethod
+    def get_metric_lst():
+        return ["loss", "rate", "distortion"]
+
+    @staticmethod
+    def forward(outputs_dict: dict):
+        log_likelihood = -binary_cross_entropy(outputs_dict["inputs"], outputs_dict["logits"])
+        kl = kl_gaussian(outputs_dict["mean"], outputs_dict["log_var"].exp())
+
+        if "beta" in outputs_dict:
+            elbo = log_likelihood - outputs_dict["beta"].view(-1) * kl
+        elif "alpha" in outputs_dict:
+            alpha = outputs_dict["alpha"].view(-1)
+            elbo = alpha * log_likelihood - (1 - alpha) * kl
+        else:
+            raise NotImplementedError
+
+        elbo = -torch.mean(elbo)
+        loss_dict = {
+            "loss": elbo.item(),
+            "distortion": -torch.mean(log_likelihood).item(),
+            "rate": torch.mean(kl).item()
+        }
+        return elbo, loss_dict
+
+    @staticmethod
+    def eval_forward(outputs_dict: dict):
+        return BinarizedMnistMlpCriterion.forward(outputs_dict)
+
+
 def build_criterion(device: torch.device) -> BinarizedMnistMlpCriterion:
     loss_fnc = BinarizedMnistMlpCriterion()
+    return loss_fnc.to(device)
+
+
+def build_hyper_criterion(device: torch.device) -> BinarizedMnistMlpCriterion:
+    loss_fnc = HyperBinarizedMnistMlpCriterion()
     return loss_fnc.to(device)
