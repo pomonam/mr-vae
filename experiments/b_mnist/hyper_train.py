@@ -7,7 +7,7 @@ import tqdm
 import wandb
 
 from experiments.b_mnist.input_pipeline import build_input_queue
-from experiments.b_mnist.model_pipeline import build_criterion
+from experiments.b_mnist.model_pipeline import build_hyper_criterion
 from experiments.b_mnist.model_pipeline import build_hyper_model
 from experiments.init_wandb import init_wandb
 from src.config import HyperConfig
@@ -24,15 +24,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str,
                     default="hyper_vae-hyper-b_mnist_mlp")
 
-parser.add_argument("--encoder_name", type=str, default="cnn")
-parser.add_argument("--decoder_name", type=str, default="cnn")
+parser.add_argument("--encoder_name", type=str, default="mlp")
+parser.add_argument("--decoder_name", type=str, default="mlp")
 
 parser.add_argument("--block_type", type=str, default="mlp")
 parser.add_argument("--preact_hyper", type=int, default=1)
 parser.add_argument("--include_sigmoid_activation", type=int, default=1)
 parser.add_argument("--include_linear_transformation", type=int, default=1)
 parser.add_argument("--preprocess_beta", type=int, default=1)
-parser.add_argument("--sample_type", type=str, default="fixed_log_uniform")
+parser.add_argument("--sample_type", type=str, default="alpha_normal")
 
 parser.add_argument("--total_epochs", type=int, default=5)
 parser.add_argument("--lr", type=float, default=1e-4)
@@ -52,13 +52,13 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
     model.eval()
 
     with torch.no_grad():
-        beta_lst = np.logspace(-3, 1, num=20, base=10)
+        sample_lst = model.get_test_samples(20)
         loss_lst = []
         rate_lst = []
         dist_lst = []
         au_lst = []
 
-        for beta in beta_lst:
+        for sample in sample_lst:
             loader = build_input_queue(name, args.batch_size, DEVICE)
             p_bar = tqdm.tqdm(loader)
             metric_dict = initialize_metric(criterion.get_metric_lst())
@@ -66,7 +66,7 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
 
             for batch in p_bar:
                 inputs = batch["inputs"]
-                output_dict = model.fixed_forward(inputs, beta)
+                output_dict = model.fixed_forward(inputs, sample)
                 means.append(output_dict["mean"])
 
                 # We want to compute exact ELBO here
@@ -92,7 +92,7 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
             au_lst.append((au_var >= delta).sum().item())
 
             wandb.log({
-                f"{name}/beta": beta,
+                f"{name}/sample": sample,
                 f"{name}/au": (au_var >= delta).sum().item()
             })
 
@@ -100,7 +100,7 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
             f"{name}/loss_lst": loss_lst,
             f"{name}/rate_lst": rate_lst,
             f"{name}/dist_lst": dist_lst,
-            f"{name}/beta_lst": beta_lst,
+            # f"{name}/beta_lst": beta_lst,
         })
 
         rd_data = [[x, y] for (x, y) in zip(rate_lst, dist_lst)]
@@ -173,7 +173,7 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
             inputs = batch["inputs"]
 
             output_dict = model.sample_forward(inputs)
-            loss, loss_dict = criterion(output_dict, output_dict["beta"])
+            loss, loss_dict = criterion(output_dict)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -202,7 +202,7 @@ def main():
     wandb.watch(model)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    criterion = build_criterion(DEVICE)
+    criterion = build_hyper_criterion(DEVICE)
     hyper_train(model, build_input_queue, criterion, optimizer, cfg, hyper_cfg)
     hyper_evaluate(model, criterion, cfg.total_epochs, "train_eval")
     hyper_evaluate(model, criterion, cfg.total_epochs, "test")
