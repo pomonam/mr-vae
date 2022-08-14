@@ -52,21 +52,21 @@ class HyperVae(BaseVae):
         self._decoder_modules = self.decoder.register_hyper_modules()
         self._sampler_modules = self.sampler.register_hyper_modules()
 
-    def set_beta(self, beta: torch.Tensor) -> None:
+    def set_net_inputs(self, beta: torch.Tensor) -> None:
         if self.hyper_config.preprocess_beta:
             encoder_beta = self.encoder_block(beta)
-            self.encoder.set_beta(encoder_beta)
+            self.encoder.set_net_inputs(encoder_beta)
 
             decoder_beta = self.decoder_block(beta)
-            self.decoder.set_beta(decoder_beta)
+            self.decoder.set_net_inputs(decoder_beta)
 
             sampler_beta = self.sampler_block(beta)
-            self.sampler.set_beta(sampler_beta)
+            self.sampler.set_net_inputs(sampler_beta)
 
         else:
-            self.encoder.set_beta(beta)
-            self.decoder.set_beta(beta)
-            self.sampler.set_beta(beta)
+            self.encoder.set_net_inputs(beta)
+            self.decoder.set_net_inputs(beta)
+            self.sampler.set_net_inputs(beta)
 
     def sample(self, x: torch.Tensor):
         batch_size = x.shape[0]
@@ -103,7 +103,7 @@ class HyperVae(BaseVae):
         if self.hyper_config.sample_type == "beta_log_uniform":
             beta = value * ones
             sample_dict["beta"] = torch.ones(batch_size, 1).to(device) * beta
-            net_beta = (torch.log(sample_dict["beta"]) - _LOG_B) / _LOG_DIFF
+            net_beta = (torch.log(sample_dict["beta"]) - _LOG_M) / _LOG_DIFF
             sample_dict["net"] = net_beta * (3 / _SQRT3)
 
         elif self.hyper_config.sample_type == "alpha_uniform":
@@ -115,8 +115,7 @@ class HyperVae(BaseVae):
         elif self.hyper_config.sample_type == "alpha_normal":
             alpha = value * ones
             sample_dict["alpha"] = torch.ones(batch_size, 1).to(device) * alpha
-            net_alpha = sample_dict["alpha"] - 0.5
-            sample_dict["net"] = net_alpha * (6 / _SQRT3)
+            sample_dict["net"] = torch.log(sample_dict["alpha"] / (1 - sample_dict["alpha"]))
 
         else:
             raise NotImplementedError
@@ -125,7 +124,7 @@ class HyperVae(BaseVae):
 
     def sample_forward(self, x):
         sample_dict = self.sample(x)
-        self.set_beta(sample_dict["net"])
+        self.set_net_inputs(sample_dict["net"])
         output_dict = self.forward(x)
 
         if "beta" in self.hyper_config.sample_type:
@@ -137,7 +136,7 @@ class HyperVae(BaseVae):
 
     def inverse_forward(self, x, value):
         sample_dict = self.sample_inverse(x, value)
-        self.set_beta(sample_dict["net"])
+        self.set_net_inputs(sample_dict["net"])
         output_dict = self.forward(x)
 
         if "beta" in self.hyper_config.sample_type:
@@ -152,6 +151,6 @@ class HyperVae(BaseVae):
             return np.logspace(-3, 1, num=num, base=10)
 
         if "alpha" in self.hyper_config.sample_type:
-            return np.linspace(0.1, 0.9, num=num)
+            return np.linspace(0.05, 0.95, num=num)
 
         raise NotImplementedError

@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
 parser.add_argument("--experiment_name",
                     type=str,
-                    default="hypvae-mnist_mlp_hyper-v2")
+                    default="hypvae-mnist_mlp_hyper-v3")
 
 args = parser.parse_args()
 
@@ -17,7 +17,7 @@ CONFIG = {
     "encoder_name": ["mlp"],
     "decoder_name": ["mlp"],
     "block_type": ["linear", "mlp"],
-    "sample_type": ["beta_log_uniform", "alpha_uniform", "alpha_normal"],
+    "sample_type": ["beta_log_uniform", "alpha_uniform"],
     "preact_hyper": [0, 1],
     "preprocess_beta": [1],
     "hyper_activation": ["none", "sigmoid", "tanh"],
