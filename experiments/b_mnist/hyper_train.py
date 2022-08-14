@@ -200,7 +200,6 @@ def main():
 
     seed_everything(cfg.seed)
     model = build_hyper_model(args.encoder_name, args.decoder_name, hyper_cfg, DEVICE)
-    wandb.watch(model)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     criterion = build_hyper_criterion(DEVICE)
