@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
 parser.add_argument("--experiment_name",
                     type=str,
-                    default="hypvae-mnist_mlp_hyper-v1")
+                    default="hypvae-mnist_mlp_hyper-v2")
 
 args = parser.parse_args()
 
