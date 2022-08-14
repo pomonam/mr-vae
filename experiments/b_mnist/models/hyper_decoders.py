@@ -36,7 +36,6 @@ class HyperMLPDecoder(BaseHyperDecoder):
             z = self.hyper_linear3(z)
             z = torch.relu(z)
             z = self.linear4(z)
-            z = self.hyper_linear4(z)
         else:
             z = self.linear1(z)
             z = torch.relu(z)
@@ -48,8 +47,6 @@ class HyperMLPDecoder(BaseHyperDecoder):
             z = torch.relu(z)
             z = self.hyper_linear3(z)
             z = self.linear4(z)
-            z = torch.relu(z)
-            z = self.hyper_linear4(z)
         z = z.view(z.shape[0], 1, 28, 28)
         return z
 

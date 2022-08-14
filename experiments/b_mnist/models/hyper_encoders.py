@@ -33,7 +33,7 @@ class HyperMLPEncoder(BaseHyperEncoder):
             x = self.hyper_linear2(x)
             x = torch.relu(x)
             x = self.linear3(x)
-            x = self.hyper_linear3(x)
+            # x = self.hyper_linear3(x)
             x = torch.relu(x)
         else:
             x = self.linear1(x)
@@ -44,7 +44,7 @@ class HyperMLPEncoder(BaseHyperEncoder):
             x = self.hyper_linear2(x)
             x = self.linear3(x)
             x = torch.relu(x)
-            x = self.hyper_linear3(x)
+            # x = self.hyper_linear3(x)
 
         return x
 

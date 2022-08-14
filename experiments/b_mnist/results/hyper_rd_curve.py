@@ -6,17 +6,17 @@ from experiments.init_wandb import init_api
 from src.plotting import init_plotting
 
 ENTITY = "bae-group"
-EXPERIMENT_NAME = "hypvae-mnist_mlp_hyper-v2"
-ID = "5hllykpi"
+EXPERIMENT_NAME = "hypvae-mnist_mlp_hyper-v3"
+ID = "3dbuzn44"
 
 
 def get_summary(summary):
     beta_to_rate = dict(
-        zip(summary["train_eval/beta_lst"], summary["train_eval/rate_lst"]))
+        zip(summary["train_eval/sample_lst"], summary["train_eval/rate_lst"]))
     beta_to_dist = dict(
-        zip(summary["train_eval/beta_lst"], summary["train_eval/dist_lst"]))
+        zip(summary["train_eval/sample_lst"], summary["train_eval/dist_lst"]))
     beta_to_elbo = dict(
-        zip(summary["train_eval/beta_lst"], summary["train_eval/loss_lst"]))
+        zip(summary["train_eval/sample_lst"], summary["train_eval/loss_lst"]))
     return beta_to_rate, beta_to_dist, beta_to_elbo
 
 
