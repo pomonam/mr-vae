@@ -16,9 +16,9 @@ class HyperStructure(nn.Module):
                 self._hyper_modules.append(module)
         return self._hyper_modules
 
-    def set_beta(self, beta: torch.Tensor) -> None:
+    def set_net_inputs(self, value: torch.Tensor) -> None:
         for hm in self._hyper_modules:
-            hm.set_beta(beta)
+            hm.set_net_inputs(value)
 
 
 class BaseHyperEncoder(HyperStructure):
@@ -88,6 +88,6 @@ class HyperIsotropicGaussianSampler(BaseSampler):
     def register_hyper_modules(self):
         return self._hyper_modules
 
-    def set_beta(self, beta: torch.Tensor) -> None:
-        self.hyper_mean.set_beta(beta)
-        self.hyper_log_var.set_beta(beta)
+    def set_net_inputs(self, beta: torch.Tensor) -> None:
+        self.hyper_mean.set_net_inputs(beta)
+        self.hyper_log_var.set_net_inputs(beta)

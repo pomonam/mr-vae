@@ -6,8 +6,8 @@ from experiments.init_wandb import init_api
 from src.plotting import init_plotting
 
 ENTITY = "bae-group"
-EXPERIMENT_NAME = "hv-b_mnist_mlp_hyper-v66"
-ID = "31da0wjg"
+EXPERIMENT_NAME = "hypvae-mnist_mlp_hyper-v2"
+ID = "5hllykpi"
 
 
 def get_summary(summary):

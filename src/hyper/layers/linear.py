@@ -26,8 +26,8 @@ class HyperLinear(HyperModule):
       self.layer_norm = None
 
   def forward(self, inputs):
-    scale = self.hyper_block_scale(self._net_beta)
-    shift = self.hyper_block_shift(self._net_beta)
+    scale = self.hyper_block_scale(self._net_inputs)
+    shift = self.hyper_block_shift(self._net_inputs)
 
     if self.hyper_config.hyper_activation == "none":
       scale = scale

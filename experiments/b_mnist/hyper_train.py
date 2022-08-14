@@ -34,7 +34,7 @@ parser.add_argument("--include_layer_norm", type=int, default=1)
 parser.add_argument("--include_residual_connection", type=int, default=1)
 
 parser.add_argument("--preprocess_beta", type=int, default=1)
-parser.add_argument("--sample_type", type=str, default="alpha_normal")
+parser.add_argument("--sample_type", type=str, default="alpha_uniform")
 
 parser.add_argument("--total_epochs", type=int, default=5)
 parser.add_argument("--lr", type=float, default=1e-4)
@@ -101,7 +101,7 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
             f"{name}/loss_lst": loss_lst,
             f"{name}/rate_lst": rate_lst,
             f"{name}/dist_lst": dist_lst,
-            # f"{name}/beta_lst": beta_lst,
+            f"{name}/sample_lst": sample_lst,
         })
 
         rd_data = [[x, y] for (x, y) in zip(rate_lst, dist_lst)]
