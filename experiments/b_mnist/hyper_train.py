@@ -30,7 +30,7 @@ parser.add_argument("--preact_transform", type=int, default=0)
 parser.add_argument("--include_sigmoid_activation", type=str, default=0)
 parser.add_argument("--include_layer_norm", type=int, default=1)
 parser.add_argument("--include_residual_connection", type=int, default=1)
-parser.add_argument("--include_chunk", type=str, default=1)
+parser.add_argument("--include_chunk", type=str, default=0)
 parser.add_argument("--preprocess_beta", type=int, default=0)
 parser.add_argument("--sample_type", type=str, default="beta_log_uniform")
 
