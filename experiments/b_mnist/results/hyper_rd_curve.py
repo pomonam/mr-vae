@@ -6,8 +6,8 @@ from experiments.init_wandb import init_api
 from src.plotting import init_plotting
 
 ENTITY = "bae-group"
-EXPERIMENT_NAME = "hypvae-mnist_mlp_hyper-v4"
-ID = "1ahsflae"
+EXPERIMENT_NAME = "hypvae-mnist_mlp_hyper-v6"
+ID = "n58zlx9g"
 
 
 def get_summary(summary):
@@ -31,8 +31,7 @@ def main():
         if run.state == "finished" and run.id == ID:
             summary_list.append(run.summary._json_dict)
             config_list.append(
-                {k: v
-                 for k, v in run.config.items() if not k.startswith('_')})
+                {k: v for k, v in run.config.items() if not k.startswith('_')})
             name_list.append(run.name)
 
     rate_dict, dist_dict, elbo_dict = get_summary(summary_list[0])

@@ -29,7 +29,7 @@ def calc_au(model, test_loader, delta=0.01):
     au_var = means - au_mean
     ns = au_var.size(0)
 
-    au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
+    au_var = (au_var**2).sum(dim=0) / (ns - 1)
 
     return (au_var >= delta).sum().item(), au_var
 
@@ -46,5 +46,5 @@ def binary_cross_entropy(x, logits):
 
 
 def kl_gaussian(mean, var):
-    return 0.5 * torch.sum(-torch.log(var) - 1.0 + var + torch.square(mean),
-                           dim=-1)
+    return 0.5 * torch.sum(
+        -torch.log(var) - 1.0 + var + torch.square(mean), dim=-1)

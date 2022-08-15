@@ -3,6 +3,7 @@ from typing import Any
 
 
 class ConfigIterator:
+
     def __init__(self, conf: dict) -> None:
         self.conf = conf
 

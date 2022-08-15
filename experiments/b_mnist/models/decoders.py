@@ -7,6 +7,7 @@ from src.models.pixcelcnn import PixelCNN
 
 
 class MLPDecoder(BaseDecoder):
+
     def __init__(self):
         super().__init__()
 
@@ -28,24 +29,27 @@ class MLPDecoder(BaseDecoder):
 
 
 class CNNDecoder(BaseDecoder):
+
     def __init__(self):
         super().__init__()
 
         self.initial_layer = nn.Linear(64, 32 * 8)
         self.layers = nn.Sequential(
-            nn.ConvTranspose2d(32 * 8,
-                               32 * 4,
-                               kernel_size=4,
-                               stride=2,
-                               padding=1,
-                               output_padding=1),
+            nn.ConvTranspose2d(
+                32 * 8,
+                32 * 4,
+                kernel_size=4,
+                stride=2,
+                padding=1,
+                output_padding=1),
             nn.ReLU(),
-            nn.ConvTranspose2d(32 * 4,
-                               32 * 2,
-                               kernel_size=4,
-                               stride=2,
-                               padding=1,
-                               output_padding=1),
+            nn.ConvTranspose2d(
+                32 * 4,
+                32 * 2,
+                kernel_size=4,
+                stride=2,
+                padding=1,
+                output_padding=1),
             nn.ReLU(),
             nn.ConvTranspose2d(32 * 2, 32, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
@@ -71,13 +75,16 @@ class PixelCNNDecoder(BaseDecoder):
         self.img_latent = 28 * 28 * self.fm_latent
         if self.nz != 0:
             self.z_transform = nn.Sequential(
-                nn.Linear(self.nz, self.img_latent), )
+                nn.Linear(self.nz, self.img_latent),)
         kernal_sizes = [9, 9, 9, 7, 7, 7, 5, 5, 5, 3, 3, 3]
 
         hidden_channels = 32
         self.layers = nn.Sequential(
-            PixelCNN(1 + self.fm_latent, hidden_channels, len(kernal_sizes),
-                     kernal_sizes, self.nc),
+            PixelCNN(1 + self.fm_latent,
+                     hidden_channels,
+                     len(kernal_sizes),
+                     kernal_sizes,
+                     self.nc),
             nn.Conv2d(hidden_channels, hidden_channels, 1, bias=False),
             nn.BatchNorm2d(hidden_channels),
             nn.ELU(),

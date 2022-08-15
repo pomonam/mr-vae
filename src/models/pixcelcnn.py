@@ -13,6 +13,7 @@ import torch.nn as nn
 
 
 class MaskedConv2d(nn.Conv2d):
+
     def __init__(self, mask_type, masked_channels, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -30,6 +31,7 @@ class MaskedConv2d(nn.Conv2d):
 
 
 class PixelCNNBlock(nn.Module):
+
     def __init__(self, in_channels, kernel_size):
         super(PixelCNNBlock, self).__init__()
         self.mask_type = "B"
@@ -40,13 +42,14 @@ class PixelCNNBlock(nn.Module):
             nn.Conv2d(in_channels, out_channels, 1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ELU(),
-            MaskedConv2d(self.mask_type,
-                         out_channels,
-                         out_channels,
-                         out_channels,
-                         kernel_size,
-                         padding=padding,
-                         bias=False),
+            MaskedConv2d(
+                self.mask_type,
+                out_channels,
+                out_channels,
+                out_channels,
+                kernel_size,
+                padding=padding,
+                bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ELU(),
             nn.Conv2d(out_channels, in_channels, 1, bias=False),
@@ -69,20 +72,21 @@ class PixelCNNBlock(nn.Module):
 
 
 class MaskABlock(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size,
-                 masked_channels):
+
+    def __init__(self, in_channels, out_channels, kernel_size, masked_channels):
         super(MaskABlock, self).__init__()
         self.mask_type = "A"
         padding = kernel_size // 2
 
         self.layers = nn.Sequential(
-            MaskedConv2d(self.mask_type,
-                         masked_channels,
-                         in_channels,
-                         out_channels,
-                         kernel_size,
-                         padding=padding,
-                         bias=False),
+            MaskedConv2d(
+                self.mask_type,
+                masked_channels,
+                in_channels,
+                out_channels,
+                kernel_size,
+                padding=padding,
+                bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ELU(),
         )
@@ -92,14 +96,21 @@ class MaskABlock(nn.Module):
 
 
 class PixelCNN(nn.Module):
-    def __init__(self, in_channels, out_channels, num_blocks, kernel_sizes,
+
+    def __init__(self,
+                 in_channels,
+                 out_channels,
+                 num_blocks,
+                 kernel_sizes,
                  masked_channels):
         super(PixelCNN, self).__init__()
         assert num_blocks == len(kernel_sizes)
         self.blocks = []
         for i in range(num_blocks):
             if i == 0:
-                block = MaskABlock(in_channels, out_channels, kernel_sizes[i],
+                block = MaskABlock(in_channels,
+                                   out_channels,
+                                   kernel_sizes[i],
                                    masked_channels)
             else:
                 block = PixelCNNBlock(out_channels, kernel_sizes[i])

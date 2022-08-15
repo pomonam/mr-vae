@@ -45,8 +45,7 @@ def get_rd(experiment_name):
         if run.state == "finished":
             summary_list.append(run.summary._json_dict)
             config_list.append(
-                {k: v
-                 for k, v in run.config.items() if not k.startswith("_")})
+                {k: v for k, v in run.config.items() if not k.startswith("_")})
             name_list.append(run.name)
 
     rate_dict, dist_dict, elbo_dict = get_summary(config_list,
@@ -74,8 +73,7 @@ def main():
         if run.state == "finished":
             summary_list.append(run.summary._json_dict)
             config_list.append(
-                {k: v
-                 for k, v in run.config.items() if not k.startswith("_")})
+                {k: v for k, v in run.config.items() if not k.startswith("_")})
             name_list.append(run.name)
 
     rate_dict, dist_dict, elbo_dict = get_summary(config_list,

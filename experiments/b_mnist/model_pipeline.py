@@ -7,19 +7,20 @@ from experiments.b_mnist.models.decoders import PixelCNNDecoder
 from experiments.b_mnist.models.encoders import CNNEncoder
 from experiments.b_mnist.models.encoders import MLPEncoder
 from experiments.b_mnist.models.encoders import ResNetEncoder
-from experiments.b_mnist.models.hyper_encoders import HyperMLPEncoder, HyperCNNEncoder
-from experiments.b_mnist.models.hyper_decoders import HyperMLPDecoder, HyperCNNDecoder
-
+from experiments.b_mnist.models.hyper_decoders import HyperCNNDecoder
+from experiments.b_mnist.models.hyper_decoders import HyperMLPDecoder
+from experiments.b_mnist.models.hyper_encoders import HyperCNNEncoder
+from experiments.b_mnist.models.hyper_encoders import HyperMLPEncoder
 from src.criterions import binary_cross_entropy
 from src.criterions import kl_gaussian
+from src.hyper.models import HyperIsotropicGaussianSampler
 from src.hyper.vae import HyperVae
 from src.models.samplers import IsotropicGaussianSampler
-from src.hyper.models import HyperIsotropicGaussianSampler
-
 from src.models.vae import BaseVae
 
 
 class BinarizedMnistMlpModel(BaseVae):
+
     def forward(self, x):
         outputs_dict = self.encode(x)
         z = self.sampler.sample(outputs_dict)
@@ -38,6 +39,7 @@ class BinarizedMnistMlpModel(BaseVae):
 
 
 class HyperBinarizedMnistMlpModel(HyperVae):
+
     def forward(self, x):
         outputs_dict = self.encode(x)
         z = self.sampler.sample(outputs_dict)
@@ -71,9 +73,8 @@ def build_model(encoder_name, decoder_name, device):
         decoder = PixelCNNDecoder()
     else:
         raise ValueError()
-    model = BinarizedMnistMlpModel(encoder=encoder,
-                                   decoder=decoder,
-                                   sampler=sampler)
+    model = BinarizedMnistMlpModel(
+        encoder=encoder, decoder=decoder, sampler=sampler)
     return model.to(device)
 
 
@@ -87,8 +88,8 @@ def build_hyper_model(encoder_name, decoder_name, hyper_config, device):
     else:
         raise ValueError()
 
-    sampler = HyperIsotropicGaussianSampler(nh=256, nz=64,
-                                            hyper_config=hyper_config)
+    sampler = HyperIsotropicGaussianSampler(
+        nh=256, nz=64, hyper_config=hyper_config)
 
     if decoder_name == "mlp":
         decoder = HyperMLPDecoder(hyper_config)
@@ -98,21 +99,24 @@ def build_hyper_model(encoder_name, decoder_name, hyper_config, device):
         decoder = PixelCNNDecoder()
     else:
         raise ValueError()
-    model = HyperBinarizedMnistMlpModel(encoder=encoder,
-                                        decoder=decoder,
-                                        sampler=sampler,
-                                        hyper_config=hyper_config)
+    model = HyperBinarizedMnistMlpModel(
+        encoder=encoder,
+        decoder=decoder,
+        sampler=sampler,
+        hyper_config=hyper_config)
     return model.to(device)
 
 
 class BinarizedMnistMlpCriterion(nn.Module):
+
     @staticmethod
     def get_metric_lst():
         return ["loss", "rate", "distortion"]
 
     @staticmethod
     def forward(outputs_dict: dict, beta: torch.Tensor = 1.0):
-        log_likelihood = -binary_cross_entropy(outputs_dict["inputs"], outputs_dict["logits"])
+        log_likelihood = -binary_cross_entropy(outputs_dict["inputs"],
+                                               outputs_dict["logits"])
         kl = kl_gaussian(outputs_dict["mean"], outputs_dict["log_var"].exp())
         if isinstance(beta, int) or isinstance(beta, float):
             if beta == -1:
@@ -135,13 +139,15 @@ class BinarizedMnistMlpCriterion(nn.Module):
 
 
 class HyperBinarizedMnistMlpCriterion(nn.Module):
+
     @staticmethod
     def get_metric_lst():
         return ["loss", "rate", "distortion"]
 
     @staticmethod
     def forward(outputs_dict: dict):
-        log_likelihood = -binary_cross_entropy(outputs_dict["inputs"], outputs_dict["logits"])
+        log_likelihood = -binary_cross_entropy(outputs_dict["inputs"],
+                                               outputs_dict["logits"])
         kl = kl_gaussian(outputs_dict["mean"], outputs_dict["log_var"].exp())
 
         if "beta" in outputs_dict:

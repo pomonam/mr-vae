@@ -17,6 +17,7 @@ def type_as(a, b):
 
 
 class Meter(object):
+
     def __init__(self):
         pass
 
@@ -47,6 +48,7 @@ def safe_round(number, ndigits):
 
 
 class AverageMeter(Meter):
+
     def __init__(self, round=None):
         self.round = round
         self.reset()
@@ -90,6 +92,7 @@ class AverageMeter(Meter):
 
 
 class SumMeter(Meter):
+
     def __init__(self, round: Optional[int] = None):
         self.round = round
         self.reset()
@@ -120,6 +123,7 @@ class SumMeter(Meter):
 
 
 class TimeMeter(Meter):
+
     def __init__(
         self,
         init: int = 0,
@@ -171,6 +175,7 @@ class TimeMeter(Meter):
 
 
 class StopwatchMeter(Meter):
+
     def __init__(self, round: Optional[int] = None):
         self.round = round
         self.sum = 0
@@ -225,6 +230,7 @@ class StopwatchMeter(Meter):
 
 
 class MetersDict(OrderedDict):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.priorities = []
@@ -243,7 +249,9 @@ class MetersDict(OrderedDict):
     def state_dict(self):
         return [
             (pri, key, self[key].__class__.__name__, self[key].state_dict())
-            for pri, _, key in self.priorities
+            for pri,
+            _,
+            key in self.priorities
             # can't serialize DerivedMeter instances
             if not isinstance(self[key], MetersDict._DerivedMeter)
         ]
@@ -265,7 +273,8 @@ class MetersDict(OrderedDict):
 
     def get_smoothed_values(self) -> Dict[str, float]:
         return OrderedDict([(key, self.get_smoothed_value(key))
-                            for key in self.keys() if not key.startswith("_")])
+                            for key in self.keys()
+                            if not key.startswith("_")])
 
     def reset(self):
         for meter in self.values():
@@ -274,6 +283,7 @@ class MetersDict(OrderedDict):
             meter.reset()
 
     class _DerivedMeter(Meter):
+
         def __init__(self, fn):
             self.fn = fn
 
