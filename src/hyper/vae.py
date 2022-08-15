@@ -151,6 +151,6 @@ class HyperVae(BaseVae):
             return np.logspace(-3, 1, num=num, base=10)
 
         if "alpha" in self.hyper_config.sample_type:
-            return np.linspace(0.05, 0.95, num=num)
+            return np.linspace(0., 1., num=num, endpoint=False)
 
         raise NotImplementedError

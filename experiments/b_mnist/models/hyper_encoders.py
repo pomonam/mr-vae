@@ -8,44 +8,22 @@ from src.hyper.layers.conv2d import HyperConv2d
 
 from src.hyper.models import BaseHyperEncoder
 from src.models.resnet import ResNet
-
+from torch.nn import functional as F
 
 class HyperMLPEncoder(BaseHyperEncoder):
     def __init__(self, hyper_config):
         super().__init__()
 
         self.hyper_config = hyper_config
-        self.linear1 = nn.Linear(784, 512)
-        self.hyper_linear1 = HyperLinear(512, hyper_config)
-        self.linear2 = nn.Linear(512, 512)
-        self.hyper_linear2 = HyperLinear(512, hyper_config)
-        self.linear3 = nn.Linear(512, 256)
-        self.hyper_linear3 = HyperLinear(256, hyper_config)
+        self.linear1 = HyperLinear(784, 512, F.relu, hyper_config)
+        self.linear2 = HyperLinear(512, 512, F.relu, hyper_config)
+        self.linear3 = HyperLinear(512, 256, F.relu, hyper_config)
 
     def forward(self, x):
         x = x.view(x.shape[0], 784)
-
-        if self.hyper_config.preact_hyper:
-            x = self.linear1(x)
-            x = self.hyper_linear1(x)
-            x = torch.relu(x)
-            x = self.linear2(x)
-            x = self.hyper_linear2(x)
-            x = torch.relu(x)
-            x = self.linear3(x)
-            # x = self.hyper_linear3(x)
-            x = torch.relu(x)
-        else:
-            x = self.linear1(x)
-            x = torch.relu(x)
-            x = self.hyper_linear1(x)
-            x = self.linear2(x)
-            x = torch.relu(x)
-            x = self.hyper_linear2(x)
-            x = self.linear3(x)
-            x = torch.relu(x)
-            # x = self.hyper_linear3(x)
-
+        x = self.linear1(x)
+        x = self.linear2(x)
+        x = self.linear3(x)
         return x
 
 
