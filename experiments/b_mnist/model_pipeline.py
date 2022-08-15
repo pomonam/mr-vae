@@ -87,7 +87,8 @@ def build_hyper_model(encoder_name, decoder_name, hyper_config, device):
     else:
         raise ValueError()
 
-    sampler = HyperIsotropicGaussianSampler(nh=256, nz=64, hyper_config=hyper_config)
+    sampler = HyperIsotropicGaussianSampler(nh=256, nz=64,
+                                            hyper_config=hyper_config)
 
     if decoder_name == "mlp":
         decoder = HyperMLPDecoder(hyper_config)
@@ -164,11 +165,11 @@ class HyperBinarizedMnistMlpCriterion(nn.Module):
         return BinarizedMnistMlpCriterion.forward(outputs_dict)
 
 
-def build_criterion(device: torch.device) -> BinarizedMnistMlpCriterion:
+def build_criterion(device):
     loss_fnc = BinarizedMnistMlpCriterion()
     return loss_fnc.to(device)
 
 
-def build_hyper_criterion(device: torch.device) -> BinarizedMnistMlpCriterion:
+def build_hyper_criterion(device):
     loss_fnc = HyperBinarizedMnistMlpCriterion()
     return loss_fnc.to(device)
