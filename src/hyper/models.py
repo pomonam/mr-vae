@@ -1,74 +1,72 @@
-from src.hyper.layers.module import HyperModule
-from torch import nn
-from src.models.samplers import BaseSampler
 import torch
+from torch import nn
+
 from src.hyper.layers.linear import HyperLinear
+from src.hyper.layers.module import HyperModule
+from src.models.samplers import BaseSampler
+from src.models.base_decoder import BaseDecoder
+from src.models.base_encoder import BaseEncoder
+from src.config import HyperConfig
 
 
 class HyperStructure(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self._hyper_modules = []
 
-    def register_hyper_modules(self):
-        for module in self.modules():
-            if isinstance(module, HyperModule):
-                self._hyper_modules.append(module)
-        return self._hyper_modules
+    def __init__(self) -> None:
+        super().__init__()
 
     def set_net_inputs(self, value: torch.Tensor) -> None:
-        for hm in self._hyper_modules:
-            hm.set_net_inputs(value)
+        for module in self.modules():
+            if isinstance(module, HyperModule):
+                module.set_net_inputs(value)
+
+    def reset_net_inputs(self) -> None:
+        for module in self.modules():
+            if isinstance(module, HyperModule):
+                module.reset_net_inputs()
 
 
-class BaseHyperEncoder(HyperStructure):
-    def __init__(self):
+class BaseHyperEncoder(HyperStructure, BaseEncoder):
+
+    def __init__(self) -> None:
         super().__init__()
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        raise NotImplementedError
+    # def forward(self, x: torch.Tensor) -> torch.Tensor:
+    #     raise NotImplementedError
+    #
+    # def encode(self, x: torch.Tensor) -> torch.Tensor:
+    #     return self.forward(x)
 
-    def encode(self, x: torch.Tensor) -> torch.Tensor:
-        return self.forward(x)
 
+class BaseHyperDecoder(HyperStructure, BaseDecoder):
 
-class BaseHyperDecoder(HyperStructure):
-    require_inputs = False
-
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self._hyper_modules = []
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        raise NotImplementedError
-
-    def decode(self, z: torch.Tensor) -> torch.Tensor:
-        raise self.forward(z)
-
-    def reconstruct_error(self, x: torch.Tensor, z: torch.Tensor,
-                          *argv) -> torch.Tensor:
-        raise NotImplementedError
+    # def forward(self, x: torch.Tensor) -> torch.Tensor:
+    #     raise NotImplementedError
+    #
+    # def decode(self, z: torch.Tensor) -> torch.Tensor:
+    #     raise self.forward(z)
 
 
 class HyperIsotropicGaussianSampler(BaseSampler):
-    def __init__(self, nh, nz, hyper_config):
+
+    def __init__(self, nh: int, nz: int, hyper_config: HyperConfig) -> None:
         super().__init__()
         self.nh = nh
         self.nz = nz
 
-        self.mean1 = HyperLinear(self.nh, self.nh, None, hyper_config)
-        self.log_var1 = HyperLinear(self.nh, self.nh, None, hyper_config)
-        self.mean2 = nn.Linear(self.nh, self.nz)
-        self.log_var2 = nn.Linear(self.nh, self.nz)
-
-        self._hyper_modules = [self.mean1, self.log_var1]
+        self.mean = HyperLinear(self.nh, self.nh, "none", hyper_config)
+        self.log_var = HyperLinear(self.nh, self.nh, "none", hyper_config)
+        # self.mean = nn.Linear(self.nh, self.nz)
+        # self.log_var = nn.Linear(self.nh, self.nz)
 
     def forward(self, x: torch.Tensor) -> dict:
-        mean = self.mean1(x)
-        mean = self.mean2(mean)
+        mean = self.mean(x)
+        # mean = self.mean2(mean)
 
-        log_var = self.log_var1(x)
-        log_var = self.log_var2(log_var)
+        log_var = self.log_var(x)
+        # log_var = self.log_var2(log_var)
 
         outputs_dict = {"mean": mean, "log_var": log_var}
         return outputs_dict
@@ -79,9 +77,6 @@ class HyperIsotropicGaussianSampler(BaseSampler):
         eps = torch.randn_like(std)
         return eps.mul(std).add_(outputs_dict["mean"])
 
-    def register_hyper_modules(self):
-        return self._hyper_modules
-
-    def set_net_inputs(self, beta: torch.Tensor) -> None:
-        self.mean1.set_net_inputs(beta)
-        self.log_var1.set_net_inputs(beta)
+    def set_net_inputs(self, value: torch.Tensor) -> None:
+        self.mean.set_net_inputs(value)
+        self.log_var.set_net_inputs(value)

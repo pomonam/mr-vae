@@ -11,6 +11,7 @@ import torch.utils.data.distributed
 
 
 def parse_binary_mnist(data_dir):
+
     def lines_to_np_array(ls):
         return np.array([[int(i) for i in line.split()] for line in ls])
 
@@ -62,7 +63,7 @@ def load_data(split, batch_size, workers=0, data_path="../../logs/data"):
         download_binary_mnist(file_name)
 
     train_data, valid_data, test_data = load_binary_mnist(file_name)
-    
+
     if split == "train" or split == "train_eval":
         dataset = train_data
 
@@ -71,21 +72,22 @@ def load_data(split, batch_size, workers=0, data_path="../../logs/data"):
 
     elif split == "test":
         dataset = test_data
-    
+
     elif split == "analytical":
         dataset = train_data
-        
+
     else:
         raise ValueError("Invalid split {:split}")
 
     is_train = split == "train"
-    loader = torch.utils.data.DataLoader(dataset,
-                                         pin_memory=True,
-                                         batch_size=batch_size,
-                                         shuffle=is_train,
-                                         num_workers=workers,
-                                         drop_last=is_train,
-                                         sampler=None)
+    loader = torch.utils.data.DataLoader(
+        dataset,
+        pin_memory=True,
+        batch_size=batch_size,
+        shuffle=is_train,
+        num_workers=workers,
+        drop_last=is_train,
+        sampler=None)
 
     return loader
 
@@ -96,9 +98,7 @@ def build_input_queue(split, batch_size, device, data_path="../../logs/data"):
     for batch in loader:
         yield {
             "inputs":
-            batch.view(batch.shape[0], 1, 28, 28).to(device,
-                                                     non_blocking=True),
+                batch.view(batch.shape[0], 1, 28, 28).to(device, non_blocking=True),
             "targets":
-            batch.view(batch.shape[0], 1, 28, 28).to(device,
-                                                     non_blocking=True),
+                batch.view(batch.shape[0], 1, 28, 28).to(device, non_blocking=True),
         }

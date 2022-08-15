@@ -16,13 +16,11 @@ from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
-
-
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--experiment_name", type=str,
-                    default="hyper_vae-hyper-b_mnist_mlp")
+parser.add_argument(
+    "--experiment_name", type=str, default="hyper_vae-hyper-b_mnist_mlp")
 
 parser.add_argument("--encoder_name", type=str, default="mlp")
 parser.add_argument("--decoder_name", type=str, default="mlp")
@@ -34,7 +32,7 @@ parser.add_argument("--include_layer_norm", type=int, default=1)
 parser.add_argument("--include_residual_connection", type=int, default=1)
 parser.add_argument("--include_chunk", type=str, default=1)
 
-parser.add_argument("--preprocess_beta", type=int, default=1)
+parser.add_argument("--preprocess_beta", type=int, default=0)
 parser.add_argument("--sample_type", type=str, default="beta_log_uniform")
 
 parser.add_argument("--total_epochs", type=int, default=5)
@@ -75,7 +73,9 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
                 # We want to compute exact ELBO here
                 _, loss_dict = criterion.eval_forward(output_dict)
 
-                metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
+                metric_dict = update_metric(metric_dict,
+                                            loss_dict,
+                                            inputs.size(0))
                 summ_dict = summarize_metric(metric_dict)
                 summ_str = generate_metric_str(name, epoch, summ_dict)
                 p_bar.set_description(summ_str)
@@ -86,7 +86,7 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
             au_mean = means.mean(0, keepdim=True)
             au_var = means - au_mean
             ns = au_var.size(0)
-            au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
+            au_var = (au_var**2).sum(dim=0) / (ns - 1)
 
             loss_lst.append(summ_dict["loss"])
             rate_lst.append(summ_dict["rate"])
@@ -109,7 +109,7 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
         table = wandb.Table(data=rd_data, columns=["rate", "distortion"])
         wandb.log({
             f"{name}/rd_curve":
-            wandb.plot.line(table, "rate", "distortion", title="RD Curve")
+                wandb.plot.line(table, "rate", "distortion", title="RD Curve")
         })
 
         loss_lst = np.array(loss_lst)
@@ -195,12 +195,18 @@ def hyper_train(model, biq, criterion, optimizer, cfg, hyper_cfg):
 
 
 def main():
-    init_wandb(args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
+    init_wandb(
+        args.checkpoint_dir,
+        project_name=args.experiment_name,
+        config=vars(args))
     cfg = TrainConfig(args)
     hyper_cfg = HyperConfig(args)
 
     seed_everything(cfg.seed)
-    model = build_hyper_model(args.encoder_name, args.decoder_name, hyper_cfg, DEVICE)
+    model = build_hyper_model(args.encoder_name,
+                              args.decoder_name,
+                              hyper_cfg,
+                              DEVICE)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     criterion = build_hyper_criterion(DEVICE)
