@@ -30,8 +30,7 @@ def plot_analytical_post(mean, covariance, beta, hparams):
     print("analytical q mu at beta={} is {}".format(beta,
                                                     mu.detach().cpu().numpy()))
     print("analytical q cov at beta={} is {}".format(
-        beta,
-        cov.detach().cpu().numpy()))
+        beta, cov.detach().cpu().numpy()))
 
     m = MultivariateNormal(mu, cov)
     samples = m.sample([500])
@@ -46,11 +45,12 @@ def plot_analytical_post(mean, covariance, beta, hparams):
             torch.from_numpy(samples_grid).to(hparams.tensor_type).to(
                 hparams.device)))
 
-    plt.contourf(x_grid,
-                 y_grid,
-                 density.view((nbins, nbins)).detach().cpu().numpy(),
-                 20,
-                 cmap='jet')
+    plt.contourf(
+        x_grid,
+        y_grid,
+        density.view((nbins, nbins)).detach().cpu().numpy(),
+        20,
+        cmap='jet')
     plt.colorbar()
     path = hparams.messenger.arxiv_dir + hparams.hparam_set + "_anaytical_q_b{}.pdf".format(
         beta)
@@ -177,9 +177,8 @@ def analytical_distortion_point(data, mu, cov, decoder_weights, decoder_bias):
     b = torch.unsqueeze(b, dim=0)
     xb_dot_product = torch.sum(torch.mul((data - b), (data - b)), dim=1)
     xb_dot_batch_mean = torch.mean(xb_dot_product)
-    cross_term_batch = torch.sum(torch.mul(torch.t(torch.matmul(W, mu)),
-                                           (data - b)),
-                                 dim=1)
+    cross_term_batch = torch.sum(
+        torch.mul(torch.t(torch.matmul(W, mu)), (data - b)), dim=1)
     cross_term_batch_mean = torch.mean(cross_term_batch)
     E_Y = torch.matmul(W, mu)
     cov_Y = torch.matmul(torch.matmul(W, cov), WT)
@@ -221,14 +220,21 @@ def analytical_rate_distortion(decoder_weights,
                                          hparams.messenger.beta)
 
         if hparams.model_train.z_size == 2:
-            plot_analytical_post(q_mean, q_cov, 1. / hparams.messenger.beta,
+            plot_analytical_post(q_mean,
+                                 q_cov,
+                                 1. / hparams.messenger.beta,
                                  hparams)
 
-        rate = analytical_rate_point(data, q_mean, q_cov,
+        rate = analytical_rate_point(data,
+                                     q_mean,
+                                     q_cov,
                                      hparams.messenger.beta,
                                      D if hparams.svd else None)
-        distortion = analytical_distortion_point(data, q_mean, q_cov,
-                                                 decoder_weights, decoder_bias)
+        distortion = analytical_distortion_point(data,
+                                                 q_mean,
+                                                 q_cov,
+                                                 decoder_weights,
+                                                 decoder_bias)
         rate_list.append(rate)
         distortion_list.append(distortion)
         if i == hparams.rd.n_batch:
@@ -239,10 +245,8 @@ def analytical_rate_distortion(decoder_weights,
 
     if hparams.messenger.beta == 1:
         analytical_elbo = -cated_rate - cated_distortion
-        print(
-            "(analytical log-likelihood for each batch of {} data: {}".format(
-                data_type,
-                analytical_elbo.cpu().numpy()))
+        print("(analytical log-likelihood for each batch of {} data: {}".format(
+            data_type, analytical_elbo.cpu().numpy()))
 
     rate_expecation = torch.mean(cated_rate).cpu().numpy()
     distortion_expectation = torch.mean(cated_distortion).cpu().numpy()
@@ -254,9 +258,8 @@ def run_analytical_rd(model, hparams, data, rd_data_loader, writer):
     analytic_rate_list = list()
     analytic_distortion_list = list()
     decoder_weights, decoder_bias = extract_Wb(model, hparams)
-    print(
-        "About to run analytic rate-distortion on {} data for beta range: {}".
-        format(data, hparams.messenger.beta_list))
+    print("About to run analytic rate-distortion on {} data for beta range: {}"
+          .format(data, hparams.messenger.beta_list))
 
     for i in range(hparams.rd.num_betas):
         beta = hparams.messenger.beta_list[i]
@@ -275,9 +278,12 @@ def run_analytical_rd(model, hparams, data, rd_data_loader, writer):
                 .format(data, beta, analytic_rate, analytic_distortion))
 
             if beta == 1:
-                log_down_likelihood(analytic_rate, analytic_distortion, data,
+                log_down_likelihood(analytic_rate,
+                                    analytic_distortion,
+                                    data,
                                     hparams)
-        writer.add_scalar('rd_on_{}/analytical'.format(data), analytic_rate,
+        writer.add_scalar('rd_on_{}/analytical'.format(data),
+                          analytic_rate,
                           analytic_distortion)
     # if (len(hparams.messenger.beta_list)) > 1:
     #     plot_analytic_rate_distrotion(hparams, hparams.messenger.beta_list,
@@ -286,7 +292,9 @@ def run_analytical_rd(model, hparams, data, rd_data_loader, writer):
 
     summery_npy_path = hparams.messenger.arxiv_dir + (
         (data + "_") if data is not None else '') + "anaytical_rd_summery.npz"
-    np.savez(summery_npy_path, analytic_rate_list, analytic_distortion_list,
+    np.savez(summery_npy_path,
+             analytic_rate_list,
+             analytic_distortion_list,
              hparams.messenger.beta_list)
     temp_result_dict = {
         "analytic_rate_list": analytic_rate_list,
