@@ -8,6 +8,7 @@ from src.models.base_decoder import BaseDecoder
 from src.hyper.models import BaseHyperDecoder
 
 from src.models.pixcelcnn import PixelCNN
+from torch.nn import functional as F
 
 
 class HyperMLPDecoder(BaseHyperDecoder):
@@ -15,38 +16,16 @@ class HyperMLPDecoder(BaseHyperDecoder):
         super().__init__()
 
         self.hyper_config = hyper_config
-        self.linear1 = nn.Linear(64, 256)
-        self.hyper_linear1 = HyperLinear(256, hyper_config)
-        self.linear2 = nn.Linear(256, 512)
-        self.hyper_linear2 = HyperLinear(512, hyper_config)
-        self.linear3 = nn.Linear(512, 512)
-        self.hyper_linear3 = HyperLinear(512, hyper_config)
-        self.linear4 = nn.Linear(512, 784)
-        self.hyper_linear4 = HyperLinear(784, hyper_config)
+        self.linear1 = HyperLinear(64, 256, F.relu, hyper_config)
+        self.linear2 = HyperLinear(256, 512, F.relu, hyper_config)
+        self.linear3 = HyperLinear(512, 512, F.relu, hyper_config)
+        self.linear4 = HyperLinear(512, 784, None, hyper_config)
 
     def forward(self, z):
-        if self.hyper_config.preact_hyper:
-            z = self.linear1(z)
-            z = self.hyper_linear1(z)
-            z = torch.relu(z)
-            z = self.linear2(z)
-            z = self.hyper_linear2(z)
-            z = torch.relu(z)
-            z = self.linear3(z)
-            z = self.hyper_linear3(z)
-            z = torch.relu(z)
-            z = self.linear4(z)
-        else:
-            z = self.linear1(z)
-            z = torch.relu(z)
-            z = self.hyper_linear1(z)
-            z = self.linear2(z)
-            z = torch.relu(z)
-            z = self.hyper_linear2(z)
-            z = self.linear3(z)
-            z = torch.relu(z)
-            z = self.hyper_linear3(z)
-            z = self.linear4(z)
+        z = self.linear1(z)
+        z = self.linear2(z)
+        z = self.linear3(z)
+        z = self.linear4(z)
         z = z.view(z.shape[0], 1, 28, 28)
         return z
 
