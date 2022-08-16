@@ -62,7 +62,7 @@ def analytical_distortion_point(data, mu, cov, model):
     compute the optimal distortion for a batch of data
     '''
     latent_size = int(list(data.size())[-1])
-    log_const = (latent_size / 2.) * torch.log(torch.tensor(2. * pi))
+    log_const = torch.tensor(0) # (latent_size / 2.) * torch.log(torch.tensor(2. * pi))
     W = model.decoder.layer.state_dict()["weight"]
     WT = torch.t(W)
     xb_dot_product = torch.sum(torch.mul((data), (data)), dim=1)
