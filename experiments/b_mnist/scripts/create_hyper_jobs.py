@@ -6,7 +6,7 @@ from experiments.job_arrays import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
 parser.add_argument(
-    "--experiment_name", type=str, default="hypvae-mnist_mlp_hyper-v8")
+    "--experiment_name", type=str, default="hypvae-mnist_mlp_hyper-v9")
 
 args = parser.parse_args()
 
@@ -18,7 +18,7 @@ CONFIG = {
     "block_type": ["linear", "mlp"],
     "sample_type": ["beta_log_uniform"],
     "preact_transform": [0, 1],
-    "preprocess_beta": [1],
+    "preprocess_beta": [0, 1],
     "include_sigmoid_activation": [1],
     "include_layer_norm": [0, 1],
     "include_residual_connection": [0, 1],
