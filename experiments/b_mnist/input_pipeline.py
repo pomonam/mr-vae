@@ -73,9 +73,6 @@ def load_data(split, batch_size, workers=0, data_path="../../logs/data"):
     elif split == "test":
         dataset = test_data
 
-    elif split == "analytical":
-        dataset = train_data
-
     else:
         raise ValueError("Invalid split {:split}")
 
