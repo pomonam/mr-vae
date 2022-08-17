@@ -3,6 +3,7 @@ from torch import nn
 
 
 class BaseSampler(nn.Module):
+
     def forward(self, x: torch.Tensor) -> dict:
         raise NotImplementedError
 
@@ -12,6 +13,7 @@ class BaseSampler(nn.Module):
 
 
 class IsotropicGaussianSampler(BaseSampler):
+
     def __init__(self, nh, nz):
         super().__init__()
 

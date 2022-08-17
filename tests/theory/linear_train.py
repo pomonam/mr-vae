@@ -1,7 +1,6 @@
 import argparse
 import os
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import tqdm
@@ -9,28 +8,27 @@ import wandb
 
 from experiments.b_mnist.input_pipeline import build_input_queue
 from experiments.b_mnist.model_pipeline import build_criterion
-from experiments.b_mnist.model_pipeline import build_model
 from experiments.init_wandb import init_wandb
 from src.config import TrainConfig
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
-from src.criterions import calc_au
 from src.utils import seed_everything
 
+from linear_vae import LinearVae
+from linear_vae import LinearDecoder
+from linear_vae import LinearEncoder
+
 parser = argparse.ArgumentParser()
-parser.add_argument("--experiment_name",
-                    type=str,
-                    default="hyper_vae-b_mnist_mlp")
+parser.add_argument(
+    "--experiment_name", type=str, default="linear_vae-b_mnist_baseline")
 
-parser.add_argument("--encoder_name", type=str, default="mlp")
-parser.add_argument("--decoder_name", type=str, default="mlp")
-
-parser.add_argument("--total_epochs", type=int, default=3)
+parser.add_argument("--bottleneck_size", type=int, default=128)
+parser.add_argument("--total_epochs", type=int, default=100)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--beta", type=float, default=-1)
+parser.add_argument("--beta", type=float, default=-1) # WE SET THIS LATER IN THE MAIN LOOP
 parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
@@ -54,7 +52,7 @@ def evaluate(model, biq, criterion, epoch, name, delta=0.01):
 
         for batch in p_bar:
             inputs = batch["inputs"]
-            output_dict = model(inputs)
+            elbo, output_dict = model(inputs)
             means.append(output_dict["mean"])
             _, loss_dict = criterion.eval_forward(output_dict)
 
@@ -68,12 +66,12 @@ def evaluate(model, biq, criterion, epoch, name, delta=0.01):
 
     au_var = means - au_mean
     ns = au_var.size(0)
-    au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
+    au_var = (au_var**2).sum(dim=0) / (ns - 1)
 
     summ_dict = summarize_metric(metric_dict, name=name + "/")
 
-    summ_dict[name + "/" + "au"] = (au_var >= delta).sum().item()
-    summ_dict[name + "/" + "au_var"] = au_var
+    summ_dict[name + "/" + "au"] = (au_var >= delta).sum().cpu().item()
+    summ_dict[name + "/" + "au_var"] = au_var.cpu()
     wandb.log(summ_dict)
 
 
@@ -98,8 +96,7 @@ def train(model, biq, criterion, optimizer, cfg):
             evaluate(model, biq, criterion, epoch, "test")
 
         if do_checkpoint and do_save:
-            slurm_check_dir = os.path.join(cfg.checkpoint_dir,
-                                           "checkpoint.pth")
+            slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")
             log_info = {
                 "id": wandb.run.id,
                 "epoch": epoch,
@@ -116,7 +113,7 @@ def train(model, biq, criterion, optimizer, cfg):
         for batch in p_bar:
             optimizer.zero_grad()
             inputs = batch["inputs"]
-            output_dict = model(inputs)
+            elbo, output_dict = model(inputs)
             loss, loss_dict = criterion(output_dict, cfg.get_beta(epoch))
             loss.backward()
             optimizer.step()
@@ -137,22 +134,31 @@ def train(model, biq, criterion, optimizer, cfg):
 
 
 def main():
-    init_wandb(args.checkpoint_dir,
-               project_name=args.experiment_name,
-               config=vars(args))
+    init_wandb(
+        args.checkpoint_dir,
+        project_name=args.experiment_name,
+        config=vars(args))
+
+    seed_everything(args.seed)
     cfg = TrainConfig(args)
 
-    seed_everything(cfg.seed)
-    model = build_model(args.encoder_name, args.decoder_name, DEVICE)
+    # Create Model
+    encoder = LinearEncoder(bottleneck_size=args.bottleneck_size).to(DEVICE)
+    decoder = LinearDecoder(bottleneck_size=args.bottleneck_size).to(DEVICE)
+    model = LinearVae(encoder, decoder).to(DEVICE)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
     criterion = build_criterion(DEVICE)
 
     train(model, build_input_queue, criterion, optimizer, cfg)
-    evaluate(model, build_input_queue, criterion, cfg.total_epochs,
-             "train_eval")
+    evaluate(model,
+            build_input_queue,
+            criterion,
+            cfg.total_epochs,
+            "train_eval")
     evaluate(model, build_input_queue, criterion, cfg.total_epochs, "test")
 
+    '''
     # Visualizing the reconstruction
     test_loader = build_input_queue("test", cfg.batch_size, DEVICE)
     test_batch = next(test_loader)
@@ -170,6 +176,7 @@ def main():
         plt.imshow(recon_i, cmap="Greys")
         plt.axis("off")
     wandb.log({"reconstruction": plt})
+    '''
     wandb.finish()
 
 

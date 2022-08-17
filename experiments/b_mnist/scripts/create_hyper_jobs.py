@@ -5,23 +5,24 @@ from experiments.job_arrays import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
-parser.add_argument("--experiment_name",
-                    type=str,
-                    default="hv-b_mnist_mlp_hyper-v27")
+parser.add_argument(
+    "--experiment_name", type=str, default="hypvae-mnist_mlp_hyper-v9")
 
 args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-4],
-    "total_epochs": [200],
+    "total_epochs": [400],
     "encoder_name": ["mlp"],
     "decoder_name": ["mlp"],
-    "hyper_type": ["ss_add"],
-    "block_type": ["linear", "residual", "mlp"],
-    "sample_type": ["fixed_log_uniform1.0", "fixed_log_uniform"],
-    "include_sigmoid_activation": [0, 1],
-    "include_output_layer": [0, 1],
-    "preprocess_beta": [1],
+    "block_type": ["linear", "mlp"],
+    "sample_type": ["beta_log_uniform"],
+    "preact_transform": [0, 1],
+    "preprocess_beta": [0, 1],
+    "include_sigmoid_activation": [1],
+    "include_layer_norm": [0, 1],
+    "include_residual_connection": [0, 1],
+    "include_chunk": [0, 1],
 }
 
 if __name__ == "__main__":

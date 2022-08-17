@@ -12,17 +12,16 @@ from experiments.b_mnist.model_pipeline import build_criterion
 from experiments.b_mnist.model_pipeline import build_model
 from experiments.init_wandb import init_wandb
 from src.config import TrainConfig
+from src.criterions import calc_au
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
-from src.criterions import calc_au
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--experiment_name",
-                    type=str,
-                    default="hyper_vae-b_mnist_mlp")
+parser.add_argument(
+    "--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
 
 parser.add_argument("--encoder_name", type=str, default="mlp")
 parser.add_argument("--decoder_name", type=str, default="mlp")
@@ -68,7 +67,7 @@ def evaluate(model, biq, criterion, epoch, name, delta=0.01):
 
     au_var = means - au_mean
     ns = au_var.size(0)
-    au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
+    au_var = (au_var**2).sum(dim=0) / (ns - 1)
 
     summ_dict = summarize_metric(metric_dict, name=name + "/")
 
@@ -98,8 +97,7 @@ def train(model, biq, criterion, optimizer, cfg):
             evaluate(model, biq, criterion, epoch, "test")
 
         if do_checkpoint and do_save:
-            slurm_check_dir = os.path.join(cfg.checkpoint_dir,
-                                           "checkpoint.pth")
+            slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")
             log_info = {
                 "id": wandb.run.id,
                 "epoch": epoch,
@@ -137,9 +135,10 @@ def train(model, biq, criterion, optimizer, cfg):
 
 
 def main():
-    init_wandb(args.checkpoint_dir,
-               project_name=args.experiment_name,
-               config=vars(args))
+    init_wandb(
+        args.checkpoint_dir,
+        project_name=args.experiment_name,
+        config=vars(args))
     cfg = TrainConfig(args)
 
     seed_everything(cfg.seed)
@@ -149,7 +148,10 @@ def main():
     criterion = build_criterion(DEVICE)
 
     train(model, build_input_queue, criterion, optimizer, cfg)
-    evaluate(model, build_input_queue, criterion, cfg.total_epochs,
+    evaluate(model,
+             build_input_queue,
+             criterion,
+             cfg.total_epochs,
              "train_eval")
     evaluate(model, build_input_queue, criterion, cfg.total_epochs, "test")
 

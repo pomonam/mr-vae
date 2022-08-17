@@ -1,23 +1,28 @@
 import torch
 from torch import nn
 
-from src.config import HyperConfig
+import torch.nn.functional as F
+
+
+def get_activation(act_name):
+    def identity(x):
+        return x
+
+    act_dict = {
+        "relu": F.relu,
+        "none": identity
+    }
+    return act_dict[act_name]
 
 
 class HyperModule(nn.Module):
-    def __init__(self, module: nn.Module, hyper_config: HyperConfig):
+
+    def __init__(self):
         super().__init__()
+        self._net_inputs = None
 
-        self.cfg = hyper_config
-        self.hyper_type = self.cfg.hyper_type
-        if self.hyper_type not in ["add", "s_add", "ss_add", "mult"]:
-            raise ValueError("Invalid hyper_type {}".format(
-                str(self.hyper_type)))
+    def set_net_inputs(self, value: torch.Tensor) -> None:
+        self._net_inputs = value
 
-        self._beta = None
-
-    def set_beta(self, beta: torch.Tensor) -> None:
-        self._beta = beta
-
-    def reset_beta(self) -> None:
-        self._beta = None
+    def reset_net_inputs(self) -> None:
+        self._net_inputs = None

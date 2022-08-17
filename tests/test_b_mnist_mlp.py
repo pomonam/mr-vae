@@ -7,6 +7,7 @@ from experiments.b_mnist_mlp import model_pipeline
 
 
 class TestBMnistMlp(unittest.TestCase):
+
     def setUp(self) -> None:
         device = torch.device("cpu")
         self.model = model_pipeline.build_model(device)

@@ -9,9 +9,7 @@ def init_plotting(fig_size=(10, 7)):
     sns.set_style("ticks")
 
     mpl.rcParams.update({
-        'font.size': 14,
-        'lines.linewidth': 2,
-        'figure.figsize': (6, 6 / 1.61)
+        'font.size': 14, 'lines.linewidth': 2, 'figure.figsize': (6, 6 / 1.61)
     })
     mpl.rcParams['grid.color'] = 'k'
     mpl.rcParams['grid.linestyle'] = ':'

@@ -1,5 +1,6 @@
-import torch
 from math import pi
+
+import torch
 
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
@@ -8,6 +9,7 @@ DEVICE = torch.device("cuda" if cuda else "cpu")
 # Analytical Rate & Distortion Utility Functions Adapted From
 # GitHub: https://github.com/BorealisAI/rate_distortion/blob/master/rate_distortion/algorithms/analytical_linear_vae.py
 # =====================================================================================================================
+
 
 def analytical_q_svd(data, model, beta=1):
     '''
@@ -73,7 +75,8 @@ def analytical_distortion_point(data, mu, cov, model):
     E_Y_squared_batch = torch.sum(torch.mul(E_Y, E_Y), dim=0)
     E_Y_squared_batch_mean = torch.mean(E_Y_squared_batch)
     E_Wz = E_Y_squared_batch_mean + torch.trace(cov_Y)
-    distortion = log_const + (0.5 * xb_dot_batch_mean) - cross_term_batch_mean + (0.5 * E_Wz)
+    distortion = log_const + (
+        0.5 * xb_dot_batch_mean) - cross_term_batch_mean + (0.5 * E_Wz)
 
     return distortion
 
@@ -86,12 +89,13 @@ def analytic_rate_and_distortion(model, rd_data, beta):
         q_mean, q_cov, D = analytical_q_svd(inputs, model, beta)
 
         rate = analytical_rate_point(inputs, q_mean, q_cov, beta, D).item()
-        distortion = analytical_distortion_point(inputs, q_mean, q_cov, model).item()
+        distortion = analytical_distortion_point(inputs, q_mean, q_cov,
+                                                 model).item()
 
         rate_list.append(rate)
         distortion_list.append(distortion)
-    
-    rate_expecation = sum(rate_list)/len(rate_list)
-    distortion_expectation = sum(distortion_list)/len(distortion_list)
+
+    rate_expecation = sum(rate_list) / len(rate_list)
+    distortion_expectation = sum(distortion_list) / len(distortion_list)
 
     return rate_expecation, distortion_expectation
