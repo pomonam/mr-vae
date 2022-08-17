@@ -22,15 +22,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--experiment_name", type=str, default="hyper_vae-hyper-b_mnist_mlp")
 
-parser.add_argument("--encoder_name", type=str, default="mlp")
-parser.add_argument("--decoder_name", type=str, default="mlp")
+parser.add_argument("--encoder_name", type=str, default="cnn")
+parser.add_argument("--decoder_name", type=str, default="cnn")
 
 parser.add_argument("--block_type", type=str, default="mlp")
 parser.add_argument("--preact_transform", type=int, default=0)
 parser.add_argument("--include_sigmoid_activation", type=int, default=0)
 parser.add_argument("--include_layer_norm", type=int, default=1)
 parser.add_argument("--include_residual_connection", type=int, default=1)
-parser.add_argument("--include_chunk", type=int, default=0)
+parser.add_argument("--include_chunk", type=int, default=1)
 parser.add_argument("--preprocess_beta", type=int, default=0)
 parser.add_argument("--sample_type", type=str, default="beta_log_uniform")
 
