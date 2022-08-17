@@ -34,37 +34,37 @@ class HyperCNNEncoder(BaseHyperEncoder):
         super().__init__()
 
         self.hyper_config = hyper_config
-        if self.hyper_config.preact_hyper:
 
-            self.layers = nn.Sequential(
-                nn.Conv2d(1, 32, kernel_size=4, stride=2, padding=1),
-                HyperConv2d(32, hyper_config),
-                nn.ReLU(),
-                nn.Conv2d(32, 32 * 2, kernel_size=4, stride=2, padding=1),
-                HyperConv2d(32 * 2, hyper_config),
-                nn.ReLU(),
-                nn.Conv2d(32 * 2, 32 * 4, kernel_size=4, stride=2, padding=1),
-                HyperConv2d(32 * 4, hyper_config),
-                nn.ReLU(),
-                nn.Conv2d(32 * 4, 32 * 8, kernel_size=4, stride=2, padding=1),
-                HyperConv2d(32 * 8, hyper_config),
-                nn.ReLU(),
-                nn.Flatten())
-        else:
-            self.layers = nn.Sequential(
-                nn.Conv2d(1, 32, kernel_size=4, stride=2, padding=1),
-                nn.ReLU(),
-                HyperConv2d(32, hyper_config),
-                nn.Conv2d(32, 32 * 2, kernel_size=4, stride=2, padding=1),
-                nn.ReLU(),
-                HyperConv2d(32 * 2, hyper_config),
-                nn.Conv2d(32 * 2, 32 * 4, kernel_size=4, stride=2, padding=1),
-                nn.ReLU(),
-                HyperConv2d(32 * 4, hyper_config),
-                nn.Conv2d(32 * 4, 32 * 8, kernel_size=4, stride=2, padding=1),
-                nn.ReLU(),
-                HyperConv2d(32 * 8, hyper_config),
-                nn.Flatten())
+        self.layers = nn.Sequential(
+            # nn.Conv2d(1, 32, kernel_size=4, stride=2, padding=1),
+            HyperConv2d(1, 32, kernel_size=4, stride=2, padding=1, hyper_config=hyper_config, activation_fnc="relu"),
+            # nn.ReLU(),
+            HyperConv2d(32, 32 * 2, kernel_size=4, stride=2, padding=1, hyper_config=hyper_config, activation_fnc="relu"),
+            # HyperConv2d(32 * 2, hyper_config),
+            # nn.ReLU(),
+            HyperConv2d(32 * 2, 32 * 4, kernel_size=4, stride=2, padding=1, hyper_config=hyper_config,
+                        activation_fnc="relu"),
+            # HyperConv2d(32 * 4, hyper_config),
+            # nn.ReLU(),
+            HyperConv2d(32 * 4, 32 * 8, kernel_size=4, stride=2, padding=1, hyper_config=hyper_config, activation_fnc="relu"),
+            # HyperConv2d(32 * 8, hyper_config),
+            # nn.ReLU(),
+            nn.Flatten())
+        # else:
+        #     self.layers = nn.Sequential(
+        #         nn.Conv2d(1, 32, kernel_size=4, stride=2, padding=1),
+        #         nn.ReLU(),
+        #         HyperConv2d(32, hyper_config),
+        #         nn.Conv2d(32, 32 * 2, kernel_size=4, stride=2, padding=1),
+        #         nn.ReLU(),
+        #         HyperConv2d(32 * 2, hyper_config),
+        #         nn.Conv2d(32 * 2, 32 * 4, kernel_size=4, stride=2, padding=1),
+        #         nn.ReLU(),
+        #         HyperConv2d(32 * 4, hyper_config),
+        #         nn.Conv2d(32 * 4, 32 * 8, kernel_size=4, stride=2, padding=1),
+        #         nn.ReLU(),
+        #         HyperConv2d(32 * 8, hyper_config),
+        #         nn.Flatten())
 
     def forward(self, x):
         return self.layers(x)
