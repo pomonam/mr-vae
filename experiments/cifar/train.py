@@ -12,7 +12,7 @@ from experiments.cifar.model_pipeline import build_criterion
 from experiments.cifar.model_pipeline import build_model
 from experiments.init_wandb import init_wandb
 from src.config import TrainConfig
-from src.criterions import calc_au
+
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
