@@ -7,24 +7,17 @@ from src.hyper.layers.module import get_activation
 from src.hyper.layers.module import HyperModule
 
 
-class HyperLinear(HyperModule):
+class HyperScale(HyperModule):
 
     def __init__(self,
-                 in_features: int,
                  out_features: int,
                  activation_fnc: str,
-                 hyper_config: HyperConfig,
-                 bias=True):
+                 hyper_config: HyperConfig):
         super().__init__()
 
-        self.in_features = in_features
         self.out_features = out_features
         self.activation_fnc = get_activation(activation_fnc)
         self.hyper_config = hyper_config
-
-        self.linear = nn.Linear(in_features, out_features, bias=bias)
-        if self.hyper_config.include_chunk:
-            self.chunk_linear = nn.Linear(in_features, out_features, bias=bias)
 
         input_dim = hyper_config.preprocess_dim if hyper_config.preprocess_beta else 1
         self.hyper_block_scale = get_block("linear")(input_dim, self.out_features)
@@ -49,10 +42,8 @@ class HyperLinear(HyperModule):
                 chunk_scale = torch.sigmoid(chunk_scale)
             chunk_shift = self.chunk_hyper_block_shift(self._net_inputs)
 
-        pre_act = self.linear(inputs)
-        if self.hyper_config.include_chunk:
-            chunk_pre_act = self.chunk_linear(inputs)
-
+        pre_act = inputs
+        chunk_pre_act = inputs
         if self.hyper_config.preact_transform:
             if self.hyper_config.include_layer_norm:
                 hyper_pre_act = scale * self.layer_norm(pre_act) + shift
