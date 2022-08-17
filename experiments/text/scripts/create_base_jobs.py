@@ -8,12 +8,13 @@ from experiments.job_arrays import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="train_jobs")
 parser.add_argument(
-    "--experiment_name", type=str, default="hv-b_text_train-v1")
+    "--experiment_name", type=str, default="hv-b_text_train-v2")
 
 args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-2, 1e-3, 1e-4],
+    "data_name": ["yahoo", "yelp"],
     "total_epochs": [100],
     "schedule": ["constant", "monotonic", "cyclic"],
     "beta": np.logspace(-3, 1, num=20) + [0]

@@ -1,7 +1,6 @@
 import argparse
 import os
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import tqdm
@@ -87,7 +86,7 @@ def train(data_name, model, biq, criterion, optimizer, cfg):
         epoch = 0
 
     while epoch < cfg.total_epochs:
-        do_evaluate = epoch % cfg.eval_freq == 0
+        do_evaluate = epoch % cfg.eval_freq == 0 and epoch != 0
         do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
         if do_evaluate:
