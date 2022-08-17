@@ -107,7 +107,8 @@ class HyperLstmDecoder(BaseHyperDecoder):
         # output = self.dropout_out(output)
 
         # (batch_size * n_sample, seq_len, vocab_size)
-        self.pred_linear._net_inputs = self.pred_linear._net_inputs.repeat(1, output.shape[1]).view(-1).unsqueeze(-1)
+        # self.pred_linear._net_inputs = self.pred_linear._net_inputs.repeat(1, output.shape[1]).view(-1).unsqueeze(-1)
+        self.pred_linear._net_inputs = self.pred_linear._net_inputs.unsqueeze(1).repeat(1, output.shape[1], 1).reshape(-1, 784)
         output_logits = self.pred_linear(output.reshape(-1, output.shape[2])).reshape(output.shape[0], output.shape[1], -1)
         # output_logits = self.pred_linear(output).reshape(output.shape[0], output.shape[1], -1)
         return output_logits
