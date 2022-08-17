@@ -1,10 +1,25 @@
-import math
-
+from src.models.base_encoder import BaseEncoder
 import torch
 from torch import nn
 
-from src.models.base_encoder import BaseEncoder
-from src.models.resnet import ResNet
+from src.models.base_decoder import BaseDecoder
+
+
+class uniform_initializer(object):
+    def __init__(self, stdv):
+        self.stdv = stdv
+
+    def __call__(self, tensor):
+        nn.init.uniform_(tensor, -self.stdv, self.stdv)
+
+
+class xavier_normal_initializer(object):
+    def __call__(self, tensor):
+        nn.init.xavier_normal_(tensor)
+
+
+model_init = uniform_initializer(0.01)
+emb_init = uniform_initializer(0.1)
 
 
 class LstmEncoder(BaseEncoder):
@@ -20,19 +35,15 @@ class LstmEncoder(BaseEncoder):
                             batch_first=True)
         self.linear = nn.Linear(nh, nh, bias=True)
 
+        for param in self.parameters():
+            model_init(param)
+        emb_init(self.embed.weight)
+
     def forward(self, x):
         word_embed = self.embed(x)
         _, (last_state, last_cell) = self.lstm(word_embed)
         out = self.linear(last_state)
         return out.squeeze(0)
-
-
-import torch
-from torch import nn
-from torch.autograd import Variable
-
-from src.models.base_decoder import BaseDecoder
-from src.models.pixcelcnn import PixelCNN
 
 
 class LstmDecoder(BaseDecoder):
@@ -57,6 +68,10 @@ class LstmDecoder(BaseDecoder):
 
         vocab_mask = torch.ones(vocab_size)
         self.loss = nn.CrossEntropyLoss(weight=vocab_mask, reduce=False)
+
+        for param in self.parameters():
+            model_init(param)
+        emb_init(self.embed.weight)
 
     def decode(self, input, z):
         """

@@ -12,7 +12,6 @@ from experiments.text.model_pipeline import build_criterion
 from experiments.text.model_pipeline import build_model
 from experiments.init_wandb import init_wandb
 from src.config import TrainConfig
-from src.criterions import calc_au
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
@@ -21,10 +20,9 @@ from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
+    "--experiment_name", type=str, default="hyper_vae-text")
 
-parser.add_argument("--encoder_name", type=str, default="mlp")
-parser.add_argument("--decoder_name", type=str, default="mlp")
+parser.add_argument("--data_name", type=str, default="yelp")
 
 parser.add_argument("--total_epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=0.001)
@@ -42,11 +40,11 @@ cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
 
-def evaluate(model, biq, criterion, epoch, name, delta=0.01):
+def evaluate(data_name, model, biq, criterion, epoch, name, delta=0.01):
     model.eval()
 
     with torch.no_grad():
-        loader = biq("yahoo", name, args.batch_size, DEVICE)
+        loader = biq(data_name, name, args.batch_size, DEVICE)
         p_bar = tqdm.tqdm(loader)
         metric_dict = initialize_metric(criterion.get_metric_lst())
         means = []
@@ -76,7 +74,7 @@ def evaluate(model, biq, criterion, epoch, name, delta=0.01):
     wandb.log(summ_dict)
 
 
-def train(model, biq, criterion, optimizer, cfg):
+def train(data_name, model, biq, criterion, optimizer, cfg):
     do_checkpoint = cfg.checkpoint_dir is not None
     if do_checkpoint and os.path.exists(
             os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
@@ -92,9 +90,9 @@ def train(model, biq, criterion, optimizer, cfg):
         do_evaluate = epoch % cfg.eval_freq == 0
         do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
-        # if do_evaluate:
-        #     evaluate(model, biq, criterion, epoch, "train_eval")
-        #     evaluate(model, biq, criterion, epoch, "test")
+        if do_evaluate:
+            evaluate(data_name, model, biq, criterion, epoch, "train_eval")
+            evaluate(data_name, model, biq, criterion, epoch, "test")
 
         if do_checkpoint and do_save:
             slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")
@@ -107,7 +105,7 @@ def train(model, biq, criterion, optimizer, cfg):
             torch.save(log_info, slurm_check_dir)
 
         model.train()
-        loader = biq("yahoo", "train", args.batch_size, DEVICE)
+        loader = biq(data_name, "train", args.batch_size, DEVICE)
         p_bar = tqdm.tqdm(loader)
         metric_dict = initialize_metric(criterion.get_metric_lst())
 
@@ -142,18 +140,20 @@ def main():
     cfg = TrainConfig(args)
 
     seed_everything(cfg.seed)
-    model = build_model("yahoo", DEVICE)
+    model = build_model(args.data_name, DEVICE)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
     criterion = build_criterion(DEVICE)
 
-    train(model, build_input_queue, criterion, optimizer, cfg)
-    evaluate(model,
+    train(args.data_name, model, build_input_queue, criterion, optimizer, cfg)
+    evaluate(args.data_name,
+             model,
              build_input_queue,
              criterion,
              cfg.total_epochs,
              "train_eval")
-    evaluate(model, build_input_queue, criterion, cfg.total_epochs, "test")
+    evaluate(args.data_name, model, build_input_queue, criterion, cfg.total_epochs, "test")
+
 
 if __name__ == "__main__":
     main()

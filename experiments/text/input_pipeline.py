@@ -7,7 +7,7 @@ from collections import defaultdict
 
 
 class VocabEntry(object):
-    """docstring for Vocab"""
+
     def __init__(self, word2id=None):
         super(VocabEntry, self).__init__()
 
@@ -51,7 +51,6 @@ class VocabEntry(object):
             wid = wid_t.item()
             decoded_sentence.append(self.id2word_[wid])
         return decoded_sentence
-
 
     @staticmethod
     def from_corpus(fname):
@@ -111,20 +110,6 @@ class MonoTextData(object):
         return data, VocabEntry(vocab), dropped, labels
 
     def _to_tensor(self, batch_data, batch_first, device):
-        """pad a list of sequences, and transform them to tensors
-        Args:
-            batch_data: a batch of sentences (list) that are composed of
-                word ids.
-            batch_first: If true, the returned tensor shape is
-                (batch, seq_len), otherwise (seq_len, batch)
-            device: torch.device
-        Returns: Tensor, Int list
-            Tensor: Tensor of the batch data after padding
-            Int list: a list of integers representing the length
-                of each sentence (including start and stop symbols)
-        """
-
-
         # pad stop symbol
         batch_data = [sent + [self.vocab['</s>']] for sent in batch_data]
 
@@ -141,7 +126,6 @@ class MonoTextData(object):
             sents_new.append([sent[i] if len(sent) > i else self.vocab['<pad>'] \
                                for sent in batch_data])
 
-
         sents_ts = torch.tensor(sents_new, dtype=torch.long,
                                  requires_grad=False, device=device)
 
@@ -151,12 +135,6 @@ class MonoTextData(object):
         return sents_ts, [length + 1 for length in sents_len]
 
     def data_iter(self, batch_size, device, batch_first=False, shuffle=True):
-        """pad data with start and stop symbol, and pad to the same length
-        Returns:
-            batch_data: LongTensor with shape (seq_len, batch_size)
-            sents_len: list of data length, this is the data length
-                       after counting start and stop symbols
-        """
         index_arr = np.arange(len(self.data))
 
         if shuffle:
@@ -175,13 +153,6 @@ class MonoTextData(object):
             yield batch_data, sents_len
 
     def create_data_batch_labels(self, batch_size, device, batch_first=False):
-        """pad data with start and stop symbol, batching is performerd w.r.t.
-        the sentence length, so that each returned batch has the same length,
-        no further pack sequence function (e.g. pad_packed_sequence) is required
-        Returns: List
-            List: a list of batched data, each element is a tensor with shape
-                (seq_len, batch_size)
-        """
         sents_len = np.array([len(sent) for sent in self.data])
         sort_idx = np.argsort(sents_len)
         sort_len = sents_len[sort_idx]
@@ -217,18 +188,10 @@ class MonoTextData(object):
         return batch_data_list, batch_label_list
 
     def create_data_batch(self, batch_size, device, batch_first=False):
-        """pad data with start and stop symbol, batching is performerd w.r.t.
-        the sentence length, so that each returned batch has the same length,
-        no further pack sequence function (e.g. pad_packed_sequence) is required
-        Returns: List
-            List: a list of batched data, each element is a tensor with shape
-                (seq_len, batch_size)
-        """
         sents_len = np.array([len(sent) for sent in self.data])
         sort_idx = np.argsort(sents_len)
         sort_len = sents_len[sort_idx]
 
-        # record the locations where length changes
         change_loc = []
         for i in range(1, len(sort_len)):
             if sort_len[i] != sort_len[i-1]:
@@ -279,28 +242,37 @@ class MonoTextData(object):
 
 
 def load_data(name, split, batch_size, data_path="../../logs/text_data"):
+    del batch_size
+
     if name == "yahoo":
         file_name = "yahoo/"
+        label = False
+    elif name == "yelp":
+        file_name = "yelp/"
+        label = True
     else:
-        pass
+        raise Exception
 
-    train_data = MonoTextData(os.path.join(data_path, file_name + "train.txt"), label=False)
+    train_data = MonoTextData(os.path.join(data_path, file_name + "train.txt"), label=label)
     vocab = train_data.vocab
-    vocab_size = len(vocab)
-    print(vocab_size)
-    #
-    # val_data = MonoTextData(args.val_data, label=args.label, vocab=vocab)
-    # test_data = MonoTextData(args.test_data, label=args.label, vocab=vocab)
-    return train_data
+    valid_data = MonoTextData(os.path.join(data_path, file_name + "valid.txt"), label=label, vocab=vocab)
+    test_data = MonoTextData(os.path.join(data_path, file_name + "test.txt"), label=label, vocab=vocab)
+
+    if split == "train" or split == "train_eval":
+        return train_data
+    elif split == "valid":
+        return valid_data
+    elif split == "test":
+        return test_data
+    else:
+        raise NotImplementedError
 
 
 def build_input_queue(name, split, batch_size, device, data_path="../../logs/text_data"):
     data = load_data(name=name, split=split, batch_size=batch_size,
-                       data_path=data_path)
+                     data_path=data_path)
     data_batch = data.create_data_batch(batch_size=batch_size,
-                                                    device=device,
-                                                    batch_first=True)
+                                        device=device,
+                                        batch_first=True)
     for batch in data_batch:
-        yield {
-            "inputs": batch.to(device, non_blocking=True)
-        }
+        yield {"inputs": batch.to(device, non_blocking=True)}

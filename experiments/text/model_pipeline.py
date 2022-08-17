@@ -27,6 +27,8 @@ class TextModel(BaseVae):
 def build_model(name, device):
     if name == "yahoo":
         vocab_size = 20001
+    elif name == "yelp":
+        vocab_size = 19997
     else:
         raise Exception
 
