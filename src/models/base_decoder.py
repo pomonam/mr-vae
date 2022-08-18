@@ -13,7 +13,7 @@ class BaseDecoder(nn.Module):
 
     def reconstruct_error(self, x: torch.Tensor, z: torch.Tensor,
                           *argv) -> torch.Tensor:
-        raise NotImplementedError
+        pass
 
     # def beam_search_decode(self, z: torch.Tensor, k: int):
     #   raise NotImplementedError

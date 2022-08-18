@@ -7,12 +7,12 @@ import torch
 import tqdm
 import wandb
 
+from src.evaluate import AverageMeter
 from experiments.b_mnist.input_pipeline import build_input_queue
 from experiments.b_mnist.model_pipeline import build_criterion
 from experiments.b_mnist.model_pipeline import build_model
 from experiments.init_wandb import init_wandb
 from src.config import TrainConfig
-from src.criterions import calc_au
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
@@ -20,8 +20,7 @@ from src.evaluate import update_metric
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
+parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
 
 parser.add_argument("--encoder_name", type=str, default="mlp")
 parser.add_argument("--decoder_name", type=str, default="mlp")
@@ -48,6 +47,7 @@ def evaluate(model, biq, criterion, epoch, name, delta=0.01):
     with torch.no_grad():
         loader = biq(name, args.batch_size, DEVICE)
         p_bar = tqdm.tqdm(loader)
+        mi_meter = AverageMeter()
         metric_dict = initialize_metric(criterion.get_metric_lst())
         means = []
 
@@ -55,8 +55,10 @@ def evaluate(model, biq, criterion, epoch, name, delta=0.01):
             inputs = batch["inputs"]
             output_dict = model(inputs)
             means.append(output_dict["mean"])
-            _, loss_dict = criterion.eval_forward(output_dict)
+            mutual_info = model.calc_mi(inputs)
+            mi_meter.update(mutual_info, inputs.size(0))
 
+            _, loss_dict = criterion.eval_forward(output_dict)
             metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
             summ_dict = summarize_metric(metric_dict)
             summ_str = generate_metric_str(name, epoch, summ_dict)
@@ -67,10 +69,10 @@ def evaluate(model, biq, criterion, epoch, name, delta=0.01):
 
     au_var = means - au_mean
     ns = au_var.size(0)
-    au_var = (au_var**2).sum(dim=0) / (ns - 1)
+    au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
 
     summ_dict = summarize_metric(metric_dict, name=name + "/")
-
+    summ_dict[name + "/" + "mi"] = mi_meter.avg
     summ_dict[name + "/" + "au"] = (au_var >= delta).sum().item()
     summ_dict[name + "/" + "au_var"] = au_var
     wandb.log(summ_dict)

@@ -5,7 +5,7 @@ from torch import nn
 from src.models.base_decoder import BaseDecoder
 
 
-class uniform_initializer(object):
+class UniformInitializer(object):
     def __init__(self, stdv):
         self.stdv = stdv
 
@@ -13,13 +13,8 @@ class uniform_initializer(object):
         nn.init.uniform_(tensor, -self.stdv, self.stdv)
 
 
-class xavier_normal_initializer(object):
-    def __call__(self, tensor):
-        nn.init.xavier_normal_(tensor)
-
-
-model_init = uniform_initializer(0.01)
-emb_init = uniform_initializer(0.1)
+model_init = UniformInitializer(0.01)
+emb_init = UniformInitializer(0.1)
 
 
 class LstmEncoder(BaseEncoder):
@@ -74,65 +69,27 @@ class LstmDecoder(BaseDecoder):
         emb_init(self.embed.weight)
 
     def decode(self, input, z):
-        """
-        Args:
-            input: (batch_size, seq_len)
-            z: (batch_size, nz)
-        """
-
-        # not predicting start symbol
-        # sents_len -= 1
-
         batch_size, _ = z.size()
         seq_len = input.size(1)
 
-        # (batch_size, seq_len, ni)
         word_embed = self.embed(input)
-        # word_embed = self.dropout_in(word_embed)
-
         z_ = z.unsqueeze(1).expand(batch_size, seq_len, self.nz)
-
-        # (batch_size * n_sample, seq_len, ni + nz)
         word_embed = torch.cat((word_embed, z_), -1)
 
         z = z.view(batch_size, self.nz)
         c_init = self.trans_linear(z).unsqueeze(0)
         h_init = torch.tanh(c_init)
-        # h_init = self.trans_linear(z).unsqueeze(0)
-        # c_init = h_init.new_zeros(h_init.size())
         output, _ = self.lstm(word_embed, (h_init, c_init))
-
-        # output = self.dropout_out(output)
-
-        # (batch_size * n_sample, seq_len, vocab_size)
         output_logits = self.pred_linear(output)
 
         return output_logits
 
     def reconstruct_error(self, x, z):
-        """Cross Entropy in the language case
-        Args:
-            x: (batch_size, seq_len)
-            z: (batch_size, n_sample, nz)
-        Returns:
-            loss: (batch_size, n_sample). Loss
-            across different sentence and z
-        """
-        #remove end symbol
         src = x[:, :-1]
-
-        # remove start symbol
         tgt = x[:, 1:]
 
         batch_size, seq_len = src.size()
-        # n_sample = z.size(1)
-
-        # (batch_size * n_sample, seq_len, vocab_size)
         output_logits = self.decode(src, z)
-
         tgt = tgt.contiguous().view(-1)
-
-        # (batch_size * n_sample * seq_len)
         loss = self.loss(output_logits.view(-1, output_logits.size(2)), tgt)
-
         return loss.view(batch_size, -1).sum(-1)

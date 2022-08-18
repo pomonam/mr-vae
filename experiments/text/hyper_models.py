@@ -3,15 +3,15 @@ import torch
 from torch import nn
 
 from src.models.base_decoder import BaseDecoder
-from experiments.text.models import uniform_initializer, xavier_normal_initializer
+from experiments.text.models import UniformInitializer
 from src.hyper.layers.scale import HyperScale
 from src.hyper.layers.linear import HyperLinear
 from src.hyper.models import BaseHyperEncoder
 from src.hyper.models import BaseHyperDecoder
 
 
-model_init = uniform_initializer(0.01)
-emb_init = uniform_initializer(0.1)
+model_init = UniformInitializer(0.01)
+emb_init = UniformInitializer(0.1)
 
 
 class HyperLstmEncoder(BaseHyperEncoder):
@@ -114,15 +114,6 @@ class HyperLstmDecoder(BaseHyperDecoder):
         return output_logits
 
     def reconstruct_error(self, x, z):
-        """Cross Entropy in the language case
-        Args:
-            x: (batch_size, seq_len)
-            z: (batch_size, n_sample, nz)
-        Returns:
-            loss: (batch_size, n_sample). Loss
-            across different sentence and z
-        """
-        #remove end symbol
         src = x[:, :-1]
 
         # remove start symbol

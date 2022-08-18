@@ -18,8 +18,7 @@ from src.evaluate import update_metric
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--experiment_name", type=str, default="hyper_vae-text")
+parser.add_argument("--experiment_name", type=str, default="hyper_vae-text")
 
 parser.add_argument("--data_name", type=str, default="yelp")
 
@@ -27,7 +26,8 @@ parser.add_argument("--total_epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=0.001)
 parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--beta", type=float, default=1)
-parser.add_argument("--schedule", type=str, default="cyclic")
+parser.add_argument("--schedule", type=str, default="constant")
+parser.add_argument("--clip_grad", type=float, default=5.0)
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
@@ -114,6 +114,7 @@ def train(data_name, model, biq, criterion, optimizer, cfg):
             output_dict = model(inputs)
             loss, loss_dict = criterion(output_dict, cfg.get_beta(epoch))
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
             optimizer.step()
 
             metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))

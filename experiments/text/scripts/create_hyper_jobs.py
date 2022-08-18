@@ -13,7 +13,7 @@ args = parser.parse_args()
 CONFIG = {
     "lr": [1e-2, 1e-3, 1e-4],
     "data_name": ["yahoo", "yelp"],
-    "total_epochs": [200],
+    "total_epochs": [10],
     "block_type": ["linear", "mlp"],
     "sample_type": ["beta_log_uniform"],
     "preact_transform": [0],

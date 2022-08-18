@@ -1,12 +1,13 @@
 import torch
 from torch import nn
-
+import math
 from experiments.text.models import LstmDecoder, LstmEncoder
 from src.hyper.vae import HyperVae
 from src.models.samplers import IsotropicGaussianSampler
 from src.models.vae import BaseVae
-from src.criterions import kl_gaussian
+from src.criterions import kl_gaussian, log_sum_exp
 from torch.nn import functional as F
+
 from experiments.text.hyper_models import HyperLstmDecoder, HyperLstmEncoder
 from src.hyper.models import HyperIsotropicGaussianSampler
 
@@ -25,6 +26,33 @@ class TextModel(BaseVae):
         }
         return outputs_dict
 
+    def calc_mi(self, x):
+        outputs_dict = self.encode(x)
+        mu, log_var = outputs_dict["mean"], outputs_dict["log_var"]
+
+        x_batch, nz = mu.size()
+        neg_entropy = (-0.5 * nz * math.log(2 * math.pi)- 0.5 * (1 + log_var).sum(-1)).mean()
+
+        # [z_batch, 1, nz]
+        z_samples = self.reparameterize(mu, log_var, 1)
+
+        # [1, x_batch, nz]
+        mu, logvar = mu.unsqueeze(0), log_var.unsqueeze(0)
+        var = logvar.exp()
+
+        # (z_batch, x_batch, nz)
+        dev = z_samples - mu
+
+        # (z_batch, x_batch)
+        log_density = -0.5 * ((dev ** 2) / var).sum(dim=-1) - \
+            0.5 * (nz * math.log(2 * math.pi) + logvar.sum(-1))
+
+        # log q(z): aggregate posterior
+        # [z_batch]
+        log_qz = log_sum_exp(log_density, dim=1) - math.log(x_batch)
+
+        return (neg_entropy - log_qz.mean(-1)).item()
+
 
 class HyperTextModel(HyperVae):
 
@@ -40,6 +68,7 @@ class HyperTextModel(HyperVae):
         }
         return outputs_dict
 
+
 def build_model(name, device):
     if name == "yahoo":
         vocab_size = 20001
@@ -51,8 +80,7 @@ def build_model(name, device):
     encoder = LstmEncoder(vocab_size, 512, 1024)
     sampler = IsotropicGaussianSampler(nh=1024, nz=32)
     decoder = LstmDecoder(vocab_size, 512, 1024, 32)
-    model = TextModel(
-        encoder=encoder, decoder=decoder, sampler=sampler)
+    model = TextModel(encoder=encoder, decoder=decoder, sampler=sampler)
     return model.to(device)
 
 
