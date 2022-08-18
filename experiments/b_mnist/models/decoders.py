@@ -88,19 +88,46 @@ class PixelCNNDecoder(BaseDecoder):
             nn.BatchNorm2d(hidden_channels),
             nn.ELU(),
             nn.Conv2d(hidden_channels, self.nc, 1, bias=False),
+            nn.Sigmoid()
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        raise ValueError
+        return self.layers(x)
 
     def decode(self, z: torch.Tensor) -> torch.Tensor:
         raise ValueError
 
-    def special_decode(self, z, x):
-        z = self.z_transform(z)
-        z = z.view(-1, self.fm_latent, 28, 28)
-        z = torch.cat([x, z], dim=1)
-        return self.layers(z)
+    # def special_decode(self, z, x):
+    #     z = self.z_transform(z)
+    #     z = z.view(-1, self.fm_latent, 28, 28)
+    #     z = torch.cat([x, z], dim=1)
+    #     return self.layers(z)
+    #
+    # def special_forward(self, z, x):
+    #     return self.special_decode(z, x)
 
-    def special_forward(self, z, x):
-        return self.special_decode(z, x)
+    def reconstruct_error(self, x, z):
+        eps = 1e-12
+        if type(z) == type(None):
+            batch_size, nsampels, _, _ = x.size()
+            img = x.unsqueeze(1).expand(batch_size, nsampels, *x.size()[1:])
+        else:
+            z = z.unsqueeze(1)
+            batch_size, nsampels, nz = z.size()
+            # [batch, nsamples, -1] --> [batch, nsamples, fm, H, W]
+            z = self.z_transform(z).view(batch_size, nsampels, self.fm_latent, 28, 28)
+
+            # [batch, nc, H, W] --> [batch, 1, nc, H, W] --> [batch, nsample, nc, H, W]
+            img = x.unsqueeze(1).expand(batch_size, nsampels, *x.size()[1:])
+            # [batch, nsample, nc+fm, H, W] --> [batch * nsamples, nc+fm, H, W]
+            img = torch.cat([img, z], dim=2)
+
+        img = img.view(-1, *img.size()[2:])
+
+        # [batch * nsamples, *] --> [batch, nsamples, -1]
+        recon_x = self.forward(img).view(batch_size, nsampels, -1)
+        # [batch, -1]
+        x_flat = x.view(batch_size, -1)
+        BCE = (recon_x + eps).log() * x_flat.unsqueeze(1) + (1.0 - recon_x + eps).log() * (1. - x_flat).unsqueeze(1)
+        # [batch, nsamples]
+        return BCE.sum(dim=2) * -1.0
