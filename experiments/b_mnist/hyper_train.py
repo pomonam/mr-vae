@@ -12,6 +12,8 @@ from experiments.b_mnist.model_pipeline import build_hyper_model
 from experiments.init_wandb import init_wandb
 from src.config import HyperConfig
 from src.config import TrainConfig
+from src.evaluate import AverageMeter
+
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
@@ -22,8 +24,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--experiment_name", type=str, default="hyper_vae-hyper-b_mnist_mlp")
 
-parser.add_argument("--encoder_name", type=str, default="cnn")
-parser.add_argument("--decoder_name", type=str, default="cnn")
+parser.add_argument("--encoder_name", type=str, default="resnet")
+parser.add_argument("--decoder_name", type=str, default="pixelcnn")
 
 parser.add_argument("--block_type", type=str, default="mlp")
 parser.add_argument("--preact_transform", type=int, default=0)
@@ -56,11 +58,11 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
         loss_lst = []
         rate_lst = []
         dist_lst = []
-        au_lst = []
 
         for sample in sample_lst:
             loader = build_input_queue(name, args.batch_size, DEVICE)
             p_bar = tqdm.tqdm(loader)
+            mi_meter = AverageMeter()
             metric_dict = initialize_metric(criterion.get_metric_lst())
             means = []
 
@@ -68,10 +70,11 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
                 inputs = batch["inputs"]
                 output_dict = model.inverse_forward(inputs, sample)
                 means.append(output_dict["mean"])
+                mutual_info = model.calc_mi(inputs)
+                mi_meter.update(mutual_info, inputs.size(0))
 
                 # We want to compute exact ELBO here
                 _, loss_dict = criterion.eval_forward(output_dict)
-
                 metric_dict = update_metric(metric_dict,
                                             loss_dict,
                                             inputs.size(0))
@@ -83,6 +86,7 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
 
             means = torch.cat(means, dim=0)
             au_mean = means.mean(0, keepdim=True)
+
             au_var = means - au_mean
             ns = au_var.size(0)
             au_var = (au_var**2).sum(dim=0) / (ns - 1)
@@ -90,11 +94,11 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
             loss_lst.append(summ_dict["loss"])
             rate_lst.append(summ_dict["rate"])
             dist_lst.append(summ_dict["distortion"])
-            au_lst.append((au_var >= delta).sum().item())
 
             wandb.log({
                 f"{name}/sample": sample,
-                f"{name}/au": (au_var >= delta).sum().item()
+                f"{name}/au": (au_var >= delta).sum().item(),
+                f"{name}/mi": mi_meter.avg
             })
 
         wandb.log({
@@ -111,18 +115,10 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
                 wandb.plot.line(table, "rate", "distortion", title="RD Curve")
         })
 
-        loss_lst = np.array(loss_lst)
+        # loss_lst = np.array(loss_lst)
         rate_lst = np.array(rate_lst)
         dist_lst = np.array(dist_lst)
-        # au_lst = np.array(au_lst)
-
-        total_auc = np.sum(loss_lst)
-        top_auc = np.sum(loss_lst[:5])
-        bot_auc = np.sum(loss_lst[5:])
         auc_dict = {
-            f"{name}/total_auc": total_auc,
-            f"{name}/top_auc": top_auc,
-            f"{name}/bot_auc": bot_auc,
             f"{name}/max_rate": np.max(rate_lst),
             f"{name}/min_rate": np.min(rate_lst),
             f"{name}/abs_rate": np.max(rate_lst) - np.min(rate_lst),

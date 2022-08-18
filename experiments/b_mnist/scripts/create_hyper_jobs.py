@@ -5,20 +5,50 @@ from experiments.job_arrays import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
-parser.add_argument(
-    "--experiment_name", type=str, default="hypvae-mnist_mlp_hyper-v10")
+parser.add_argument("--experiment_name", type=str, default="hvae-b_mnist-hyper")
+
 
 args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-4],
-    "total_epochs": [400],
+    "total_epochs": [500],
+    "encoder_name": ["mlp"],
+    "decoder_name": ["mlp"],
+    "block_type": ["linear", "mlp"],
+    "sample_type": ["beta_log_uniform"],
+    "preact_transform": [0],
+    "preprocess_beta": [1],
+    "include_sigmoid_activation": [1],
+    "include_layer_norm": [0, 1],
+    "include_residual_connection": [0, 1],
+    "include_chunk": [0, 1],
+}
+
+CNN_CONFIG = {
+    "lr": [1e-4],
+    "total_epochs": [500],
     "encoder_name": ["cnn"],
     "decoder_name": ["cnn"],
     "block_type": ["linear", "mlp"],
     "sample_type": ["beta_log_uniform"],
-    "preact_transform": [0, 1],
-    "preprocess_beta": [0, 1],
+    "preact_transform": [0],
+    "preprocess_beta": [1],
+    "include_sigmoid_activation": [1],
+    "include_layer_norm": [0, 1],
+    "include_residual_connection": [0, 1],
+    "include_chunk": [0, 1],
+}
+
+PIXEL_CONFIG = {
+    "lr": [1e-4],
+    "total_epochs": [500],
+    "encoder_name": ["resnet"],
+    "decoder_name": ["pixelcnn"],
+    "block_type": ["linear", "mlp"],
+    "sample_type": ["beta_log_uniform"],
+    "preact_transform": [0],
+    "preprocess_beta": [1],
     "include_sigmoid_activation": [1],
     "include_layer_norm": [0, 1],
     "include_residual_connection": [0, 1],
@@ -28,6 +58,17 @@ CONFIG = {
 if __name__ == "__main__":
     jobs = generate_job_strings(
         CONFIG,
+        command_template="python hyper_train.py --experiment_name {} ".format(
+            args.experiment_name))
+    jobs += ["\n"]
+    jobs += generate_job_strings(
+        CNN_CONFIG,
+        command_template="python hyper_train.py --experiment_name {} ".format(
+            args.experiment_name))
+    jobs += ["\n"]
+
+    jobs += generate_job_strings(
+        PIXEL_CONFIG,
         command_template="python hyper_train.py --experiment_name {} ".format(
             args.experiment_name))
     with open(args.file_name, "w") as f:

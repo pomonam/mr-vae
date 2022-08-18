@@ -10,7 +10,8 @@ def get_activation(act_name):
 
     act_dict = {
         "relu": F.relu,
-        "none": identity
+        "none": identity,
+        "elu": F.elu,
     }
     return act_dict[act_name]
 

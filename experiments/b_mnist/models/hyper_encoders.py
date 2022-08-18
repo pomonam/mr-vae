@@ -70,15 +70,82 @@ class HyperCNNEncoder(BaseHyperEncoder):
         return self.layers(x)
 
 
-class ResNetEncoder(BaseHyperEncoder):
+class HyperBasicBlock(nn.Module):
+    expansion = 1
 
-    def __init__(self):
+    def __init__(self, in_planes, planes, stride=1, hyper_config=None):
+        super().__init__()
+
+        self.conv1 = HyperConv2d(
+            in_planes,
+            planes,
+            activation_fnc="relu",
+            kernel_size=3,
+            stride=stride,
+            padding=1,
+            bias=False,
+            bn=True,
+            hyper_config=hyper_config)
+
+        self.conv2 = HyperConv2d(
+            planes, planes, activation_fnc="none", kernel_size=3, stride=1, padding=1, bias=False,
+            hyper_config=hyper_config, bn=True)
+        # self.bn2 = nn.BatchNorm2d(planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                HyperConv2d(
+                    in_planes,
+                    self.expansion * planes,
+                    activation_fnc="none",
+                    kernel_size=1,
+                    stride=stride,
+                    bias=False,
+                    bn=True,
+                    hyper_config=hyper_config),
+                # nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = self.conv1(x)
+        out = self.conv2(out)
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+
+class HyperResNet(nn.Module):
+
+    def __init__(self, in_planes, planes, strides, hyper_config):
+        super(HyperResNet, self).__init__()
+        assert len(planes) == len(strides)
+
+        blocks = []
+        for i in range(len(planes)):
+            plane = planes[i]
+            stride = strides[i]
+            block = HyperBasicBlock(in_planes, plane, stride=stride, hyper_config=hyper_config)
+            blocks.append(block)
+            in_planes = plane
+
+        self.layers = nn.Sequential(*blocks)
+
+    def forward(self, x):
+        return self.layers(x)
+
+
+class HyperResNetEncoder(BaseHyperEncoder):
+
+    def __init__(self, hyper_config):
         super().__init__()
         self.layers = nn.Sequential(
-            ResNet(1, [64, 64, 64], [2, 2, 2]),
-            nn.Conv2d(64, 256, kernel_size=4, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
+            HyperResNet(1, [64, 64, 64], [2, 2, 2], hyper_config),
+            # nn.Conv2d(64, 256, kernel_size=4, stride=1, padding=0, bias=False),
+            HyperConv2d(64, 256, activation_fnc="relu", kernel_size=4, stride=1, padding=0,
+                        hyper_config=hyper_config, bn=True),
+            # nn.BatchNorm2d(256),
+            # nn.ReLU(),
             nn.Flatten())
 
     def forward(self, x):
