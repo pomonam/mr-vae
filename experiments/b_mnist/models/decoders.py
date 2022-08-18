@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-from torch.autograd import Variable
 
 from src.models.base_decoder import BaseDecoder
 from src.models.pixcelcnn import PixelCNN
