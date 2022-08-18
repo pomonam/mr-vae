@@ -22,13 +22,13 @@ from src.utils import seed_everything
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-b_mnist_mlp")
 
-parser.add_argument("--encoder_name", type=str, default="mlp")
-parser.add_argument("--decoder_name", type=str, default="mlp")
+parser.add_argument("--encoder_name", type=str, default="resnet")
+parser.add_argument("--decoder_name", type=str, default="pixelcnn")
 
 parser.add_argument("--total_epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--beta", type=float, default=-1)
+parser.add_argument("--beta", type=float, default=1)
 parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
@@ -94,9 +94,9 @@ def train(model, biq, criterion, optimizer, cfg):
         do_evaluate = epoch % cfg.eval_freq == 0
         do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
-        if do_evaluate:
-            evaluate(model, biq, criterion, epoch, "train_eval")
-            evaluate(model, biq, criterion, epoch, "test")
+        # if do_evaluate:
+        #     evaluate(model, biq, criterion, epoch, "train_eval")
+        #     evaluate(model, biq, criterion, epoch, "test")
 
         if do_checkpoint and do_save:
             slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")

@@ -26,16 +26,21 @@ class BinarizedMnistMlpModel(BaseVae):
         outputs_dict = self.encode(x)
         z = self.sampler.sample(outputs_dict)
         if self.decoder.require_inputs:
-            logits = self.decoder.special_decode(z, x)
+            reconstruct_error = self.decoder.reconstruct_error(x, z)
+            outputs_dict = {
+                "inputs": x,
+                "mean": outputs_dict["mean"],
+                "log_var": outputs_dict["log_var"],
+                "reconstruct_error": reconstruct_error
+            }
         else:
             logits = self.decode(z)
-
-        outputs_dict = {
-            "inputs": x,
-            "mean": outputs_dict["mean"],
-            "log_var": outputs_dict["log_var"],
-            "logits": logits
-        }
+            outputs_dict = {
+                "inputs": x,
+                "mean": outputs_dict["mean"],
+                "log_var": outputs_dict["log_var"],
+                "logits": logits
+            }
         return outputs_dict
 
     def calc_mi(self, x):
@@ -132,8 +137,11 @@ class BinarizedMnistMlpCriterion(nn.Module):
 
     @staticmethod
     def forward(outputs_dict: dict, beta: torch.Tensor = 1.0):
-        log_likelihood = -binary_cross_entropy(outputs_dict["inputs"],
-                                               outputs_dict["logits"])
+        if "reconstruct_error" in outputs_dict:
+            log_likelihood = -outputs_dict["reconstruct_error"]
+        else:
+            log_likelihood = -binary_cross_entropy(outputs_dict["inputs"],
+                                                   outputs_dict["logits"])
         kl = kl_gaussian(outputs_dict["mean"], outputs_dict["log_var"].exp())
         if isinstance(beta, int) or isinstance(beta, float):
             if beta == -1:
