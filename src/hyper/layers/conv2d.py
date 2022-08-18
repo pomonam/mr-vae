@@ -14,7 +14,7 @@ from src.hyper.layers.module import HyperModule
 class HyperConv2d(HyperModule):
 
     def __init__(self, in_channels, out_channels, kernel_size, activation_fnc, hyper_config: HyperConfig, stride=1,
-                 padding=0, dialation=1, group=1, bias=True):
+                 padding=0, dialation=1, group=1, bias=True, bn=False):
         super().__init__()
 
         self.in_channels = in_channels
@@ -27,10 +27,13 @@ class HyperConv2d(HyperModule):
         self.bias = bias
         self.activation_fnc = get_activation(activation_fnc)
         self.hyper_config = hyper_config
+        self.bn = bn
 
-        self.conv2d = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias)
+        self.conv2d = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size,
+                                stride=stride, padding=padding, bias=bias)
         if self.hyper_config.include_chunk:
-            self.chunk_conv2d = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias)
+            self.chunk_conv2d = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size,
+                                          stride=stride, padding=padding, bias=bias)
 
         input_dim = hyper_config.preprocess_dim if hyper_config.preprocess_beta else 1
         self.hyper_block_scale = get_block("linear")(input_dim, self.out_channels)
@@ -42,6 +45,11 @@ class HyperConv2d(HyperModule):
 
         if self.hyper_config.include_layer_norm:
             self.layer_norm = torch.nn.GroupNorm(1, self.out_channels, affine=False)
+
+        if bn:
+            self.batch_norm = nn.BatchNorm2d(self.out_channels)
+            if self.hyper_config.include_chunk:
+                self.chunk_batch_norm = nn.BatchNorm2d(self.out_channels)
 
     def forward(self, inputs):
         scale = self.hyper_block_scale(self._net_inputs).unsqueeze(-1).unsqueeze(-1)
@@ -78,18 +86,29 @@ class HyperConv2d(HyperModule):
                             chunk_pre_act * chunk_moe[:, 1].unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
 
             if self.hyper_config.include_residual_connection:
-                return self.activation_fnc(pre_act + hyper_pre_act)
+                if self.bn:
+                    return self.activation_fnc(self.batch_norm(pre_act + hyper_pre_act))
+                else:
+                    return self.activation_fnc(pre_act + hyper_pre_act)
             else:
-                return self.activation_fnc(hyper_pre_act)
+                if self.bn:
+                    return self.activation_fnc(self.batch_norm(hyper_pre_act))
+                else:
+                    return self.activation_fnc(hyper_pre_act)
 
         else:
+            if self.bn:
+                pre_act = self.batch_norm(pre_act)
             act = self.activation_fnc(pre_act)
+
             if self.hyper_config.include_layer_norm:
                 hyper_act = scale * self.layer_norm(act) + shift
             else:
                 hyper_act = scale * act + shift
 
             if self.hyper_config.include_chunk:
+                if self.bn:
+                    chunk_pre_act = self.chunk_batch_norm(chunk_pre_act)
                 chunk_act = self.activation_fnc(chunk_pre_act)
                 if self.hyper_config.include_layer_norm:
                     chunk_hyper_act = chunk_scale * self.layer_norm(chunk_act) + chunk_shift
