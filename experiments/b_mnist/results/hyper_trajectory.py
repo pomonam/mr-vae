@@ -7,7 +7,7 @@ from src.plotting import init_plotting
 
 ENTITY = "bae-group"
 EXPERIMENT_NAME = "hvae-b_mnist-hyper"
-ID = "18bem7ix"
+ID = "218flzdi"
 
 
 def get_summary(summary):
@@ -53,15 +53,15 @@ def main():
     plt.xlabel("Rate")
     plt.ylabel("Distortion")
 
-    rate, dist = get_rd("hvae-b_mnist-cnn", lr=1e-3, test=False, name="cnn")
+    rate, dist = get_rd("hvae-b_mnist-mlp", lr=1e-3, test=False)
     plt.plot(rate, dist, label=r"Retrain (Cyclic) - $10^{-3}$")
     plt.scatter(rate, dist, facecolors="none", edgecolors="k")
 
-    rate, dist = get_rd("hvae-b_mnist-cnn", lr=5e-4, test=False, name="cnn")
+    rate, dist = get_rd("hvae-b_mnist-mlp", lr=5e-4, test=False)
     plt.plot(rate, dist, label=r"Retrain (Cyclic) - $50^{-4}$")
     plt.scatter(rate, dist, facecolors="none", edgecolors="k")
 
-    rate, dist = get_rd("hvae-b_mnist-cnn", lr=1e-4, test=False, name="cnn")
+    rate, dist = get_rd("hvae-b_mnist-mlp", lr=1e-4, test=False)
     plt.plot(rate, dist, label=r"Retrain (Cyclic) - $10^{-4}$")
     plt.scatter(rate, dist, facecolors="none", edgecolors="k")
     plt.title("RD-curve on Train Dataset")

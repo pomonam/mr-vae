@@ -7,16 +7,16 @@ from src.plotting import init_plotting
 
 ENTITY = "bae-group"
 EXPERIMENT_NAME = "hvae-b_mnist-hyper"
-ID = "18bem7ix"
+ID = "c0isg66o"
 
 
 def get_summary(summary):
     beta_to_rate = dict(
-        zip(summary["train_eval/sample_lst"], summary["train_eval/rate_lst"]))
+        zip(summary["test/sample_lst"], summary["test/rate_lst"]))
     beta_to_dist = dict(
-        zip(summary["train_eval/sample_lst"], summary["train_eval/dist_lst"]))
+        zip(summary["test/sample_lst"], summary["test/dist_lst"]))
     beta_to_elbo = dict(
-        zip(summary["train_eval/sample_lst"], summary["train_eval/loss_lst"]))
+        zip(summary["test/sample_lst"], summary["test/loss_lst"]))
     return beta_to_rate, beta_to_dist, beta_to_elbo
 
 
@@ -53,19 +53,19 @@ def main():
     plt.xlabel("Rate")
     plt.ylabel("Distortion")
 
-    rate, dist = get_rd("hvae-b_mnist-cnn", lr=1e-3, test=False, name="cnn")
+    rate, dist = get_rd("hvae-b_mnist-cnn", lr=1e-3, test=True, name="cnn")
     plt.plot(rate, dist, label=r"Retrain (Cyclic) - $10^{-3}$")
     plt.scatter(rate, dist, facecolors="none", edgecolors="k")
 
-    rate, dist = get_rd("hvae-b_mnist-cnn", lr=5e-4, test=False, name="cnn")
+    rate, dist = get_rd("hvae-b_mnist-cnn", lr=5e-4, test=True, name="cnn")
     plt.plot(rate, dist, label=r"Retrain (Cyclic) - $50^{-4}$")
     plt.scatter(rate, dist, facecolors="none", edgecolors="k")
 
-    rate, dist = get_rd("hvae-b_mnist-cnn", lr=1e-4, test=False, name="cnn")
+    rate, dist = get_rd("hvae-b_mnist-cnn", lr=1e-4, test=True, name="cnn")
     plt.plot(rate, dist, label=r"Retrain (Cyclic) - $10^{-4}$")
     plt.scatter(rate, dist, facecolors="none", edgecolors="k")
-    plt.title("RD-curve on Train Dataset")
 
+    plt.title("RD-curve on Test Dataset")
     plt.legend()
     plt.tight_layout()
     plt.show()
