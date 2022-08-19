@@ -26,6 +26,11 @@ class HyperLinear(HyperModule):
         if self.hyper_config.include_chunk:
             self.chunk_linear = nn.Linear(in_features, out_features, bias=bias)
 
+        if self.hyper_config.include_output_layer:
+            self.output_layer = nn.Linear(out_features, out_features, bias=bias)
+        else:
+            self.output_layer = nn.Identity()
+
         input_dim = hyper_config.preprocess_dim if hyper_config.preprocess_beta else 1
         self.hyper_block_scale = get_block("linear")(input_dim, self.out_features)
         self.hyper_block_shift = get_block("linear")(input_dim, self.out_features)
@@ -55,15 +60,28 @@ class HyperLinear(HyperModule):
 
         if self.hyper_config.preact_transform:
             if self.hyper_config.include_layer_norm:
-                hyper_pre_act = scale * self.layer_norm(pre_act) + shift
+                if self.hyper_config.include_shift:
+                    hyper_pre_act = scale * self.layer_norm(pre_act) + shift
+                else:
+                    hyper_pre_act = scale * self.layer_norm(pre_act)
             else:
-                hyper_pre_act = scale * pre_act + shift
+                if self.hyper_config.include_shift:
+                    hyper_pre_act = scale * pre_act + shift
+                else:
+                    hyper_pre_act = scale * pre_act
 
             if self.hyper_config.include_chunk:
                 if self.hyper_config.include_layer_norm:
-                    chunk_hyper_pre_act = chunk_scale * self.layer_norm(chunk_pre_act) + chunk_shift
+                    if self.hyper_config.include_shift:
+                        chunk_hyper_pre_act = chunk_scale * self.layer_norm(chunk_pre_act) + chunk_shift
+                    else:
+                        chunk_hyper_pre_act = chunk_scale * self.layer_norm(chunk_pre_act)
+
                 else:
-                    chunk_hyper_pre_act = chunk_scale * chunk_pre_act + chunk_shift
+                    if self.hyper_config.include_shift:
+                        chunk_hyper_pre_act = chunk_scale * chunk_pre_act + chunk_shift
+                    else:
+                        chunk_hyper_pre_act = chunk_scale * chunk_pre_act
 
                 chunk_moe = torch.softmax(self.chunk_moe(self._net_inputs), 1)
                 hyper_pre_act = hyper_pre_act * chunk_moe[:, 0].unsqueeze(-1) +\
@@ -74,21 +92,34 @@ class HyperLinear(HyperModule):
             if self.hyper_config.include_residual_connection:
                 return self.activation_fnc(pre_act + hyper_pre_act)
             else:
-                return self.activation_fnc(hyper_pre_act)
+                return self.activation_fnc(self.output_layer(hyper_pre_act))
 
         else:
             act = self.activation_fnc(pre_act)
             if self.hyper_config.include_layer_norm:
-                hyper_act = scale * self.layer_norm(act) + shift
+                if self.hyper_config.include_shift:
+                    hyper_act = scale * self.layer_norm(act) + shift
+                else:
+                    hyper_act = scale * self.layer_norm(act)
             else:
-                hyper_act = scale * act + shift
+                if self.hyper_config.include_shift:
+                    hyper_act = scale * act + shift
+                else:
+                    hyper_act = scale * act
 
             if self.hyper_config.include_chunk:
                 chunk_act = self.activation_fnc(chunk_pre_act)
                 if self.hyper_config.include_layer_norm:
-                    chunk_hyper_act = chunk_scale * self.layer_norm(chunk_act) + chunk_shift
+                    if self.hyper_config.include_shift:
+                        chunk_hyper_act = chunk_scale * self.layer_norm(chunk_act) + chunk_shift
+                    else:
+                        chunk_hyper_act = chunk_scale * self.layer_norm(chunk_act)
+
                 else:
-                    chunk_hyper_act = chunk_scale * chunk_act + chunk_shift
+                    if self.hyper_config.include_shift:
+                        chunk_hyper_act = chunk_scale * chunk_act + chunk_shift
+                    else:
+                        chunk_hyper_act = chunk_scale * chunk_act
 
                 chunk_moe = torch.softmax(self.chunk_moe(self._net_inputs), 1)
                 hyper_act = hyper_act * chunk_moe[:, 0].unsqueeze(-1) + \
@@ -98,7 +129,7 @@ class HyperLinear(HyperModule):
             if self.hyper_config.include_residual_connection:
                 return act + hyper_act
             else:
-                return hyper_act
+                return self.output_layer(hyper_act)
 
         # if self.hyper_config.include_sigmoid_activation == "none":
         #   scale = scale
