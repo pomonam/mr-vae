@@ -10,20 +10,38 @@ parser.add_argument("--experiment_name", type=str, default="hvae-b_mnist-hyper-v
 
 args = parser.parse_args()
 
+# CONFIG = {
+#     "lr": [1e-4],
+#     "total_epochs": [500],
+#     "encoder_name": ["mlp"],
+#     "decoder_name": ["mlp"],
+#     "block_type": ["linear", "mlp"],
+#     "sample_type": ["beta_log_uniform"],
+#     "preact_transform": [0, 1],
+#     "preprocess_beta": [1],
+#     "include_sigmoid_activation": [0, 1],
+#     "include_layer_norm": [0, 1],
+#     "include_output_layer": [0, 1],
+#     "include_shift": [0, 1],
+#     "include_residual_connection": [0, 1],
+#     "include_chunk": [0],
+# }
+
+
 CONFIG = {
-    "lr": [1e-4],
+    "lr": [1e-3, 3e-4, 1e-4, 3e-5],
     "total_epochs": [500],
     "encoder_name": ["mlp"],
     "decoder_name": ["mlp"],
     "block_type": ["linear", "mlp"],
     "sample_type": ["beta_log_uniform"],
     "preact_transform": [0, 1],
-    "preprocess_beta": [1],
-    "include_sigmoid_activation": [0, 1],
-    "include_layer_norm": [0, 1],
+    "preprocess_beta": [0, 1],
+    "include_sigmoid_activation": [0],
+    "include_layer_norm": [1],
     "include_output_layer": [0, 1],
-    "include_shift": [0, 1],
-    "include_residual_connection": [0, 1],
+    "include_shift": [1],
+    "include_residual_connection": [0],
     "include_chunk": [0],
 }
 
