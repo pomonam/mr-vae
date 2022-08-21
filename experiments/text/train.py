@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import tqdm
 import wandb
+from src.evaluate import AverageMeter
 
 from experiments.text.input_pipeline import build_input_queue
 from experiments.text.model_pipeline import build_criterion
@@ -45,6 +46,7 @@ def evaluate(data_name, model, biq, criterion, epoch, name, delta=0.01):
     with torch.no_grad():
         loader = biq(data_name, name, args.batch_size, DEVICE)
         p_bar = tqdm.tqdm(loader)
+        mi_meter = AverageMeter()
         metric_dict = initialize_metric(criterion.get_metric_lst())
         means = []
 
@@ -52,6 +54,8 @@ def evaluate(data_name, model, biq, criterion, epoch, name, delta=0.01):
             inputs = batch["inputs"]
             output_dict = model(inputs)
             means.append(output_dict["mean"])
+            mutual_info = model.calc_mi(inputs)
+            mi_meter.update(mutual_info, inputs.size(0))
             _, loss_dict = criterion.eval_forward(output_dict)
 
             metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
@@ -67,7 +71,7 @@ def evaluate(data_name, model, biq, criterion, epoch, name, delta=0.01):
     au_var = (au_var**2).sum(dim=0) / (ns - 1)
 
     summ_dict = summarize_metric(metric_dict, name=name + "/")
-
+    summ_dict[name + "/" + "mi"] = mi_meter.avg
     summ_dict[name + "/" + "au"] = (au_var >= delta).sum().item()
     summ_dict[name + "/" + "au_var"] = au_var
     wandb.log(summ_dict)

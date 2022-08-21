@@ -60,7 +60,6 @@ class LstmDecoder(BaseDecoder):
                             batch_first=True)
 
         self.pred_linear = nn.Linear(nh, vocab_size, bias=False)
-
         vocab_mask = torch.ones(vocab_size)
         self.loss = nn.CrossEntropyLoss(weight=vocab_mask, reduce=False)
 
