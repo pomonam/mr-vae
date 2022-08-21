@@ -85,8 +85,11 @@ def train(data_name, model, biq, criterion, optimizer, cfg):
             os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
         model.load_state_dict(slurm_checkpoint["state_dict"])
         optimizer.load_state_dict(slurm_checkpoint["optimizer"])
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
+        scheduler.load_state_dict(slurm_checkpoint['scheduler'])
         epoch = slurm_checkpoint["epoch"]
     else:
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
         epoch = 0
 
     while epoch < cfg.total_epochs:
@@ -96,6 +99,7 @@ def train(data_name, model, biq, criterion, optimizer, cfg):
         if do_evaluate:
             evaluate(data_name, model, biq, criterion, epoch, "train_eval")
             evaluate(data_name, model, biq, criterion, epoch, "test")
+        scheduler.step()
 
         if do_checkpoint and do_save:
             slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")
@@ -104,6 +108,7 @@ def train(data_name, model, biq, criterion, optimizer, cfg):
                 "epoch": epoch,
                 "state_dict": model.state_dict(),
                 "optimizer": optimizer.state_dict(),
+                "scheduler": scheduler.state_dict()
             }
             torch.save(log_info, slurm_check_dir)
 

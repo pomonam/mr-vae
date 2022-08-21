@@ -8,7 +8,7 @@ from experiments.job_arrays import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="train_jobs")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_text_train_v3")
+    "--experiment_name", type=str, default="hyper_vae_text_train_v1")
 
 args = parser.parse_args()
 
@@ -16,7 +16,7 @@ CONFIG = {
     "lr": [3e-3, 1e-3, 3e-4, 3e-4],
     "data_name": ["yahoo", "yelp"],
     "total_epochs": [100],
-    "schedule": ["constant", "monotonic", "cyclic"],
+    "schedule": ["constant", "cyclic"],
     "beta": np.logspace(-3, 1, num=20) + [0]
 }
 
