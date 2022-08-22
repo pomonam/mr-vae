@@ -82,8 +82,8 @@ def build_hyper_model(name, hyper_config, device):
         raise Exception
 
     encoder = HyperLstmEncoder(vocab_size, 512, 1024, hyper_config)
-    sampler = HyperIsotropicGaussianSampler(nh=1024, nz=64, hyper_config=hyper_config)
-    decoder = HyperLstmDecoder(vocab_size, 512, 1024, 64, hyper_config=hyper_config)
+    sampler = HyperIsotropicGaussianSampler(nh=1024, nz=32, hyper_config=hyper_config)
+    decoder = HyperLstmDecoder(vocab_size, 512, 1024, 32, hyper_config=hyper_config)
     model = HyperTextModel(
         encoder=encoder, decoder=decoder, sampler=sampler, hyper_config=hyper_config)
     return model.to(device)
