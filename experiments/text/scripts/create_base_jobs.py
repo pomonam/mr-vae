@@ -13,7 +13,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 CONFIG = {
-    "lr": [1e-3, 3e-4, 1e-4],
+    "lr": [1e-3, 1e-4],
     "data_name": ["yahoo", "yelp"],
     "total_epochs": [100],
     "schedule": ["constant", "cyclic"],
