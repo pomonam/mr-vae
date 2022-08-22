@@ -34,7 +34,7 @@ class TrainConfig:
 
 
 class HyperConfig:
-    preprocess_dim = 64
+    preprocess_dim = 128
 
     def __init__(self, args):
         self.block_type = get_ns(args, "block_type")
@@ -46,7 +46,7 @@ class HyperConfig:
 
         self.include_residual_connection = get_ns(
             args, "include_residual_connection")
-        self.include_chunk = get_ns(args, "include_chunk")
+        # self.include_chunk = get_ns(args, "include_chunk")
 
         self.preact_transform = get_ns(args, "preact_transform")
 
