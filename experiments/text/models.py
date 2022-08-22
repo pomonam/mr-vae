@@ -70,7 +70,7 @@ class LstmDecoder(BaseDecoder):
             model_init(param)
         emb_init(self.embed.weight)
 
-    def decode(self, input, z):
+    def special_decode(self, input, z):
         batch_size, _ = z.size()
         seq_len = input.size(1)
 
@@ -90,12 +90,12 @@ class LstmDecoder(BaseDecoder):
 
         return output_logits
 
-    def reconstruct_error(self, x, z):
+    def reconstruct_error(self, x, z, *argv):
         src = x[:, :-1]
         tgt = x[:, 1:]
 
         batch_size, seq_len = src.size()
-        output_logits = self.decode(src, z)
+        output_logits = self.special_decode(src, z)
         tgt = tgt.contiguous().view(-1)
         loss = self.loss(output_logits.view(-1, output_logits.size(2)), tgt)
         return loss.view(batch_size, -1).sum(-1)
