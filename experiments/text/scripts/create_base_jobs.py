@@ -8,7 +8,7 @@ from experiments.job_arrays import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="train_jobs")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_text_train_v3")
+    "--experiment_name", type=str, default="hypervae_text_train_v1")
 
 args = parser.parse_args()
 
@@ -23,7 +23,7 @@ CONFIG = {
 if __name__ == "__main__":
     jobs = generate_job_strings(
         CONFIG,
-        command_template="python train.py --experiment_name {} ".format(
+        command_template="python baseline_train.py --experiment_name {} ".format(
             args.experiment_name))
     with open(args.file_name, "w") as f:
         f.writelines(jobs)
