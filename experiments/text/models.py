@@ -27,8 +27,8 @@ class LstmEncoder(BaseEncoder):
         self.lstm = nn.LSTM(input_size=ni,
                             hidden_size=nh,
                             num_layers=1,
-                            batch_first=True)
-        self.linear = nn.Linear(nh, nh, bias=True)
+                            batch_first=True,
+                            dropout=0.)
 
         for param in self.parameters():
             model_init(param)
@@ -37,8 +37,7 @@ class LstmEncoder(BaseEncoder):
     def forward(self, x):
         word_embed = self.embed(x)
         _, (last_state, last_cell) = self.lstm(word_embed)
-        out = self.linear(last_state)
-        return out.squeeze(0)
+        return last_state.squeeze(0)
 
 
 class LstmDecoder(BaseDecoder):
@@ -54,12 +53,16 @@ class LstmDecoder(BaseDecoder):
         self.embed = nn.Embedding(vocab_size, ni, padding_idx=-1)
         self.trans_linear = nn.Linear(nz, nh, bias=False)
 
+        self.dropout_in = nn.Dropout(0.5)
+        self.dropout_out = nn.Dropout(0.5)
+
         self.lstm = nn.LSTM(input_size=ni + nz,
                             hidden_size=nh,
                             num_layers=1,
                             batch_first=True)
 
         self.pred_linear = nn.Linear(nh, vocab_size, bias=False)
+
         vocab_mask = torch.ones(vocab_size)
         self.loss = nn.CrossEntropyLoss(weight=vocab_mask, reduce=False)
 
@@ -72,6 +75,8 @@ class LstmDecoder(BaseDecoder):
         seq_len = input.size(1)
 
         word_embed = self.embed(input)
+        word_embed = self.dropout_in(word_embed)
+
         z_ = z.unsqueeze(1).expand(batch_size, seq_len, self.nz)
         word_embed = torch.cat((word_embed, z_), -1)
 
@@ -79,6 +84,8 @@ class LstmDecoder(BaseDecoder):
         c_init = self.trans_linear(z).unsqueeze(0)
         h_init = torch.tanh(c_init)
         output, _ = self.lstm(word_embed, (h_init, c_init))
+
+        output = self.dropout_out(output)
         output_logits = self.pred_linear(output)
 
         return output_logits
