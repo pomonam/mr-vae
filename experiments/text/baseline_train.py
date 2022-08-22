@@ -22,7 +22,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hyper_vae-text")
 
 parser.add_argument("--data_name", type=str, default="yelp")
-
 parser.add_argument("--total_epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=0.001)
 parser.add_argument("--batch_size", type=int, default=32)

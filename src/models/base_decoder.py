@@ -11,8 +11,7 @@ class BaseDecoder(nn.Module):
     def decode(self, z: torch.Tensor) -> torch.Tensor:
         raise self.forward(z)
 
-    def reconstruct_error(self, x: torch.Tensor, z: torch.Tensor,
-                          *argv) -> torch.Tensor:
+    def reconstruct_error(self, x: torch.Tensor, z: torch.Tensor, *argv) -> torch.Tensor:
         pass
 
     # def beam_search_decode(self, z: torch.Tensor, k: int):

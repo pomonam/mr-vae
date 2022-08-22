@@ -1,18 +1,17 @@
 import argparse
 import os
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import tqdm
 import wandb
 
-from experiments.cifar.input_pipeline import build_input_queue
-from experiments.cifar.model_pipeline import build_criterion
-from experiments.cifar.model_pipeline import build_model
+from src.evaluate import AverageMeter
+from experiments.omniglot.input_pipeline import build_input_queue
+from experiments.mnist.model_pipeline import build_criterion
+from experiments.mnist.model_pipeline import build_model
 from experiments.init_wandb import init_wandb
 from src.config import TrainConfig
-
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
@@ -20,10 +19,12 @@ from src.evaluate import update_metric
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--experiment_name", type=str, default="hyper_vae-cifar")
+parser.add_argument("--experiment_name", type=str, default="hypervae-omniglot-train")
 
-parser.add_argument("--total_epochs", type=int, default=5)
+parser.add_argument("--encoder_name", type=str, default="mlp")
+parser.add_argument("--decoder_name", type=str, default="mlp")
+
+parser.add_argument("--total_epochs", type=int, default=10)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--beta", type=float, default=1)
@@ -31,7 +32,7 @@ parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
-parser.add_argument("--save_freq", type=int, default=100)
+parser.add_argument("--save_freq", type=int, default=250)
 parser.add_argument("--eval_freq", type=int, default=50)
 args = parser.parse_args()
 
@@ -45,6 +46,7 @@ def evaluate(model, biq, criterion, epoch, name, delta=0.01):
     with torch.no_grad():
         loader = biq(name, args.batch_size, DEVICE)
         p_bar = tqdm.tqdm(loader)
+        mi_meter = AverageMeter()
         metric_dict = initialize_metric(criterion.get_metric_lst())
         means = []
 
@@ -52,8 +54,10 @@ def evaluate(model, biq, criterion, epoch, name, delta=0.01):
             inputs = batch["inputs"]
             output_dict = model(inputs)
             means.append(output_dict["mean"])
-            _, loss_dict = criterion.eval_forward(output_dict)
+            mutual_info = model.calc_mi(inputs)
+            mi_meter.update(mutual_info, inputs.size(0))
 
+            _, loss_dict = criterion.eval_forward(output_dict)
             metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
             summ_dict = summarize_metric(metric_dict)
             summ_str = generate_metric_str(name, epoch, summ_dict)
@@ -64,10 +68,10 @@ def evaluate(model, biq, criterion, epoch, name, delta=0.01):
 
     au_var = means - au_mean
     ns = au_var.size(0)
-    au_var = (au_var**2).sum(dim=0) / (ns - 1)
+    au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
 
     summ_dict = summarize_metric(metric_dict, name=name + "/")
-
+    summ_dict[name + "/" + "mi"] = mi_meter.avg
     summ_dict[name + "/" + "au"] = (au_var >= delta).sum().item()
     summ_dict[name + "/" + "au_var"] = au_var
     wandb.log(summ_dict)
@@ -139,7 +143,7 @@ def main():
     cfg = TrainConfig(args)
 
     seed_everything(cfg.seed)
-    model = build_model(DEVICE)
+    model = build_model(args.encoder_name, args.decoder_name, DEVICE)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
     criterion = build_criterion(DEVICE)
@@ -152,15 +156,16 @@ def main():
              "train_eval")
     evaluate(model, build_input_queue, criterion, cfg.total_epochs, "test")
 
+    import matplotlib.pyplot as plt
     # Visualizing the reconstruction
     test_loader = build_input_queue("test", cfg.batch_size, DEVICE)
     test_batch = next(test_loader)
     outputs_dict = model.forward(test_batch["inputs"])
-    logits = outputs_dict["logits"].view(-1, 32, 32)
+    logits = outputs_dict["logits"].view(-1, 28, 28)
     plt.figure(figsize=(5, 5))
     plt.axis("square")
     for i in range(50):
-        data_i = test_batch["inputs"].view(-1, 32, 32)[i].data.cpu().numpy()
+        data_i = test_batch["inputs"].view(-1, 28, 28)[i].data.cpu().numpy()
         recon_i = torch.sigmoid(logits[i]).data.cpu().numpy()
         plt.subplot(10, 10, 2 * i + 1)
         plt.imshow(data_i, cmap="Greys")
