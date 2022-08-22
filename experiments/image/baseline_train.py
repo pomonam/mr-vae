@@ -154,8 +154,8 @@ def main():
         optimizer,
         start_factor=1e-5,
         end_factor=1.,
-        total_iters=5)
-    scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, eta_min=1e-7, T_max=95)
+        total_iters=10)
+    scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, eta_min=1e-7, T_max=290)
     scheduler = torch.optim.lr_scheduler.SequentialLR(
         optimizer,
         schedulers=[scheduler1, scheduler2],
