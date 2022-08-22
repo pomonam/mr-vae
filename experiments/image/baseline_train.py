@@ -22,7 +22,7 @@ from src.utils import seed_everything
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hypervae-image-train")
 
-parser.add_argument("--data_name", type=str, default="celeba")
+parser.add_argument("--data_name", type=str, default="cifar")
 
 parser.add_argument("--total_epochs", type=int, default=10)
 parser.add_argument("--lr", type=float, default=1e-3)
