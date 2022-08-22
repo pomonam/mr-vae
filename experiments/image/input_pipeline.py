@@ -58,11 +58,11 @@ def load_data(data_name, split, batch_size, workers=0, data_path="../../logs/dat
                                           transforms.Resize(64),
                                           transforms.CenterCrop(64),
                                           transforms.ToTensor()])
-    train_data = CelebA(data_path,
+    train_data = CelebA("/scratch/ssd002/datasets/celeba_pytorch",
                         split='train',
                         download=True,
                         transform=train_transform)
-    test_data = CelebA(data_path,
+    test_data = CelebA("/scratch/ssd002/datasets/celeba_pytorch",
                        split='test',
                        download=True,
                        transform=test_transform)

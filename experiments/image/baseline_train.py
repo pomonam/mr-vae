@@ -32,7 +32,7 @@ parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
-parser.add_argument("--save_freq", type=int, default=250)
+parser.add_argument("--save_freq", type=int, default=100)
 parser.add_argument("--eval_freq", type=int, default=50)
 args = parser.parse_args()
 
@@ -77,7 +77,7 @@ def evaluate(model, biq, criterion, epoch, name, delta=0.01):
     wandb.log(summ_dict)
 
 
-def train(model, biq, criterion, optimizer, cfg):
+def train(model, biq, criterion, optimizer, scheduler, cfg):
     do_checkpoint = cfg.checkpoint_dir is not None
     if do_checkpoint and os.path.exists(
             os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
@@ -85,6 +85,7 @@ def train(model, biq, criterion, optimizer, cfg):
             os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
         model.load_state_dict(slurm_checkpoint["state_dict"])
         optimizer.load_state_dict(slurm_checkpoint["optimizer"])
+        scheduler.load_state_dict(slurm_checkpoint["scheduler"])
         epoch = slurm_checkpoint["epoch"]
     else:
         epoch = 0
@@ -104,6 +105,7 @@ def train(model, biq, criterion, optimizer, cfg):
                 "epoch": epoch,
                 "state_dict": model.state_dict(),
                 "optimizer": optimizer.state_dict(),
+                "scheduler": scheduler.state_dict()
             }
             torch.save(log_info, slurm_check_dir)
 
@@ -129,6 +131,7 @@ def train(model, biq, criterion, optimizer, cfg):
         summ_dict["beta"] = cfg.get_beta(epoch)
         wandb.log(summ_dict)
         epoch = epoch + 1
+        scheduler.step()
 
         if np.isnan(summ_dict["train_step/loss"]):
             wandb.finish(exit_code=1)
@@ -146,9 +149,21 @@ def main():
     model = build_model(args.data_name, DEVICE)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
+
+    scheduler1 = torch.optim.lr_scheduler.LinearLR(
+        optimizer,
+        start_factor=1e-5,
+        end_factor=1.,
+        total_iters=5)
+    scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, eta_min=1e-7, T_max=95)
+    scheduler = torch.optim.lr_scheduler.SequentialLR(
+        optimizer,
+        schedulers=[scheduler1, scheduler2],
+        milestones=[5])
+
     criterion = build_criterion(DEVICE)
 
-    train(model, build_input_queue, criterion, optimizer, cfg)
+    train(model, build_input_queue, criterion, optimizer, scheduler, cfg)
     evaluate(model,
              build_input_queue,
              criterion,
