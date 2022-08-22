@@ -46,6 +46,9 @@ class HyperVae(BaseVae):
                 in_features=1, width=hyper_config.preprocess_dim)
             self.sampler_block = get_block(self.hyper_config.block_type)(
                 in_features=1, width=hyper_config.preprocess_dim)
+        else:
+            self.uniform_block = get_block(self.hyper_config.block_type)(
+                in_features=1, width=hyper_config.preprocess_dim)
 
     def set_net_inputs(self, value: torch.Tensor) -> None:
         if self.hyper_config.preprocess_beta:
@@ -59,9 +62,10 @@ class HyperVae(BaseVae):
             self.sampler.set_net_inputs(sampler_inputs)
 
         else:
-            self.encoder.set_net_inputs(value)
-            self.decoder.set_net_inputs(value)
-            self.sampler.set_net_inputs(value)
+            net_inputs = self.uniform_block(value)
+            self.encoder.set_net_inputs(net_inputs)
+            self.decoder.set_net_inputs(net_inputs)
+            self.sampler.set_net_inputs(net_inputs)
 
     def sample(self, x: torch.Tensor) -> dict:
         batch_size = x.shape[0]

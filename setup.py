@@ -16,6 +16,7 @@ setup(
         "pyDeprecate==0.3.1",
         "torchsummary",
         "numpy",
+        "lmdb",
         "python-dotenv",
         "h5py",
         "matplotlib",
