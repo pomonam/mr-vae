@@ -34,7 +34,7 @@ class TrainConfig:
 
 
 class HyperConfig:
-    preprocess_dim = 128
+    preprocess_dim = 64
 
     def __init__(self, args):
         self.block_type = get_ns(args, "block_type")

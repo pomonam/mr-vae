@@ -58,8 +58,8 @@ class HyperIsotropicGaussianSampler(BaseSampler):
 
         self.mean = HyperLinear(self.nh, self.nh, "none", hyper_config)
         self.log_var = HyperLinear(self.nh, self.nh, "none", hyper_config)
-        self.mean_proj = nn.Linear(self.nh, self.nz)
-        self.log_var_proj = nn.Linear(self.nh, self.nz)
+        self.mean_proj = HyperLinear(self.nh, self.nz, "none", hyper_config)
+        self.log_var_proj = HyperLinear(self.nh, self.nz, "none", hyper_config)
 
     def forward(self, x: torch.Tensor) -> dict:
         mean = self.mean(x)
@@ -80,3 +80,5 @@ class HyperIsotropicGaussianSampler(BaseSampler):
     def set_net_inputs(self, value: torch.Tensor) -> None:
         self.mean.set_net_inputs(value)
         self.log_var.set_net_inputs(value)
+        self.mean_proj.set_net_inputs(value)
+        self.log_var_proj.set_net_inputs(value)
