@@ -30,23 +30,11 @@ class BaseHyperEncoder(HyperStructure, BaseEncoder):
     def __init__(self) -> None:
         super().__init__()
 
-    # def forward(self, x: torch.Tensor) -> torch.Tensor:
-    #     raise NotImplementedError
-    #
-    # def encode(self, x: torch.Tensor) -> torch.Tensor:
-    #     return self.forward(x)
-
 
 class BaseHyperDecoder(HyperStructure, BaseDecoder):
 
     def __init__(self) -> None:
         super().__init__()
-
-    # def forward(self, x: torch.Tensor) -> torch.Tensor:
-    #     raise NotImplementedError
-    #
-    # def decode(self, z: torch.Tensor) -> torch.Tensor:
-    #     raise self.forward(z)
 
 
 class HyperIsotropicGaussianSampler(BaseSampler):

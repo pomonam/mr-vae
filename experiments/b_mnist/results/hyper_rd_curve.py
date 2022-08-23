@@ -42,8 +42,8 @@ def main():
 
     rate = np.array([c[0] for c in combined_dict.values()])
     dist = np.array([c[1] for c in combined_dict.values()])
-    plt.plot(rate, dist, label="Hypernetwork")
-    plt.scatter(rate, dist, facecolors="none", edgecolors="k")
+    # plt.plot(rate, dist, label="Hypernetwork")
+    # plt.scatter(rate, dist, facecolors="none", edgecolors="k")
 
     # min_val = min(np.min(rate), np.min(dist)) - 10
     # max_val = max(np.max(rate), np.max(dist)) + 10
@@ -53,18 +53,24 @@ def main():
     plt.xlabel("Rate")
     plt.ylabel("Distortion")
 
-    rate, dist = get_rd("hvae-b_mnist-mlp", lr=1e-3, test=False, name="mlp")
+    rate, dist = get_rd("hypervae_image_train_v2", lr=1e-3, test=True, data_name="celeba")
+    print(rate)
     plt.plot(rate, dist, label=r"Retrain (Cyclic) - $10^{-3}$")
     plt.scatter(rate, dist, facecolors="none", edgecolors="k")
 
-    rate, dist = get_rd("hvae-b_mnist-mlp", lr=5e-4, test=False, name="mlp")
-    plt.plot(rate, dist, label=r"Retrain (Cyclic) - $50^{-4}$")
-    plt.scatter(rate, dist, facecolors="none", edgecolors="k")
-
-    rate, dist = get_rd("hvae-b_mnist-mlp", lr=1e-4, test=False, name="mlp")
-    plt.plot(rate, dist, label=r"Retrain (Cyclic) - $10^{-4}$")
-    plt.scatter(rate, dist, facecolors="none", edgecolors="k")
-    plt.title("RD-curve on Train Dataset")
+    # rate, dist = get_rd("hypervae_image_train_v2", lr=3e-4, test=True, data_name="celeba")
+    # plt.plot(rate, dist, label=r"Retrain (Cyclic) - $50^{-4}$")
+    # plt.scatter(rate, dist, facecolors="none", edgecolors="k")
+    #
+    # rate, dist = get_rd("hypervae_image_train_v2", lr=1e-4, test=True, data_name="celeba")
+    # plt.plot(rate, dist, label=r"Retrain (Cyclic) - $10^{-4}$")
+    # plt.scatter(rate, dist, facecolors="none", edgecolors="k")
+    # plt.title("RD-curve on Train Dataset")
+    #
+    # rate, dist = get_rd("hypervae_image_train_v2", lr=3e-3, test=True, data_name="celeba")
+    # plt.plot(rate, dist, label=r"Retrain (Cyclic) - $30^{-3}$")
+    # plt.scatter(rate, dist, facecolors="none", edgecolors="k")
+    # plt.title("RD-curve on Train Dataset")
 
     plt.legend()
     plt.tight_layout()

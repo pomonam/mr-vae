@@ -12,6 +12,7 @@ EXPERIMENT_NAME = "hv-b_mnist_mlp_train-v5"
 
 def get_summary(config_lst,
                 summary_lst,
+                data_name,
                 lr=1e-3,
                 schedule="constant",
                 encoder_name="cnn",
@@ -21,9 +22,7 @@ def get_summary(config_lst,
     beta_to_elbo = {}
 
     for i, c in enumerate(config_lst):
-        if c["lr"] == lr and c["schedule"] == schedule \
-            and c["encoder_name"] == encoder_name \
-            and c["decoder_name"] == decoder_name:
+        if c["lr"] == lr and c["schedule"] == schedule and c["data_name"] == data_name:
             beta_to_rate[c["beta"]] = summary_lst[i]["train_eval/rate"]
             beta_to_dist[c["beta"]] = summary_lst[i]["train_eval/distortion"]
             beta_to_elbo[c["beta"]] = summary_lst[i]["train_eval/loss"]
@@ -38,6 +37,7 @@ def get_summary(config_lst,
 
 def get_test_summary(config_lst,
                      summary_lst,
+                     data_name,
                      lr=1e-3,
                      schedule="constant",
                      encoder_name="mlp",
@@ -47,9 +47,7 @@ def get_test_summary(config_lst,
     beta_to_elbo = {}
 
     for i, c in enumerate(config_lst):
-        if c["lr"] == lr and c["schedule"] == schedule \
-            and c["encoder_name"] == encoder_name \
-            and c["decoder_name"] == decoder_name:
+        if c["lr"] == lr and c["schedule"] == schedule and c["data_name"] == data_name:
             beta_to_rate[c["beta"]] = summary_lst[i]["test/rate"]
             beta_to_dist[c["beta"]] = summary_lst[i]["test/distortion"]
             beta_to_elbo[c["beta"]] = summary_lst[i]["test/loss"]
@@ -62,7 +60,7 @@ def get_test_summary(config_lst,
     return sorted_beta_to_rate, sorted_beta_to_dist, sorted_beta_to_elbo
 
 
-def get_rd(experiment_name, lr, name="mlp", test=False):
+def get_rd(experiment_name, lr, data_name, name="mlp", test=False):
     api = init_api()
     runs = api.runs(ENTITY + "/" + experiment_name)
 
@@ -77,6 +75,7 @@ def get_rd(experiment_name, lr, name="mlp", test=False):
     if test:
         rate_dict, dist_dict, elbo_dict = get_test_summary(config_list,
                                                            summary_list,
+                                                           data_name,
                                                            schedule="cyclic",
                                                            encoder_name=name,
                                                            decoder_name=name,
@@ -84,6 +83,7 @@ def get_rd(experiment_name, lr, name="mlp", test=False):
     else:
         rate_dict, dist_dict, elbo_dict = get_summary(config_list,
                                                       summary_list,
+                                                      data_name,
                                                       schedule="cyclic",
                                                       encoder_name=name,
                                                       decoder_name=name,
@@ -134,7 +134,7 @@ def main():
     line = ax.add_collection(lc)
     fig.colorbar(line, ax=ax)
 
-    plt.scatter(rate, dist, facecolors="none", edgecolors="k")
+    # plt.scatter(rate, dist, facecolors="none", edgecolors="k")
 
     min_val = min(np.min(rate), np.min(dist)) - 10
     max_val = max(np.max(rate), np.max(dist)) + 10

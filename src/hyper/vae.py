@@ -46,21 +46,15 @@ class HyperVae(BaseVae):
                 in_features=1, width=hyper_config.preprocess_dim)
             self.sampler_block = get_block(self.hyper_config.block_type)(
                 in_features=1, width=hyper_config.preprocess_dim)
-        # else:
-        #     self.uniform_block = get_block(self.hyper_config.block_type)(
-        #         in_features=1, width=hyper_config.preprocess_dim)
 
     def set_net_inputs(self, value: torch.Tensor) -> None:
         if self.hyper_config.preprocess_beta:
             encoder_inputs = self.encoder_block(value)
             self.encoder.set_net_inputs(encoder_inputs)
-
             decoder_inputs = self.decoder_block(value)
             self.decoder.set_net_inputs(decoder_inputs)
-
             sampler_inputs = self.sampler_block(value)
             self.sampler.set_net_inputs(sampler_inputs)
-
         else:
             self.encoder.set_net_inputs(value)
             self.decoder.set_net_inputs(value)

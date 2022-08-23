@@ -12,7 +12,7 @@ class MLPEncoder(BaseEncoder):
     def __init__(self):
         super().__init__()
 
-        self.linear1 = nn.Linear(784, 512, bias=True)
+        self.linear1 = nn.Linear(784, 512)
         self.linear2 = nn.Linear(512, 512)
         self.linear3 = nn.Linear(512, 256)
 
