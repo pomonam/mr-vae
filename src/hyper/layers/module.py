@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-
+import functools
 import torch.nn.functional as F
 
 
@@ -12,6 +12,7 @@ def get_activation(act_name):
         "relu": F.relu,
         "none": identity,
         "elu": F.elu,
+        "leaky_relu": functools.partial(F.leaky_relu, negative_slope=0.2),
     }
     return act_dict[act_name]
 

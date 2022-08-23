@@ -3,6 +3,7 @@ import torch.nn as nn
 from src.models.base_encoder import BaseEncoder
 from src.models.base_decoder import BaseDecoder
 
+
 def normal_init(m, mean, std):
   if isinstance(m, nn.ConvTranspose2d) or isinstance(m, nn.Conv2d):
     m.weight.data.normal_(mean, std)
