@@ -25,11 +25,6 @@ class HyperLinear(HyperModule):
 
         self.linear = nn.Linear(self.in_features, self.out_features, bias=self.bias)
 
-        if self.hyper_config.include_output_layer:
-            self.output_layer = nn.Linear(self.out_features, self.out_features, bias=False)
-        else:
-            self.output_layer = nn.Identity()
-
         input_dim = hyper_config.preprocess_dim if hyper_config.preprocess_beta else 1
         self.hyper_block_scale = get_block("linear")(input_dim, self.out_features)
         self.hyper_block_shift = get_block("linear")(input_dim, self.out_features)
@@ -53,9 +48,9 @@ class HyperLinear(HyperModule):
                 pre_act = pre_act + shift
             act = self.activation_fnc(pre_act)
             if self.hyper_config.include_residual_connection:
-                return self.output_layer(act + self.activation_fnc(pre_act_prev))
+                return act + self.activation_fnc(pre_act_prev)
             else:
-                return self.output_layer(act)
+                return act
         else:
             pre_act = self.linear(inputs)
             act_prev = self.activation_fnc(pre_act)
@@ -64,6 +59,6 @@ class HyperLinear(HyperModule):
             if self.hyper_config.include_shift:
                 act = act + shift
             if self.hyper_config.include_residual_connection:
-                return self.output_layer(act + act_prev)
+                return act + act_prev
             else:
-                return self.output_layer(act)
+                return act
