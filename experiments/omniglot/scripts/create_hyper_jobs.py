@@ -5,7 +5,7 @@ from experiments.job_arrays import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
-parser.add_argument("--experiment_name", type=str, default="hypervae_omniglot_hyper_train_v2")
+parser.add_argument("--experiment_name", type=str, default="hypervae_omniglot_hyper_train_v5")
 
 
 args = parser.parse_args()
@@ -29,17 +29,17 @@ args = parser.parse_args()
 
 
 CONFIG = {
-    "lr": [1e-4],
+    "lr": [3e-5],
     "total_epochs": [500],
-    "encoder_name": ["mlp"],
-    "decoder_name": ["mlp"],
-    "block_type": ["residual", "mlp"],
+    "encoder_name": ["cnn"],
+    "decoder_name": ["cnn"],
+    "block_type": ["mlp"],
     "sample_type": ["beta_log_uniform"],
     "preact_transform": [0, 1],
     "preprocess_beta": [0, 1],
     "include_sigmoid_activation": [0, 1],
     "include_layer_norm": [0, 1],
-    "include_output_layer": [0, 1],
+    # "include_output_layer": [0, 1],
     "include_shift": [0, 1],
     "include_residual_connection": [0, 1],
 }

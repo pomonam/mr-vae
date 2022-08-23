@@ -6,8 +6,8 @@ from experiments.init_wandb import init_api
 from src.plotting import init_plotting
 
 ENTITY = "bae-group"
-EXPERIMENT_NAME = "hypervae_mnist_hyper_train_v3"
-ID = "ew5mtrni"
+EXPERIMENT_NAME = "hypervae_mnist_hyper_train_v5"
+ID = "314oy7en"
 
 
 def get_summary(summary):
@@ -53,19 +53,19 @@ def main():
     plt.xlabel("Rate")
     plt.ylabel("Distortion")
 
-    rate, dist = get_rd("hypervae_mnist_train_v1", lr=1e-3, test=True, name="mlp")
-    plt.plot(rate, dist, label=r"Retrain (Cyclic) - $10^{-3}$")
-    plt.scatter(rate, dist, facecolors="none", edgecolors="k")
+    # rate, dist = get_rd("hypervae_mnist_train_v5", lr=1e-3, test=True, name="cnn", data_name="mnist")
+    # plt.plot(rate, dist, label=r"Retrain (Cyclic) - $10^{-3}$")
+    # plt.scatter(rate, dist, facecolors="none", edgecolors="k")
 
-    rate, dist = get_rd("hypervae_mnist_train_v1", lr=5e-4, test=True, name="mlp")
-    plt.plot(rate, dist, label=r"Retrain (Cyclic) - $50^{-4}$")
-    plt.scatter(rate, dist, facecolors="none", edgecolors="k")
+    # rate, dist = get_rd("hypervae_mnist_train_v5", lr=5e-4, test=True, name="cnn", data_name="mnist")
+    # plt.plot(rate, dist, label=r"Retrain (Cyclic) - $50^{-4}$")
+    # plt.scatter(rate, dist, facecolors="none", edgecolors="k")
+    #
+    # rate, dist = get_rd("hypervae_mnist_train_v5", lr=1e-4, test=True, name="cnn", data_name="mnist")
+    # plt.plot(rate, dist, label=r"Retrain (Cyclic) - $10^{-4}$")
+    # plt.scatter(rate, dist, facecolors="none", edgecolors="k")
 
-    rate, dist = get_rd("hypervae_mnist_train_v1", lr=1e-4, test=True, name="mlp")
-    plt.plot(rate, dist, label=r"Retrain (Cyclic) - $10^{-4}$")
-    plt.scatter(rate, dist, facecolors="none", edgecolors="k")
-
-    rate, dist = get_rd("hypervae_mnist_train_v1", lr=3e-5, test=True, name="mlp")
+    rate, dist = get_rd("hypervae_mnist_train_v5", lr=3e-5, test=True, name="cnn", data_name="mnist")
     plt.plot(rate, dist, label=r"Retrain (Cyclic) - $30^{-5}$")
     plt.scatter(rate, dist, facecolors="none", edgecolors="k")
     plt.title("RD-curve on Train Dataset")
