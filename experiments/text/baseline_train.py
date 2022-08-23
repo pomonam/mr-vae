@@ -23,7 +23,7 @@ parser.add_argument("--experiment_name", type=str, default="hyper_vae-text")
 
 parser.add_argument("--data_name", type=str, default="yelp")
 parser.add_argument("--total_epochs", type=int, default=3)
-parser.add_argument("--lr", type=float, default=0.001)
+parser.add_argument("--lr", type=float, default=1.0)
 parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--beta", type=float, default=1)
 parser.add_argument("--schedule", type=str, default="constant")
@@ -150,7 +150,7 @@ def main():
     seed_everything(cfg.seed)
     model = build_model(args.data_name, DEVICE)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
+    optimizer = torch.optim.SGD(model.parameters(), lr=cfg.lr)
     criterion = build_criterion(DEVICE)
 
     train(args.data_name, model, build_input_queue, criterion, optimizer, cfg)
