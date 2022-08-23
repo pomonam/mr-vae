@@ -31,8 +31,8 @@ parser.add_argument("--clip_grad", type=float, default=5.0)
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
-parser.add_argument("--save_freq", type=int, default=100)
-parser.add_argument("--eval_freq", type=int, default=50)
+parser.add_argument("--save_freq", type=int, default=25)
+parser.add_argument("--eval_freq", type=int, default=10)
 args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
@@ -84,11 +84,11 @@ def train(data_name, model, biq, criterion, optimizer, cfg):
             os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
         model.load_state_dict(slurm_checkpoint["state_dict"])
         optimizer.load_state_dict(slurm_checkpoint["optimizer"])
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
         scheduler.load_state_dict(slurm_checkpoint['scheduler'])
         epoch = slurm_checkpoint["epoch"]
     else:
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
         epoch = 0
 
     while epoch < cfg.total_epochs:
@@ -150,8 +150,8 @@ def main():
     seed_everything(cfg.seed)
     model = build_model(args.data_name, DEVICE)
 
-    # optimizer = torch.optim.SGD(model.parameters(), lr=1)
-    optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
+    optimizer = torch.optim.SGD(model.parameters(), lr=cfg.lr)
+    # optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
 
     criterion = build_criterion(DEVICE)
 
