@@ -35,7 +35,7 @@ class HyperCNNDecoder(BaseHyperDecoder):
         super().__init__()
 
         self.hyper_config = hyper_config
-        self.initial_layer = HyperLinear(64, 32 * 8, "none", hyper_config)
+        self.initial_layer = HyperLinear(32, 32 * 8, "none", hyper_config)
         self.layers = nn.Sequential(
             HyperConvTranspose2d(
                 32 * 8,

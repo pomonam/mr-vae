@@ -7,15 +7,15 @@ from experiments.init_wandb import init_api
 from src.plotting import init_plotting
 
 ENTITY = "bae-group"
-EXPERIMENT_NAME = "hypervae_mnist_train_v1"
+EXPERIMENT_NAME = "hypervae_mnist_train_v5"
 
 
 def get_summary(config_lst,
                 summary_lst,
                 lr=1e-3,
-                schedule="constant",
-                encoder_name="mlp",
-                decoder_name="mlp"):
+                schedule="cyclic",
+                encoder_name="cnn",
+                decoder_name="cnn"):
     beta_to_rate = {}
     beta_to_dist = {}
     beta_to_elbo = {}
@@ -39,9 +39,9 @@ def get_summary(config_lst,
 def get_test_summary(config_lst,
                      summary_lst,
                      lr=1e-3,
-                     schedule="constant",
-                     encoder_name="mlp",
-                     decoder_name="mlp"):
+                     schedule="cyclic",
+                     encoder_name="cnn",
+                     decoder_name="cnn"):
     beta_to_rate = {}
     beta_to_dist = {}
     beta_to_elbo = {}
@@ -62,7 +62,7 @@ def get_test_summary(config_lst,
     return sorted_beta_to_rate, sorted_beta_to_dist, sorted_beta_to_elbo
 
 
-def get_rd(experiment_name, lr, name="mlp", test=False):
+def get_rd(experiment_name, lr, name="cnn", test=False):
     api = init_api()
     runs = api.runs(ENTITY + "/" + experiment_name)
 
@@ -111,67 +111,23 @@ def main():
                 {k: v for k, v in run.config.items() if not k.startswith("_")})
             name_list.append(run.name)
 
-    rate_dict, dist_dict, elbo_dict = get_summary(config_list,
-                                                  summary_list,
-                                                  schedule="cyclic")
+    rate, dist = get_rd(EXPERIMENT_NAME, lr=1e-3, test=True)
+    plt.plot(rate, dist, label="1e-3")
 
-    keys = rate_dict.keys()
-    values = zip(rate_dict.values(), dist_dict.values())
-    combined_dict = dict(zip(keys, values))
+    rate, dist = get_rd(EXPERIMENT_NAME, lr=3e-4, test=True)
+    plt.plot(rate, dist, label="3e-4")
 
-    rate = np.array([c[0] for c in combined_dict.values()])
-    dist = np.array([c[1] for c in combined_dict.values()])
+    rate, dist = get_rd(EXPERIMENT_NAME, lr=1e-4, test=True)
+    plt.plot(rate, dist, label="1e-4")
 
-    points = np.array([rate, dist]).T.reshape(-1, 1, 2)
-    segments = np.concatenate([points[:-1], points[1:]], axis=1)
-
-    fig, ax = plt.subplots()
-    keys = np.array(list(keys))
-    norm = colors.LogNorm(keys.min(), keys.max())
-    lc = LineCollection(segments, cmap="Dark2", norm=norm)
-    lc.set_array(keys)
-    lc.set_linewidth(2)
-    line = ax.add_collection(lc)
-    fig.colorbar(line, ax=ax)
-
-    plt.scatter(rate, dist, facecolors="none", edgecolors="k")
-
-    min_val = min(np.min(rate), np.min(dist)) - 10
-    max_val = max(np.max(rate), np.max(dist)) + 10
-    plt.xlim(min_val, max_val)
-    plt.ylim(min_val, max_val)
-
-    plt.xlabel("Rate")
-    plt.ylabel("Distortion")
-    plt.tight_layout()
-    # plt.savefig("rd_curve.pdf")
-    plt.show()
-    plt.clf()
-
-    keys = rate_dict.keys()
-    values = zip(rate_dict.values(), elbo_dict.values())
-    combined_dict = dict(zip(keys, values))
-
-    rate = np.array([c[0] for c in combined_dict.values()])
-    elbo = np.array([c[1] for c in combined_dict.values()])
-
-    points = np.array([rate, elbo]).T.reshape(-1, 1, 2)
-    segments = np.concatenate([points[:-1], points[1:]], axis=1)
-
-    fig, ax = plt.subplots()
-    keys = np.array(list(keys))
-    norm = colors.LogNorm(keys.min(), keys.max())
-    lc = LineCollection(segments, cmap="Dark2", norm=norm)
-    lc.set_array(keys)
-    lc.set_linewidth(2)
-    line = ax.add_collection(lc)
-    fig.colorbar(line, ax=ax)
-    plt.scatter(rate, elbo, facecolors="none", edgecolors="k")
+    rate, dist = get_rd(EXPERIMENT_NAME, lr=3e-5, test=True)
+    plt.plot(rate, dist, label="3e-5")
 
     plt.xlabel("Rate (nats)")
     plt.ylabel("-ELBO (nats)")
+    plt.legend()
     plt.tight_layout()
-    plt.savefig("rate_elbo_curve.pdf")
+    plt.show()
 
 
 if __name__ == "__main__":

@@ -26,7 +26,7 @@ parser.add_argument("--experiment_name", type=str, default="hypervae-mnist-hyper
 parser.add_argument("--encoder_name", type=str, default="cnn")
 parser.add_argument("--decoder_name", type=str, default="cnn")
 
-parser.add_argument("--block_type", type=str, default="residual")
+parser.add_argument("--block_type", type=str, default="mlp")
 parser.add_argument("--preact_transform", type=int, default=0)
 parser.add_argument("--include_sigmoid_activation", type=int, default=0)
 parser.add_argument("--include_layer_norm", type=int, default=1)
