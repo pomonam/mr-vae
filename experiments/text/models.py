@@ -30,9 +30,9 @@ class LstmEncoder(BaseEncoder):
                             batch_first=True,
                             dropout=0.)
 
-        for param in self.parameters():
-            model_init(param)
-        emb_init(self.embed.weight)
+        # for param in self.parameters():
+        #     model_init(param)
+        # emb_init(self.embed.weight)
 
     def forward(self, x):
         word_embed = self.embed(x)
@@ -66,9 +66,9 @@ class LstmDecoder(BaseDecoder):
         vocab_mask = torch.ones(vocab_size)
         self.loss = nn.CrossEntropyLoss(weight=vocab_mask, reduce=False)
 
-        for param in self.parameters():
-            model_init(param)
-        emb_init(self.embed.weight)
+        # for param in self.parameters():
+        #     model_init(param)
+        # emb_init(self.embed.weight)
 
     def special_decode(self, input, z):
         batch_size, _ = z.size()
