@@ -11,8 +11,6 @@ from src.criterions import binary_cross_entropy
 from src.criterions import kl_gaussian, log_sum_exp
 from src.hyper.models import HyperIsotropicGaussianSampler
 from src.hyper.vae import HyperVae
-from src.models.samplers import IsotropicGaussianSampler
-from src.models.vae import BaseVae
 import math
 
 
@@ -43,8 +41,7 @@ class HyperBinarizedMnistMlpModel(HyperVae):
         outputs_dict = self.encode(x)
         mu, log_var = outputs_dict["mean"], outputs_dict["log_var"]
         x_batch, nz = mu.size()
-        neg_entropy = (-0.5 * nz * math.log(2 * math.pi)- 0.5 * (1 + log_var).sum(-1)).mean()
-
+        neg_entropy = (-0.5 * nz * math.log(2 * math.pi) - 0.5 * (1 + log_var).sum(-1)).mean()
         z_samples = self.sampler.sample(outputs_dict)
         z_samples = z_samples.unsqueeze(1)
         mu, logvar = mu.unsqueeze(0), log_var.unsqueeze(0)
