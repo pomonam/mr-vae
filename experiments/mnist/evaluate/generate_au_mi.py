@@ -10,26 +10,16 @@ from tueplots.constants.color import palettes
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hypervae_mnist_train_v5"
-HYPER_NAME = "hypervae_mnist_hyper_train_v5"
-ID = "1zp75fdt"
+HYPER_NAME = "hypervae_mnist_hyper_train_save"
+ID = "11fjrn2i"
 
 
 def get_summary(summary, test=True):
-  if test:
-      beta_to_rate = dict(
-        zip(summary["test/sample_lst"], summary["test/rate_lst"]))
-      beta_to_dist = dict(
-        zip(summary["test/sample_lst"], summary["test/dist_lst"]))
-      beta_to_elbo = dict(
-        zip(summary["test/sample_lst"], summary["test/loss_lst"]))
-  else:
-      beta_to_rate = dict(
-          zip(summary["train_eval/sample_lst"], summary["train_eval/rate_lst"]))
-      beta_to_dist = dict(
-          zip(summary["train_eval/sample_lst"], summary["train_eval/dist_lst"]))
-      beta_to_elbo = dict(
-          zip(summary["train_eval/sample_lst"], summary["train_eval/loss_lst"]))
-  return beta_to_rate, beta_to_dist
+    beta_to_rate = dict(
+      zip(summary["test/sample_lst"], summary["test/au_lst"]))
+    beta_to_dist = dict(
+      zip(summary["test/sample_lst"], summary["test/mi_lst"]))
+    return beta_to_rate, beta_to_dist
 
 
 def get_baseline_summary(config_lst,
@@ -88,11 +78,12 @@ def main():
   runs = api.runs(ENTITY + "/" + HYPER_NAME)
 
   au_dict, mi_dict = get_baseline_rd(BASELINE_NAME, lr=3e-5, schedule="cyclic", test=True)
+  plt.scatter(au_dict.keys(), au_dict.values())
   plt.plot([0], [0])
 
   summary_list, config_list, name_list = [], [], []
   for run in runs:
-    if run.state == "finished" and run.id == ID:
+    if run.id == ID:
       summary_list.append(run.summary._json_dict)
       config_list.append(
         {k: v for k, v in run.config.items() if not k.startswith('_')})
@@ -104,7 +95,7 @@ def main():
   combined_dict = dict(zip(keys, values))
   rate = np.array([c[0] for c in combined_dict.values()])
   dist = np.array([c[1] for c in combined_dict.values()])
-  plt.plot(rate, dist, "o-", label="Hypernetwork", linewidth=2)
+  plt.plot(rate_dict.keys(), rate_dict.values(), "o-", label="Hypernetwork", linewidth=2)
   # plt.scatter(rate, dist, facecolors="none", edgecolors="k")
 
   # rate_dict, dist_dict, elbo_dict = get_summary(summary_list[0], test=False)
@@ -116,13 +107,14 @@ def main():
   # plt.plot(rate, dist, "o-", label="Hypernetwork", linewidth=2)
   # plt.scatter(rate, dist, facecolors="none", edgecolors="k")
 
-  plt.xlim(0, 140)
-  plt.ylim(25, 140)
+  # plt.xlim(0, 140)
+  # plt.ylim(25, 140)
 
-  plt.xlabel("Rate")
-  plt.ylabel("Distortion")
+  plt.xlabel("beta")
+  plt.ylabel("AU")
+  plt.yscale("log")
 
-  plt.title("Rate-Distortion Curve for MNIST")
+  plt.title("Active units for MNIST")
   plt.legend()
   plt.grid()
   plt.show()

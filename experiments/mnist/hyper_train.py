@@ -211,8 +211,8 @@ def main():
 
     hyper_train(model, build_input_queue, criterion, optimizer, cfg, hyper_cfg)
 
-    # hyper_evaluate(model, criterion, cfg.total_epochs, "train_eval")
-    # hyper_evaluate(model, criterion, cfg.total_epochs, "test")
+    hyper_evaluate(model, criterion, cfg.total_epochs, "train_eval")
+    hyper_evaluate(model, criterion, cfg.total_epochs, "test")
 
     # Testing samples from prior ...
     import matplotlib.pyplot as plt
