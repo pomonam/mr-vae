@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import tqdm
 import wandb
+from src.evaluate import tile_image
 
 from experiments.mnist.input_pipeline import build_input_queue
 from experiments.mnist.hyper_model_pipeline import build_hyper_criterion
@@ -37,7 +38,7 @@ parser.add_argument("--include_residual_connection", type=int, default=1)
 parser.add_argument("--preprocess_beta", type=int, default=0)
 parser.add_argument("--sample_type", type=str, default="beta_log_uniform")
 
-parser.add_argument("--total_epochs", type=int, default=5)
+parser.add_argument("--total_epochs", type=int, default=2)
 parser.add_argument("--lr", type=float, default=1e-4)
 parser.add_argument("--batch_size", type=int, default=128)
 
@@ -210,8 +211,32 @@ def main():
 
     hyper_train(model, build_input_queue, criterion, optimizer, cfg, hyper_cfg)
 
-    hyper_evaluate(model, criterion, cfg.total_epochs, "train_eval")
-    hyper_evaluate(model, criterion, cfg.total_epochs, "test")
+    # hyper_evaluate(model, criterion, cfg.total_epochs, "train_eval")
+    # hyper_evaluate(model, criterion, cfg.total_epochs, "test")
+
+    # Testing samples from prior ...
+    import matplotlib.pyplot as plt
+
+    model.eval()
+    n = 3
+    m = 5
+    num_samples = n * m
+
+    sample_lst = model.get_test_samples(5)
+
+    for sample in sample_lst:
+        output_img_lst = []
+        for _ in range(num_samples):
+            output_img = model.prior_sample(sample)
+            output_img_lst.append(output_img)
+        output_img = torch.concat(output_img_lst)
+        output_img = 1 - torch.sigmoid(output_img)
+        output_tiled = tile_image(output_img, n, m)
+        plt.rcParams['figure.figsize'] = (12, 12)
+        plt.imshow(output_tiled.detach().cpu().permute(1, 2, 0).numpy(), cmap="Greys")
+        plt.title(sample)
+        wandb.log({"sample_{}".format(sample): plt})
+        # plt.clf()
 
     if args.save_eval_checkpoint is not None:
         save_checkpoint = os.path.join("checkpoints", "hyper.pth")
