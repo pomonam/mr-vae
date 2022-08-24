@@ -34,7 +34,6 @@ parser.add_argument("--include_layer_norm", type=int, default=1)
 parser.add_argument("--include_output_layer", type=int, default=1)
 parser.add_argument("--include_shift", type=int, default=1)
 parser.add_argument("--include_residual_connection", type=int, default=1)
-# parser.add_argument("--include_chunk", type=int, default=0)
 parser.add_argument("--preprocess_beta", type=int, default=0)
 parser.add_argument("--sample_type", type=str, default="beta_log_uniform")
 
@@ -211,8 +210,8 @@ def main():
 
     hyper_train(model, build_input_queue, criterion, optimizer, cfg, hyper_cfg)
 
-    hyper_evaluate(model, criterion, cfg.total_epochs, "train_eval")
-    hyper_evaluate(model, criterion, cfg.total_epochs, "test")
+    # hyper_evaluate(model, criterion, cfg.total_epochs, "train_eval")
+    # hyper_evaluate(model, criterion, cfg.total_epochs, "test")
 
     # Testing samples from prior ...
     import matplotlib.pyplot as plt
@@ -227,7 +226,7 @@ def main():
     for sample in sample_lst:
         output_img_lst = []
         for _ in range(num_samples):
-            output_img = model.prior_sample(sample)
+            output_img = model.prior_sample(sample, DEVICE)
             output_img_lst.append(output_img)
         output_img = torch.concat(output_img_lst)
         output_img = 1 - torch.sigmoid(output_img)
