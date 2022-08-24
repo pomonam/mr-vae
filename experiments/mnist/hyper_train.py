@@ -214,7 +214,7 @@ def main():
     hyper_evaluate(model, criterion, cfg.total_epochs, "test")
 
     if args.save_eval_checkpoint is not None:
-        save_checkpoint = os.path.join("checkpoints", "hyper.pth".format(args.beta, args.schedule))
+        save_checkpoint = os.path.join("checkpoints", "hyper.pth")
         log_info = {
             "state_dict": model.state_dict(),
         }
