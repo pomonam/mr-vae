@@ -6,14 +6,14 @@
 #SBATCH --partition=t4v1,p100,t4v2,rtx6000
 #SBATCH --qos=normal
 #SBATCH --export=ALL
-#SBATCH --array=0-40%40
+#SBATCH --array=0-1%1
 #SBATCH --output=temp/array-%A_%a.out
 #SBATCH -c 4
 
 . $HOME/envs/vae_env
 export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH
 
-IFS=$'\n' read -d '' -r -a lines < train_jobs
+IFS=$'\n' read -d '' -r -a lines < hyper_save_jobs
 cd ..
 
 echo ${lines[SLURM_ARRAY_TASK_ID]} --checkpoint_dir /checkpoint/${USER}/${SLURM_JOB_ID}

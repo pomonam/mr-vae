@@ -42,7 +42,8 @@ parser.add_argument("--lr", type=float, default=1e-4)
 parser.add_argument("--batch_size", type=int, default=128)
 
 parser.add_argument("--seed", type=int, default=0)
-parser.add_argument("--checkpoint_dir", type=str, default=None)
+parser.add_argument("--checkpoint_dir", type=str, default=".")
+parser.add_argument("--save_eval_checkpoint", type=int, default=1)
 parser.add_argument("--save_freq", type=int, default=100)
 parser.add_argument("--eval_freq", type=int, default=500)
 args = parser.parse_args()
@@ -206,9 +207,18 @@ def main():
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     criterion = build_hyper_criterion(DEVICE)
+
     hyper_train(model, build_input_queue, criterion, optimizer, cfg, hyper_cfg)
+
     hyper_evaluate(model, criterion, cfg.total_epochs, "train_eval")
     hyper_evaluate(model, criterion, cfg.total_epochs, "test")
+
+    if args.save_eval_checkpoint is not None:
+        save_checkpoint = os.path.join("checkpoints", "hyper.pth".format(args.beta, args.schedule))
+        log_info = {
+            "state_dict": model.state_dict(),
+        }
+        torch.save(log_info, save_checkpoint)
 
 
 if __name__ == "__main__":

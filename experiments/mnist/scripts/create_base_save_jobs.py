@@ -6,8 +6,8 @@ from experiments.job_arrays import generate_job_strings
 from experiments.job_arrays import generate_sh_file
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--file_name", type=str, default="train_jobs")
-parser.add_argument("--experiment_name", type=str, default="hypervae_mnist_train_v5")
+parser.add_argument("--file_name", type=str, default="train_save_jobs")
+parser.add_argument("--experiment_name", type=str, default="hypervae_mnist_train_save")
 
 args = parser.parse_args()
 
@@ -17,7 +17,8 @@ CONFIG = {
     "encoder_name": ["cnn"],
     "decoder_name": ["cnn"],
     "schedule": ["constant", "cyclic"],
-    "beta": np.logspace(-3, 1, num=20)
+    "beta": np.logspace(-3, 1, num=20),
+    "save_eval_checkpoint": [1]
 }
 
 if __name__ == "__main__":
