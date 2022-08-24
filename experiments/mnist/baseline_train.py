@@ -165,6 +165,7 @@ def main():
              cfg.total_epochs,
              "train_eval")
     evaluate(model, build_input_queue, criterion, cfg.total_epochs, "test")
+    wandb.finish()
 
 
 if __name__ == "__main__":

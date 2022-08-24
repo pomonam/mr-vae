@@ -9,6 +9,18 @@ import numpy as np
 import torch
 
 
+
+def tile_image(batch_image, n, m=None):
+    if m is None:
+        m = n
+    assert n * m == batch_image.size(0)
+    channels, height, width = batch_image.size(1), batch_image.size(2), batch_image.size(3)
+    batch_image = batch_image.view(n, m, channels, height, width)
+    batch_image = batch_image.permute(2, 0, 3, 1, 4)  # n, height, n, width, c
+    batch_image = batch_image.contiguous().view(channels, n * height, m * width)
+    return batch_image
+
+
 def type_as(a, b):
     if torch.is_tensor(a) and torch.is_tensor(b):
         return a.to(b)

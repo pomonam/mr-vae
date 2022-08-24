@@ -17,6 +17,7 @@ setup(
         "torchsummary",
         "numpy",
         "lmdb",
+        "pytorch-fid",
         "python-dotenv",
         "h5py",
         "matplotlib",

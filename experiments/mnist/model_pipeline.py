@@ -38,6 +38,15 @@ class BinarizedMnistMlpModel(BaseVae):
             }
         return outputs_dict
 
+    def prior_sample(self):
+        outputs_dict = {
+            "mean": torch.zeros((1, 32)),
+            "log_var": torch.zeros((1, 32)),
+        }
+        z = self.sampler.sample(outputs_dict)
+        logits = self.decode(z)
+        return logits
+
     def calc_mi(self, x):
         outputs_dict = self.encode(x)
         mu, log_var = outputs_dict["mean"], outputs_dict["log_var"]
