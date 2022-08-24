@@ -28,14 +28,17 @@ parser.add_argument("--block_type", type=str, default="mlp")
 parser.add_argument("--preact_transform", type=int, default=0)
 parser.add_argument("--include_sigmoid_activation", type=int, default=0)
 parser.add_argument("--include_layer_norm", type=int, default=1)
+parser.add_argument("--include_output_layer", type=int, default=0)
+parser.add_argument("--include_shift", type=int, default=1)
 parser.add_argument("--include_residual_connection", type=int, default=1)
-parser.add_argument("--include_chunk", type=int, default=0)
+# parser.add_argument("--include_chunk", type=int, default=0)
 parser.add_argument("--preprocess_beta", type=int, default=1)
 parser.add_argument("--sample_type", type=str, default="beta_log_uniform")
 
 parser.add_argument("--total_epochs", type=int, default=5)
-parser.add_argument("--lr", type=float, default=1e-4)
+parser.add_argument("--lr", type=float, default=0.3)
 parser.add_argument("--batch_size", type=int, default=32)
+parser.add_argument("--clip_grad", type=float, default=5.0)
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
@@ -118,18 +121,6 @@ def hyper_evaluate(data_name, model, criterion, epoch, name, delta=0.01):
         total_auc = np.sum(loss_lst)
         top_auc = np.sum(loss_lst[:5])
         bot_auc = np.sum(loss_lst[5:])
-        auc_dict = {
-            f"{name}/total_auc": total_auc,
-            f"{name}/top_auc": top_auc,
-            f"{name}/bot_auc": bot_auc,
-            f"{name}/max_rate": np.max(rate_lst),
-            f"{name}/min_rate": np.min(rate_lst),
-            f"{name}/abs_rate": np.max(rate_lst) - np.min(rate_lst),
-            f"{name}/max_dist": np.max(dist_lst),
-            f"{name}/min_dist": np.min(dist_lst),
-            f"{name}/abs_dist": np.max(dist_lst) - np.min(dist_lst),
-        }
-        wandb.log(auc_dict)
 
 
 def hyper_train(data_name, model, biq, criterion, optimizer, cfg, hyper_cfg):
@@ -140,8 +131,11 @@ def hyper_train(data_name, model, biq, criterion, optimizer, cfg, hyper_cfg):
             os.path.join(args.checkpoint_dir, "checkpoint.pth"))
         model.load_state_dict(slurm_checkpoint["state_dict"])
         optimizer.load_state_dict(slurm_checkpoint["optimizer"])
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
+        scheduler.load_state_dict(slurm_checkpoint['scheduler'])
         epoch = slurm_checkpoint["epoch"]
     else:
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
         epoch = 0
 
     while epoch < cfg.total_epochs:
@@ -161,6 +155,7 @@ def hyper_train(data_name, model, biq, criterion, optimizer, cfg, hyper_cfg):
                 "epoch": epoch,
                 "state_dict": model.state_dict(),
                 "optimizer": optimizer.state_dict(),
+                "scheduler": scheduler.state_dict()
             }
             torch.save(log_info, slurm_check_dir)
 
@@ -176,6 +171,7 @@ def hyper_train(data_name, model, biq, criterion, optimizer, cfg, hyper_cfg):
             loss, loss_dict = criterion(output_dict)
             optimizer.zero_grad()
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
             optimizer.step()
 
             metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
@@ -186,6 +182,7 @@ def hyper_train(data_name, model, biq, criterion, optimizer, cfg, hyper_cfg):
         summ_dict = summarize_metric(metric_dict, name="train_step/")
         wandb.log(summ_dict)
         epoch = epoch + 1
+        scheduler.step()
 
         if np.isnan(summ_dict["train_step/loss"]):
             wandb.finish(exit_code=1)
@@ -205,7 +202,7 @@ def main():
                               hyper_cfg,
                               DEVICE)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr)
     criterion = build_hyper_criterion(DEVICE)
     hyper_train(args.data_name, model, build_input_queue, criterion, optimizer, cfg, hyper_cfg)
     hyper_evaluate(args.data_name, model, criterion, cfg.total_epochs, "train_eval")
