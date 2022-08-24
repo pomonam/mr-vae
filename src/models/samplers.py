@@ -35,3 +35,12 @@ class IsotropicGaussianSampler(BaseSampler):
         std = outputs_dict["log_var"].mul(0.5).exp()
         eps = torch.randn_like(std)
         return eps.mul(std).add_(outputs_dict["mean"])
+
+    @staticmethod
+    def prior_sample(mu, log_var, num_samples=1) -> torch.Tensor:
+        # TODO(JB): Add support for num_samples > 1
+        # std = outputs_dict["log_var"].mul(0.5).exp()
+        # eps = torch.randn_like(std)
+        rho = mu.mul(0).normal_()
+        z = rho.mul_(sigma).add_(mu)
+        return eps.mul(std).add_(outputs_dict["mean"])

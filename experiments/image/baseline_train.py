@@ -32,6 +32,7 @@ parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
+parser.add_argument("--save_eval_checkpoint", type=int, default=0)
 parser.add_argument("--save_freq", type=int, default=100)
 parser.add_argument("--eval_freq", type=int, default=50)
 args = parser.parse_args()
@@ -171,6 +172,15 @@ def main():
              "train_eval")
     evaluate(model, build_input_queue, criterion, cfg.total_epochs, "test")
 
+    if args.save_eval_checkpoint is not None:
+        save_checkpoint = os.path.join("checkpoints", "base_{}_{}_{}.pth".format(args.beta,
+                                                                                 args.schedule,
+                                                                                 args.data_name))
+        log_info = {
+            "state_dict": model.state_dict(),
+        }
+        torch.save(log_info, save_checkpoint)
+
     # import matplotlib.pyplot as plt
     # # Visualizing the reconstruction
     # test_loader = build_input_queue("test", cfg.batch_size, DEVICE)
@@ -189,7 +199,7 @@ def main():
     #     plt.imshow(recon_i, cmap="Greys")
     #     plt.axis("off")
     # wandb.log({"reconstruction": plt})
-    # wandb.finish()
+    wandb.finish()
 
 
 if __name__ == "__main__":

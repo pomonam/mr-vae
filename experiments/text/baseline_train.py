@@ -31,6 +31,7 @@ parser.add_argument("--clip_grad", type=float, default=5.0)
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
+parser.add_argument("--save_eval_checkpoint", type=int, default=0)
 parser.add_argument("--save_freq", type=int, default=25)
 parser.add_argument("--eval_freq", type=int, default=10)
 args = parser.parse_args()
@@ -163,6 +164,15 @@ def main():
              cfg.total_epochs,
              "train_eval")
     evaluate(args.data_name, model, build_input_queue, criterion, cfg.total_epochs, "test")
+
+    if args.save_eval_checkpoint is not None:
+        save_checkpoint = os.path.join("checkpoints", "base_{}_{}.pth".format(args.beta,
+                                                                                 args.schedule))
+        log_info = {
+            "state_dict": model.state_dict(),
+        }
+        torch.save(log_info, save_checkpoint)
+    wandb.finish()
 
 
 if __name__ == "__main__":

@@ -21,8 +21,8 @@ from src.utils import seed_everything
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hypervae-omniglot-train")
 
-parser.add_argument("--encoder_name", type=str, default="mlp")
-parser.add_argument("--decoder_name", type=str, default="mlp")
+parser.add_argument("--encoder_name", type=str, default="cnn")
+parser.add_argument("--decoder_name", type=str, default="cnn")
 
 parser.add_argument("--total_epochs", type=int, default=10)
 parser.add_argument("--lr", type=float, default=1e-3)
@@ -32,6 +32,7 @@ parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
+parser.add_argument("--save_eval_checkpoint", type=int, default=0)
 parser.add_argument("--save_freq", type=int, default=250)
 parser.add_argument("--eval_freq", type=int, default=50)
 args = parser.parse_args()
@@ -156,25 +157,14 @@ def main():
              "train_eval")
     evaluate(model, build_input_queue, criterion, cfg.total_epochs, "test")
 
-    import matplotlib.pyplot as plt
-    # Visualizing the reconstruction
-    test_loader = build_input_queue("test", cfg.batch_size, DEVICE)
-    test_batch = next(test_loader)
-    outputs_dict = model.forward(test_batch["inputs"])
-    logits = outputs_dict["logits"].view(-1, 28, 28)
-    plt.figure(figsize=(5, 5))
-    plt.axis("square")
-    for i in range(50):
-        data_i = test_batch["inputs"].view(-1, 28, 28)[i].data.cpu().numpy()
-        recon_i = torch.sigmoid(logits[i]).data.cpu().numpy()
-        plt.subplot(10, 10, 2 * i + 1)
-        plt.imshow(data_i, cmap="Greys")
-        plt.axis("off")
-        plt.subplot(10, 10, 2 * i + 2)
-        plt.imshow(recon_i, cmap="Greys")
-        plt.axis("off")
-    wandb.log({"reconstruction": plt})
-    wandb.finish()
+    if args.save_eval_checkpoint is not None:
+        save_checkpoint = os.path.join("checkpoints", "base_{}_{}.pth".format(args.beta,
+                                                                              args.schedule))
+        log_info = {
+            "state_dict": model.state_dict(),
+        }
+        torch.save(log_info, save_checkpoint)
+
 
 
 if __name__ == "__main__":
