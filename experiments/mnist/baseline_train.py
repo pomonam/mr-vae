@@ -32,6 +32,7 @@ parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
+parser.add_argument("--save_eval_checkpoint", type=int, default=0)
 parser.add_argument("--save_freq", type=int, default=250)
 parser.add_argument("--eval_freq", type=int, default=50)
 args = parser.parse_args()
@@ -149,6 +150,15 @@ def main():
     criterion = build_criterion(DEVICE)
 
     train(model, build_input_queue, criterion, optimizer, cfg)
+
+    if args.save_eval_checkpoint is not None:
+        save_checkpoint = os.path.join("checkpoints", "base_{}_{}.pth".format(args.beta,
+                                                                              args.schedule))
+        log_info = {
+            "state_dict": model.state_dict(),
+        }
+        torch.save(log_info, save_checkpoint)
+
     evaluate(model,
              build_input_queue,
              criterion,
