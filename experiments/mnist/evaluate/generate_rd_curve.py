@@ -10,8 +10,8 @@ from tueplots.constants.color import palettes
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hypervae_mnist_train_v5"
-HYPER_NAME = "hypervae_mnist_hyper_train_v5"
-ID = "1zp75fdt"
+HYPER_NAME = "hypervae_mnist_hyper_train_save"
+ID = "11fjrn2i"
 
 
 def get_summary(summary, test=True):
@@ -105,7 +105,7 @@ def main():
 
   summary_list, config_list, name_list = [], [], []
   for run in runs:
-    if run.state == "finished" and run.id == ID:
+    if run.id == ID:
       summary_list.append(run.summary._json_dict)
       config_list.append(
         {k: v for k, v in run.config.items() if not k.startswith('_')})
