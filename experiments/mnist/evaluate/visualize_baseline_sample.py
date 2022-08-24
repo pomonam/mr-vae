@@ -61,7 +61,7 @@ def main():
             num_samples = n * m
 
             output_img_lst = []
-            for _ in range((num_samples)):
+            for _ in range(num_samples):
                 output_img = model.prior_sample()
                 output_img_lst.append(output_img)
             # print(output_img_lst)

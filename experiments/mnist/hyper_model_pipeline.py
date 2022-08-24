@@ -37,6 +37,29 @@ class HyperBinarizedMnistMlpModel(HyperVae):
             }
         return outputs_dict
 
+    def inverse_forward(self, x, value):
+        sample_dict = self.sample_inverse(x, value)
+        self.set_net_inputs(sample_dict["net"])
+        output_dict = self.forward(x)
+
+        if "beta" in self.hyper_config.sample_type:
+            output_dict["beta"] = sample_dict["beta"]
+        if "alpha" in self.hyper_config.sample_type:
+            output_dict["alpha"] = sample_dict["alpha"]
+
+        return output_dict
+
+    def prior_sample(self, value):
+        sample_dict = self.sample_inverse(torch.Tensor([0]), value)
+        self.set_net_inputs(sample_dict["net"])
+        outputs_dict = {
+            "mean": torch.zeros((1, 32)),
+            "log_var": torch.zeros((1, 32)),
+        }
+        z = self.sampler.sample(outputs_dict)
+        logits = self.decode(z)
+        return logits
+
     def calc_mi(self, x):
         outputs_dict = self.encode(x)
         mu, log_var = outputs_dict["mean"], outputs_dict["log_var"]

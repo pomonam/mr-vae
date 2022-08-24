@@ -58,8 +58,9 @@ class HyperCNNDecoder(BaseHyperDecoder):
             HyperConvTranspose2d(
                 32 * 2, 32,  activation_fnc="relu",
                 hyper_config=hyper_config, kernel_size=4, stride=2, padding=1),
-            HyperConvTranspose2d(32, 1, activation_fnc="none", hyper_config=hyper_config,
-                                 kernel_size=4, stride=2, padding=1),
+            # HyperConvTranspose2d(32, 1, activation_fnc="none", hyper_config=hyper_config,
+            #                      kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose2d(32, 1, kernel_size=4, stride=2, padding=1)
         )
 
     def forward(self, z):
