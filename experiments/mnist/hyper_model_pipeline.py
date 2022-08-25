@@ -49,12 +49,12 @@ class HyperBinarizedMnistMlpModel(HyperVae):
 
         return output_dict
 
-    def prior_sample(self, value, device):
+    def prior_sample(self, value, device, batch_size=1):
         sample_dict = self.sample_inverse(torch.Tensor([0]).to(device), value)
         self.set_net_inputs(sample_dict["net"])
         outputs_dict = {
-            "mean": torch.zeros((1, 32)).to(device),
-            "log_var": torch.zeros((1, 32)).to(device),
+            "mean": torch.zeros((batch_size, 32)).to(device),
+            "log_var": torch.zeros((batch_size, 32)).to(device),
         }
         z = self.sampler.sample(outputs_dict)
         logits = self.decode(z)

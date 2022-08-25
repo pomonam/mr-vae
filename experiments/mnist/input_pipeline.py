@@ -57,7 +57,7 @@ def load_binary_mnist(file_name):
     return x_train, x_val, x_test
 
 
-def load_data(split, batch_size, workers=0, data_path="../../logs/data"):
+def load_data(split, batch_size, workers=0, data_path="../../logs/data", force_shuffle=False):
     file_name = os.path.join(data_path, "binary_mnist.h5")
     if not os.path.exists(file_name):
         download_binary_mnist(file_name)
@@ -81,7 +81,7 @@ def load_data(split, batch_size, workers=0, data_path="../../logs/data"):
         dataset,
         pin_memory=True,
         batch_size=batch_size,
-        shuffle=is_train,
+        shuffle=is_train or force_shuffle,
         num_workers=workers,
         drop_last=is_train,
         sampler=None)
