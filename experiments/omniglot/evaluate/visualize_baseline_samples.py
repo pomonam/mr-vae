@@ -106,8 +106,8 @@ def main():
             fid_dir = "/home/baejuhan/codes/hyper-vae/experiments/omniglot/checkpoints"
             model = InceptionV3([block_idx], model_dir=fid_dir).to(DEVICE)
             m, s = compute_statistics_of_generator(g, model, batch_size, dims, DEVICE,
-                                                   max_samples=50000)
-            path = os.path.join('../checkpoints/mnist.npz')
+                                                    max_samples=50000)
+            path = os.path.join('../checkpoints/omniglot.npz')
             m0, s0 = load_statistics(path)
             fid = calculate_frechet_distance(m0, s0, m, s)
             fid_dict[beta] = fid

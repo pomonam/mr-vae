@@ -11,7 +11,7 @@ from experiments.init_wandb import init_api
 ENTITY = "bae-group"
 BASELINE_NAME = "hypervae_omniglot_train_v5"
 HYPER_NAME = "hypervae_mnist_omniglot_train_save"
-ID = "1sjcev2v"
+ID = "2i5r05dz"
 
 
 def get_summary(summary):
@@ -58,7 +58,7 @@ def get_baseline_au_mi(experiment_name, lr, schedule="cyclic"):
 
 
 def main():
-  plt.rcParams.update({"figure.dpi": 150})
+  plt.rcParams.update({"figure.dpi": 300})
   plt.rcParams.update(bundles.aistats2022())
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.inverted())

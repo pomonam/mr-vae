@@ -58,7 +58,7 @@ def get_baseline_au_mi(experiment_name, lr, schedule="cyclic"):
 
 
 def main():
-  plt.rcParams.update({"figure.dpi": 150})
+  plt.rcParams.update({"figure.dpi": 300})
   plt.rcParams.update(bundles.aistats2022())
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.inverted())
