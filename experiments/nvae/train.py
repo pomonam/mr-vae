@@ -7,7 +7,6 @@
 
 import argparse
 import torch
-import torch.nn as nn
 import numpy as np
 import os
 
@@ -20,8 +19,8 @@ from experiments.nvae.thirdparty.adamax import Adamax
 import experiments.nvae.utils as utils
 import experiments.nvae.datasets as datasets
 
-from experiments.nvae.fid.fid_score import compute_statistics_of_generator, load_statistics, calculate_frechet_distance
-from experiments.nvae.fid.inception import InceptionV3
+from src.fid.fid_score import compute_statistics_of_generator, load_statistics, calculate_frechet_distance
+from src.fid.inception import InceptionV3
 
 
 def main(args):
