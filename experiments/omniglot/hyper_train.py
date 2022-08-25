@@ -60,6 +60,8 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
         loss_lst = []
         rate_lst = []
         dist_lst = []
+        au_lst = []
+        mi_lst = []
 
         for sample in sample_lst:
             loader = build_input_queue(name, args.batch_size, DEVICE)
@@ -96,18 +98,17 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
             loss_lst.append(summ_dict["loss"])
             rate_lst.append(summ_dict["rate"])
             dist_lst.append(summ_dict["distortion"])
-
-            wandb.log({
-                f"{name}/sample": sample,
-                f"{name}/au": (au_var >= delta).sum().item(),
-                f"{name}/mi": mi_meter.avg
-            })
+            au_lst.append((au_var >= delta).sum().item())
+            mi_lst.append(mi_meter.avg)
 
         wandb.log({
             f"{name}/loss_lst": loss_lst,
             f"{name}/rate_lst": rate_lst,
             f"{name}/dist_lst": dist_lst,
             f"{name}/sample_lst": sample_lst,
+            f"{name}/au_lst": au_lst,
+            f"{name}/mi_lst": mi_lst,
+
         })
 
         rd_data = [[x, y] for (x, y) in zip(rate_lst, dist_lst)]
@@ -117,7 +118,6 @@ def hyper_evaluate(model, criterion, epoch, name, delta=0.01):
                 wandb.plot.line(table, "rate", "distortion", title="RD Curve")
         })
 
-        # loss_lst = np.array(loss_lst)
         rate_lst = np.array(rate_lst)
         dist_lst = np.array(dist_lst)
         auc_dict = {

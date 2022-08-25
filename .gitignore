@@ -27,3 +27,4 @@ _site
 .env
 
 experiments/image/checkpoints
+experiments/omniglot/checkpoints

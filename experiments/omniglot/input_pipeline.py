@@ -9,7 +9,7 @@ import torch.utils.data.dataset
 import torch.utils.data.distributed
 
 
-def load_data(split, batch_size, workers=0, data_path="../../logs/"):
+def load_data(split, batch_size, workers=0, data_path="../../logs/", force_shuffle=False):
     dataset = scipy.io.loadmat(os.path.join(data_path, 'omniglot/chardata.mat'))
 
     if split == "train" or split == "train_eval":
@@ -26,7 +26,7 @@ def load_data(split, batch_size, workers=0, data_path="../../logs/"):
         dataset,
         pin_memory=True,
         batch_size=batch_size,
-        shuffle=is_train,
+        shuffle=is_train or force_shuffle,
         num_workers=workers,
         drop_last=is_train,
         sampler=None)
