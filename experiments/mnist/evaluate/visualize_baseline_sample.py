@@ -50,14 +50,9 @@ def create_generator_vae(model, batch_size, num_total_samples):
     num_iters = int(np.ceil(num_total_samples / batch_size))
     for i in range(num_iters):
         with torch.no_grad():
-            # logits = model.sample(batch_size, 1.0)
-            # output = model.decoder_output(logits)
-            output_img = model.prior_sample(batch_size=1, device=DEVICE)
-            # output_img = output_img.mean()
+            output_img = model.prior_sample(batch_size=batch_size, device=DEVICE)
             output_img = Bernoulli(logits=output_img).mean
             output_img = (output_img >= 0.5).float()
-            # output_img = output_img.mean()
-            # output_img = output.mean if isinstance(output, torch.distributions.bernoulli.Bernoulli) else output.mean()
         yield output_img.float()
 
 
