@@ -88,7 +88,7 @@ def get_baseline_rd(experiment_name, lr, schedule="cyclic", test=False):
 
 
 def main():
-  plt.rcParams.update({"figure.dpi": 150})
+  plt.rcParams.update({"figure.dpi": 300})
   # plt.rcParams.update(
   #     cycler.cycler(marker=marker_constants.o_sized[:5], color=palettes.pn[:5])
   # )

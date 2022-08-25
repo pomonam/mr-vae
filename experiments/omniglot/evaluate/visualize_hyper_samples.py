@@ -130,19 +130,19 @@ def main():
         reconst_img = (reconst_img >= 0.5).float()
         reconst_dict[sample] = reconst_img
 
-        # dims = 2048
-        # g = create_generator_vae(model, sample, 128, 50000)
-        # block_idx = InceptionV3.BLOCK_INDEX_BY_DIM[dims]
-        # fid_dir = "/home/baejuhan/codes/hyper-vae/experiments/mnist/checkpoints"
-        # fid_model = InceptionV3([block_idx], model_dir=fid_dir).to(DEVICE)
-        # m, s = compute_statistics_of_generator(g, fid_model, 128, dims, DEVICE,
-        #                                        max_samples=50000)
-        # path = os.path.join('../checkpoints/mnist.npz')
-        # m0, s0 = load_statistics(path)
-        # fid = calculate_frechet_distance(m0, s0, m, s)
-        # fid_dict[sample] = fid
+        dims = 2048
+        g = create_generator_vae(model, sample, 128, 50000)
+        block_idx = InceptionV3.BLOCK_INDEX_BY_DIM[dims]
+        fid_dir = "/home/baejuhan/codes/hyper-vae/experiments/omniglot/checkpoints"
+        fid_model = InceptionV3([block_idx], model_dir=fid_dir).to(DEVICE)
+        m, s = compute_statistics_of_generator(g, fid_model, 128, dims, DEVICE,
+                                               max_samples=50000)
+        path = os.path.join('../checkpoints/omniglot.npz')
+        m0, s0 = load_statistics(path)
+        fid = calculate_frechet_distance(m0, s0, m, s)
+        fid_dict[sample] = fid
 
-    plt.rcParams.update({"figure.dpi": 150})
+    plt.rcParams.update({"figure.dpi": 300})
     plt.rcParams.update(bundles.aistats2022(column="full"))
     plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
     plt.rcParams.update(markers.inverted())
@@ -183,7 +183,7 @@ def main():
     sorted_fid_dict = dict(
         sorted(fid_dict.items(), key=lambda item: item[0]))
     # BASELINE_FID = [411.5334972779568, 374.7136443060085, 336.3524864339188, 307.89274905654565, 261.23468987194724, 208.8394285527536, 169.69655640720927, 148.3969630809807, 122.55783175298882, 83.55142391986055, 59.15827241597475, 40.666423185858804, 26.517076562018133, 23.145955818063328, 23.727066888601087, 26.879348419054594, 29.692440821263403, 32.840371276666815, 37.35687236530222, 38.41171559414312]
-    BASELINE_FID = [402.28315578154445, 370.81640736653657, 327.31724561029716, 298.60347499538847, 254.78010310499985, 199.175822204804, 161.21701598417718, 134.86963278616636, 111.16162705276537, 74.70184857780988, 52.964794406749746, 33.242061713284215, 18.849855382033695, 15.072414941345784, 15.199409860660353, 17.60398503080279, 20.74590225520714, 24.14747940832251, 27.152707854769687, 29.885720110466423]
+    BASELINE_FID = [416.0140316795957, 403.46994942198216, 390.32596769026355, 350.91594817179276, 315.5376687802361, 277.4233529858552, 226.41428828618254, 171.5560408947034, 134.72618538711635, 106.01848493836134, 81.43947880159504, 70.94082528274828, 66.80339327430207, 64.71352382711552, 61.87727040325183, 60.05144043491839, 61.81621839828347, 115.69763436154868, 377.56221667395255, 422.92757420271937]
 
     plt.plot([0], [0])
     plt.scatter(
@@ -201,7 +201,7 @@ def main():
     plt.xscale("log")
     plt.ylabel("FID")
 
-    plt.title(r"$\beta$ vs. FID for MNIST")
+    plt.title(r"$\beta$ vs. FID for Omniglot")
     plt.legend()
     plt.grid()
     plt.show()

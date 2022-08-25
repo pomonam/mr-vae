@@ -9,9 +9,9 @@ from tueplots.constants.color import rgb
 from experiments.init_wandb import init_api
 
 ENTITY = "bae-group"
-BASELINE_NAME = "hypervae_mnist_train_v5"
-HYPER_NAME = "hypervae_mnist_hyper_train_save"
-ID = "34bv5drx"
+BASELINE_NAME = "hypervae_text_train_v5"
+HYPER_NAME = "hypervae_text_hyper_train_v5"
+ID = "2iwmpx1l"
 
 
 def get_summary(summary, test=True):
@@ -45,7 +45,7 @@ def get_baseline_summary(config_lst,
     beta_to_elbo = {}
 
     for i, c in enumerate(config_lst):
-        if c["lr"] == lr and c["schedule"] == schedule:
+        if c["lr"] == lr and c["schedule"] == schedule and c["data_name"] == "yelp":
             if test:
                 beta_to_rate[c["beta"]] = summary_lst[i]["test/rate"]
                 beta_to_dist[c["beta"]] = summary_lst[i]["test/distortion"]
@@ -99,7 +99,7 @@ def main():
     api = init_api()
     runs = api.runs(ENTITY + "/" + HYPER_NAME)
 
-    rate, dist = get_baseline_rd(BASELINE_NAME, lr=3e-5, schedule="cyclic", test=True)
+    rate, dist = get_baseline_rd(BASELINE_NAME, lr=1., schedule="cyclic", test=True)
     plt.plot([0], [0])
     plt.scatter(
         rate,
@@ -134,13 +134,13 @@ def main():
     # dist = np.array([c[1] for c in combined_dict.values()])
     # plt.plot(rate, dist, "o-", label="Hypernetwork", linewidth=2)
 
-    plt.xlim(0, 140)
-    plt.ylim(30, 140)
+    # plt.xlim(0, 140)
+    plt.ylim(300, 450)
 
     plt.xlabel("Rate")
     plt.ylabel("Distortion")
 
-    plt.title("Rate-Distortion Curve for MNIST")
+    plt.title("Rate-Distortion Curve for Yelp")
     plt.legend()
     plt.grid()
     plt.show()
