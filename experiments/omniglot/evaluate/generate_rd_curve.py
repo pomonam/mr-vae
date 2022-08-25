@@ -10,8 +10,8 @@ from experiments.init_wandb import init_api
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hypervae_omniglot_train_v5"
-HYPER_NAME = "hypervae_omniglot_hyper_train_v10"
-ID = "z6b8ocp7"
+HYPER_NAME = "hypervae_mnist_omniglot_train_save"
+ID = "1sjcev2v"
 
 
 def get_summary(summary, test=True):
