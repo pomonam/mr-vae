@@ -10,8 +10,8 @@ from tueplots.constants.color import palettes
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hypervae_mnist_train_v5"
-HYPER_NAME = "hypervae_mnist_hyper_train_save"
-ID = "11fjrn2i"
+HYPER_NAME = "hypervae_mnist_hyper_train_v15"
+ID = "2kdeaiat"
 
 
 def get_summary(summary, test=True):

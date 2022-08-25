@@ -62,7 +62,7 @@ def main():
 
             output_img_lst = []
             for _ in range(num_samples):
-                output_img = model.prior_sample()
+                output_img = model.prior_sample(DEVICE)
                 output_img_lst.append(output_img)
             # print(output_img_lst)
             output_img = torch.concat(output_img_lst)

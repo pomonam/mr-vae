@@ -12,16 +12,16 @@ args = parser.parse_args()
 
 
 CONFIG = {
-    "lr": [3e-5],
+    "lr": [1e-4],
     "total_epochs": [500],
     "encoder_name": ["cnn"],
     "decoder_name": ["cnn"],
     "block_type": ["mlp"],
     "sample_type": ["beta_log_uniform"],
-    "preact_transform": [1],
+    "preact_transform": [0],
     "preprocess_beta": [1],
     "include_sigmoid_activation": [0],
-    "include_layer_norm": [0],
+    "include_layer_norm": [1],
     "include_shift": [1],
     "include_residual_connection": [1],
 }
