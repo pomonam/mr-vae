@@ -7,13 +7,13 @@ from experiments.job_arrays import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="train_jobs")
-parser.add_argument("--experiment_name", type=str, default="hypervae_image_train_v2")
+parser.add_argument("--experiment_name", type=str, default="hypervae_image_train_v5")
 
 args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-3, 3e-4, 1e-4, 3e-5],
-    "total_epochs": [300],
+    "total_epochs": [200],
     "data_name": ["cifar", "svhn", "celeba"],
     "schedule": ["cyclic"],
     "beta": np.logspace(-3, 1, num=20) + [0]

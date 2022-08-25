@@ -25,3 +25,5 @@ logs
 _site
 .vscode
 .env
+
+experiments/image/checkpoints

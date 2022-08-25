@@ -24,8 +24,8 @@ parser.add_argument("--experiment_name", type=str, default="hypervae-image-train
 
 parser.add_argument("--data_name", type=str, default="cifar")
 
-parser.add_argument("--total_epochs", type=int, default=10)
-parser.add_argument("--lr", type=float, default=1e-3)
+parser.add_argument("--total_epochs", type=int, default=2)
+parser.add_argument("--lr", type=float, default=1e-4)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--beta", type=float, default=1)
 parser.add_argument("--schedule", type=str, default="constant")
@@ -151,17 +151,11 @@ def main():
 
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
 
-    scheduler1 = torch.optim.lr_scheduler.LinearLR(
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(
         optimizer,
-        start_factor=1e-5,
-        end_factor=1.,
-        total_iters=10)
-    scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, eta_min=1e-7, T_max=290)
-    scheduler = torch.optim.lr_scheduler.SequentialLR(
-        optimizer,
-        schedulers=[scheduler1, scheduler2],
-        milestones=[5])
-
+        milestones=[60, 120, 180],
+        gamma=0.5
+    )
     criterion = build_criterion(DEVICE)
 
     train(model, build_input_queue, criterion, optimizer, scheduler, cfg)
@@ -181,24 +175,29 @@ def main():
         }
         torch.save(log_info, save_checkpoint)
 
-    # import matplotlib.pyplot as plt
-    # # Visualizing the reconstruction
-    # test_loader = build_input_queue("test", cfg.batch_size, DEVICE)
-    # test_batch = next(test_loader)
-    # outputs_dict = model.forward(test_batch["inputs"])
-    # logits = outputs_dict["logits"].view(-1, 28, 28)
-    # plt.figure(figsize=(5, 5))
-    # plt.axis("square")
-    # for i in range(50):
-    #     data_i = test_batch["inputs"].view(-1, 28, 28)[i].data.cpu().numpy()
-    #     recon_i = torch.sigmoid(logits[i]).data.cpu().numpy()
-    #     plt.subplot(10, 10, 2 * i + 1)
-    #     plt.imshow(data_i, cmap="Greys")
-    #     plt.axis("off")
-    #     plt.subplot(10, 10, 2 * i + 2)
-    #     plt.imshow(recon_i, cmap="Greys")
-    #     plt.axis("off")
-    # wandb.log({"reconstruction": plt})
+    import matplotlib.pyplot as plt
+    # Visualizing the reconstruction
+    img_size = 64 if args.data_name == "celeba" else 32
+    test_loader = build_input_queue(args.data_name, "test", cfg.batch_size, DEVICE)
+    test_batch = next(test_loader)
+    outputs_dict = model.forward(test_batch["inputs"])
+    logits = outputs_dict["logits"].view(-1, 3, img_size, img_size)
+    plt.figure(figsize=(5, 5))
+    plt.axis("square")
+    for i in range(50):
+        data_i = test_batch["inputs"][i].view(3, img_size, img_size).transpose(0, 1).transpose(1, 2).data.cpu().numpy()
+        data_i = np.clip(data_i, -1, 1)
+        data_i = data_i / 2. + 0.5
+        recon_i = logits[i].view(3, img_size, img_size).transpose(0, 1).transpose(1, 2).data.cpu().numpy()
+        recon_i = np.clip(recon_i, -1, 1)
+        recon_i = recon_i / 2. + 0.5
+        plt.subplot(10, 10, 2 * i + 1)
+        plt.imshow(data_i)
+        plt.axis("off")
+        plt.subplot(10, 10, 2 * i + 2)
+        plt.imshow(recon_i)
+        plt.axis("off")
+    wandb.log({"reconstruction": plt})
     wandb.finish()
 
 
