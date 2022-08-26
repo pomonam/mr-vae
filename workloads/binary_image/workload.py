@@ -135,7 +135,8 @@ class BinaryImageWorkload(Workload):
 
     epoch_loss = 0
 
-    for inputs in self.eval_loader:
+    queue = build_input_queue(self.eval_loader, DEVICE)
+    for inputs in queue:
 
       with torch.no_grad():
         model_output = self.model(
