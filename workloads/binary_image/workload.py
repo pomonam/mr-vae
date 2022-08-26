@@ -1,7 +1,7 @@
 import torch.optim
 
 from workloads.spec import Workload
-from workloads.binary_image.input_pipeline import load_data
+from workloads.binary_image.input_pipeline import load_data, build_input_queue
 
 from pythae.models.nn.benchmarks.mnist import Encoder_ResNet_VAE_MNIST as Encoder_VAE
 from pythae.models.nn.benchmarks.mnist import Decoder_ResNet_AE_MNIST as Decoder_AE
@@ -12,6 +12,7 @@ from pythae.trainers.training_callbacks import (
     ProgressBarCallback,
     TrainingCallback,
 )
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class BinaryImageWorkload(Workload):
@@ -80,6 +81,9 @@ class BinaryImageWorkload(Workload):
     if self.data_name == "mnist":
       train_loader = load_data("train", self.batch_size)
       eval_loader = load_data("test", self.batch_size)
+      # train_loader = build_input_queue("train", self.batch_size, DEVICE)
+      # eval_loader = build_input_queue("test", self.batch_size, DEVICE)
+
     else:
       pass
     return train_loader, eval_loader
@@ -97,7 +101,8 @@ class BinaryImageWorkload(Workload):
 
     epoch_loss = 0
 
-    for inputs in self.train_loader:
+    queue = build_input_queue(self.train_loader, DEVICE)
+    for inputs in queue:
       model_output = self.model(
         inputs, epoch=epoch, dataset_size=len(self.train_loader.dataset)
       )
@@ -112,7 +117,7 @@ class BinaryImageWorkload(Workload):
         raise ArithmeticError("NaN detected in train loss")
 
       self.callback_handler.on_train_step_end(
-        training_config=self.training_config
+        training_config=self.train_cfg
       )
 
     self.model.update()
@@ -121,7 +126,7 @@ class BinaryImageWorkload(Workload):
 
   def eval_step(self, epoch):
     self.callback_handler.on_eval_step_begin(
-      training_config=self.training_config,
+      training_config=self.train_cfg,
       eval_loader=self.eval_loader,
       epoch=epoch,
     )
@@ -143,7 +148,7 @@ class BinaryImageWorkload(Workload):
         if epoch_loss != epoch_loss:
           raise ArithmeticError("NaN detected in eval loss")
 
-        self.callback_handler.on_eval_step_end(training_config=self.training_config)
+        self.callback_handler.on_eval_step_end(training_config=self.train_cfg)
 
     epoch_loss /= len(self.eval_loader)
 

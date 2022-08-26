@@ -27,21 +27,21 @@ def parse_binary_mnist(data_dir):
     return train_data, validation_data, test_data
 
 
-def download_binary_mnist(file_name):
-    data_dir = "/tmp/"
-    if not os.path.isdir(data_dir):
-        os.mkdir(data_dir)
+def download_binary_mnist(data_path):
+    if not os.path.isdir(data_path):
+        os.mkdir(data_path)
     subdatasets = ["train", "valid", "test"]
     for subdataset in subdatasets:
         fn = "binarized_mnist_{}.amat".format(subdataset)
         url = "http://www.cs.toronto.edu/~larocheh/public/datasets/binarized_mnist/binarized_mnist_{}.amat".format(
             subdataset)
-        local_filename = os.path.join(data_dir, fn)
+        local_filename = os.path.join(data_path, fn)
         urllib.request.urlretrieve(url, local_filename)
 
-    train, validation, test = parse_binary_mnist(data_dir)
+    train, validation, test = parse_binary_mnist(data_path)
 
     data_dict = {"train": train, "valid": validation, "test": test}
+    file_name = os.path.join(data_path, "binary_mnist.h5")
     f = h5py.File(file_name, "w")
     f.create_dataset("train", data=data_dict["train"])
     f.create_dataset("valid", data=data_dict["valid"])
@@ -57,10 +57,10 @@ def load_binary_mnist(file_name):
     return x_train, x_val, x_test
 
 
-def load_data(split, batch_size, workers=0, data_path="../../logs/data"):
+def load_data(split, batch_size, workers=0, data_path="logs/data"):
     file_name = os.path.join(data_path, "binary_mnist.h5")
     if not os.path.exists(file_name):
-        download_binary_mnist(file_name)
+        download_binary_mnist(data_path)
 
     train_data, valid_data, test_data = load_binary_mnist(file_name)
 
@@ -89,8 +89,6 @@ def load_data(split, batch_size, workers=0, data_path="../../logs/data"):
     return loader
 
 
-def build_input_queue(split, batch_size, device, data_path="../../logs/data"):
-    loader = load_data(split=split, batch_size=batch_size, data_path=data_path)
-
+def build_input_queue(loader, device):
     for batch in loader:
-        yield {"inputs": batch.view(batch.shape[0], 1, 28, 28).to(device, non_blocking=True)}
+        yield {"data": batch.view(batch.shape[0], 1, 28, 28).to(device, non_blocking=True)}
