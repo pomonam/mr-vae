@@ -77,9 +77,7 @@ class ResidualBlock(BaseBlock):
             nn.Linear(self.width, self.width, bias=False),
         )
         self.temp_layer = nn.Sequential(
-            nn.Linear(self.input_dim, self.width, bias=True),
-            nn.ReLU()
-        )
+            nn.Linear(self.input_dim, self.width, bias=True), nn.ReLU())
 
     def forward(self, beta: torch.Tensor) -> torch.Tensor:
         out = self.temp_layer(beta)

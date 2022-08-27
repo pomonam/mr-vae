@@ -2,13 +2,16 @@ import math
 
 import numpy as np
 import torch
-from src.hyper.models import BaseHyperDecoder, BaseHyperEncoder, HyperIsotropicGaussianSampler
+
 from src.config import HyperConfig
 from src.hyper.layers.blocks import BatchNormResidualBlock
 from src.hyper.layers.blocks import get_block
 from src.hyper.layers.blocks import LinearBlock
 from src.hyper.layers.blocks import MlpBlock
 from src.hyper.layers.blocks import ResidualBlock
+from src.hyper.models import BaseHyperDecoder
+from src.hyper.models import BaseHyperEncoder
+from src.hyper.models import HyperIsotropicGaussianSampler
 from src.models.vae import BaseVae
 
 _BLOCK_DICT = {

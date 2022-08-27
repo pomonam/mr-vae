@@ -1,12 +1,12 @@
 import torch
 from torch import nn
 
+from src.config import HyperConfig
 from src.hyper.layers.linear import HyperLinear
 from src.hyper.layers.module import HyperModule
-from src.models.samplers import BaseSampler
 from src.models.base_decoder import BaseDecoder
 from src.models.base_encoder import BaseEncoder
-from src.config import HyperConfig
+from src.models.samplers import BaseSampler
 
 
 class HyperStructure(nn.Module):

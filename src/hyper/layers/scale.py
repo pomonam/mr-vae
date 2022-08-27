@@ -20,15 +20,20 @@ class HyperScale(HyperModule):
         self.hyper_config = hyper_config
 
         input_dim = hyper_config.preprocess_dim if hyper_config.preprocess_beta else 1
-        self.hyper_block_scale = get_block("linear")(input_dim, self.out_features)
-        self.hyper_block_shift = get_block("linear")(input_dim, self.out_features)
+        self.hyper_block_scale = get_block("linear")(input_dim,
+                                                     self.out_features)
+        self.hyper_block_shift = get_block("linear")(input_dim,
+                                                     self.out_features)
         if self.hyper_config.include_chunk:
-            self.chunk_hyper_block_scale = get_block("linear")(input_dim, self.out_features)
-            self.chunk_hyper_block_shift = get_block("linear")(input_dim, self.out_features)
+            self.chunk_hyper_block_scale = get_block("linear")(
+                input_dim, self.out_features)
+            self.chunk_hyper_block_shift = get_block("linear")(
+                input_dim, self.out_features)
             self.chunk_moe = get_block("linear")(input_dim, 2)
 
         if self.hyper_config.include_layer_norm:
-            self.layer_norm = torch.nn.LayerNorm(self.out_features, elementwise_affine=False)
+            self.layer_norm = torch.nn.LayerNorm(
+                self.out_features, elementwise_affine=False)
 
     def forward(self, inputs):
         scale = self.hyper_block_scale(self._net_inputs)
@@ -52,7 +57,8 @@ class HyperScale(HyperModule):
 
             if self.hyper_config.include_chunk:
                 if self.hyper_config.include_layer_norm:
-                    chunk_hyper_pre_act = chunk_scale * self.layer_norm(chunk_pre_act) + chunk_shift
+                    chunk_hyper_pre_act = chunk_scale * self.layer_norm(
+                        chunk_pre_act) + chunk_shift
                 else:
                     chunk_hyper_pre_act = chunk_scale * chunk_pre_act + chunk_shift
 
@@ -77,7 +83,8 @@ class HyperScale(HyperModule):
             if self.hyper_config.include_chunk:
                 chunk_act = self.activation_fnc(chunk_pre_act)
                 if self.hyper_config.include_layer_norm:
-                    chunk_hyper_act = chunk_scale * self.layer_norm(chunk_act) + chunk_shift
+                    chunk_hyper_act = chunk_scale * self.layer_norm(
+                        chunk_act) + chunk_shift
                 else:
                     chunk_hyper_act = chunk_scale * chunk_act + chunk_shift
 
