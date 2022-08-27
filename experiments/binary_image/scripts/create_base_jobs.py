@@ -1,7 +1,5 @@
 import argparse
 
-import numpy as np
-
 from experiments.array_utils import generate_job_strings
 from experiments.array_utils import generate_sh_file
 

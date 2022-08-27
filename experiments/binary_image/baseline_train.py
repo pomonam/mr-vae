@@ -161,7 +161,7 @@ def main():
 
     if args.save_final_checkpoint is not None:
         save_checkpoint = \
-          os.path.join("checkpoints", "base_{}_{}.pth".format(args.beta, args.schedule))
+          os.path.join("checkpoints", "base_{}_{}_{}.pth".format(args.data_name, args.beta, args.schedule))
         log_info = {
             "state_dict": model.state_dict(),
         }
