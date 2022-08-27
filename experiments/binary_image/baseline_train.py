@@ -21,7 +21,7 @@ from src.utils import seed_everything
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hypervae-mnist-train")
 
-parser.add_argument("--data_name", type=str, default="mnist")
+parser.add_argument("--data_name", type=str, default="omniglot")
 parser.add_argument("--encoder_name", type=str, default="cnn")
 parser.add_argument("--decoder_name", type=str, default="cnn")
 
@@ -50,7 +50,7 @@ class BinaryImageCriterion(nn.Module):
 
   @staticmethod
   def forward(recon_x, x, mu, log_var, z, beta):
-    recon_loss = F.mse_loss(
+    recon_loss = F.binary_cross_entropy(
       recon_x.reshape(x.shape[0], -1),
       x.reshape(x.shape[0], -1),
       reduction="none",
