@@ -35,7 +35,10 @@ class BetaVAE(nn.Module):
 
         std = torch.exp(0.5 * log_var)
         z, eps = self._sample_gauss(mu, std)
-        recon_x = self.decoder(z)["reconstruction"]
+        try:
+            recon_x = self.decoder(z)["reconstruction"]
+        except LookupError:
+            recon_x = self.decoder.ar_forward(x, z)
 
         output = {
             "reconstruction": recon_x,
