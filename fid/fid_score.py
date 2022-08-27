@@ -58,7 +58,7 @@ from torch.nn.functional import adaptive_avg_pool2d
 from torch.utils.data import DataLoader
 import torchvision.transforms as TF
 
-from src.fid.inception import InceptionV3
+from fid.inception import InceptionV3
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument(
