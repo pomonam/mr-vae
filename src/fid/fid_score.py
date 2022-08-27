@@ -11,7 +11,6 @@
 # found in this directory (LICENSE_pytorch_fid). The modifications
 # to this file are subject to the same Apache License.
 # ---------------------------------------------------------------
-
 """Calculates the Frechet Inception Distance (FID) to evalulate GANs
 
 The FID metric calculates the distance between two distributions of images.
@@ -45,36 +44,47 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from argparse import ArgumentDefaultsHelpFormatter
+from argparse import ArgumentParser
+from multiprocessing import cpu_count
 import os
 import pathlib
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from multiprocessing import cpu_count
 
 import numpy as np
+from PIL import Image
+from scipy import linalg
 import torch
+from torch.nn.functional import adaptive_avg_pool2d
 from torch.utils.data import DataLoader
 import torchvision.transforms as TF
-from scipy import linalg
-from torch.nn.functional import adaptive_avg_pool2d
-from PIL import Image
 
 from src.fid.inception import InceptionV3
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument('--batch-size', type=int, default=50,
-                    help='Batch size to use')
-parser.add_argument('--device', type=str, default=None,
-                    help='Device to use. Like cuda, cuda:0 or cpu')
-parser.add_argument('--dims', type=int, default=2048,
-                    choices=list(InceptionV3.BLOCK_INDEX_BY_DIM),
-                    help=('Dimensionality of Inception features to use. '
-                          'By default, uses pool3 features'))
-parser.add_argument('path', type=str, nargs=2,
-                    help=('Paths to the generated images or '
-                          'to .npz statistic files'))
+parser.add_argument(
+    '--batch-size', type=int, default=50, help='Batch size to use')
+parser.add_argument(
+    '--device',
+    type=str,
+    default=None,
+    help='Device to use. Like cuda, cuda:0 or cpu')
+parser.add_argument(
+    '--dims',
+    type=int,
+    default=2048,
+    choices=list(InceptionV3.BLOCK_INDEX_BY_DIM),
+    help=('Dimensionality of Inception features to use. '
+          'By default, uses pool3 features'))
+parser.add_argument(
+    'path',
+    type=str,
+    nargs=2,
+    help=('Paths to the generated images or '
+          'to .npz statistic files'))
 
 
 class ImagesPathDataset(torch.utils.data.Dataset):
+
     def __init__(self, files, transforms=None):
         self.files = files
         self.transforms = transforms
@@ -90,7 +100,12 @@ class ImagesPathDataset(torch.utils.data.Dataset):
         return img
 
 
-def get_activations(files, model, batch_size=50, dims=2048, device='cpu', max_samples=None):
+def get_activations(files,
+                    model,
+                    batch_size=50,
+                    dims=2048,
+                    device='cpu',
+                    max_samples=None):
     """Calculates the activations of the pool_3 layer for all images.
 
     Params:
@@ -119,8 +134,8 @@ def get_activations(files, model, batch_size=50, dims=2048, device='cpu', max_sa
             batch_size = len(files)
 
         ds = ImagesPathDataset(files, transforms=TF.ToTensor())
-        dl = DataLoader(ds, batch_size=batch_size,
-                        drop_last=False, num_workers=cpu_count())
+        dl = DataLoader(
+            ds, batch_size=batch_size, drop_last=False, num_workers=cpu_count())
     else:
         dl = files
 
@@ -215,11 +230,16 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
     tr_covmean = np.trace(covmean)
 
-    return (diff.dot(diff) + np.trace(sigma1) +
-            np.trace(sigma2) - 2 * tr_covmean)
+    return (diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) -
+            2 * tr_covmean)
 
 
-def calculate_activation_statistics(files, model, batch_size=50, dims=2048, device='cpu', max_samples=None):
+def calculate_activation_statistics(files,
+                                    model,
+                                    batch_size=50,
+                                    dims=2048,
+                                    device='cpu',
+                                    max_samples=None):
     """Calculation of the statistics used by the FID.
     Params:
     -- files       : List of image files paths or pytorch data loader
@@ -257,7 +277,12 @@ def _compute_statistics_of_path(path, model, batch_size, dims, device):
     return m, s
 
 
-def compute_statistics_of_generator(data_loader, model, batch_size, dims, device, max_samples=None):
+def compute_statistics_of_generator(data_loader,
+                                    model,
+                                    batch_size,
+                                    dims,
+                                    device,
+                                    max_samples=None):
     m, s = calculate_activation_statistics(data_loader, model, batch_size,
                                            dims, device, max_samples)
 

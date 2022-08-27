@@ -1,13 +1,13 @@
 import math
-import torch.nn as nn
 
 import torch
 from torch.nn import init
+import torch.nn as nn
 import torch.nn.functional as F
-from src.hyper.layers.module import get_activation
 
 from src.config import HyperConfig
 from src.hyper.layers.blocks import get_block
+from src.hyper.layers.module import get_activation
 from src.hyper.layers.module import HyperModule
 
 
@@ -39,16 +39,25 @@ class HyperConv2d(HyperModule):
         self.hyper_config = hyper_config
         self.apply_bn = apply_bn
 
-        self.conv2d = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size,
-                                stride=stride, padding=padding, dilation=self.dilation,
-                                groups=self.groups, bias=bias)
+        self.conv2d = nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+            dilation=self.dilation,
+            groups=self.groups,
+            bias=bias)
 
         input_dim = hyper_config.preprocess_dim if hyper_config.preprocess_beta else 1
-        self.hyper_block_scale = get_block("linear")(input_dim, self.out_channels)
-        self.hyper_block_shift = get_block("linear")(input_dim, self.out_channels)
+        self.hyper_block_scale = get_block("linear")(input_dim,
+                                                     self.out_channels)
+        self.hyper_block_shift = get_block("linear")(input_dim,
+                                                     self.out_channels)
 
         if self.hyper_config.include_layer_norm:
-            self.layer_norm = torch.nn.GroupNorm(1, self.out_channels, affine=False)
+            self.layer_norm = torch.nn.GroupNorm(
+                1, self.out_channels, affine=False)
         else:
             self.layer_norm = nn.Identity()
 
@@ -58,10 +67,12 @@ class HyperConv2d(HyperModule):
             self.batch_norm = nn.Identity()
 
     def forward(self, inputs):
-        scale = self.hyper_block_scale(self._net_inputs).unsqueeze(-1).unsqueeze(-1)
+        scale = self.hyper_block_scale(
+            self._net_inputs).unsqueeze(-1).unsqueeze(-1)
         if self.hyper_config.include_sigmoid_activation:
             scale = torch.sigmoid(scale)
-        shift = self.hyper_block_shift(self._net_inputs).unsqueeze(-1).unsqueeze(-1)
+        shift = self.hyper_block_shift(
+            self._net_inputs).unsqueeze(-1).unsqueeze(-1)
 
         if self.hyper_config.preact_transform:
             pre_act_prev = self.conv2d(inputs)
@@ -186,16 +197,26 @@ class HyperConvTranspose2d(HyperModule):
         self.hyper_config = hyper_config
         self.apply_bn = apply_bn
 
-        self.conv2d = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size,
-                                stride=stride, padding=padding, output_padding=output_padding, dilation=self.dilation,
-                                groups=self.groups, bias=bias)
+        self.conv2d = nn.ConvTranspose2d(
+            in_channels,
+            out_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+            output_padding=output_padding,
+            dilation=self.dilation,
+            groups=self.groups,
+            bias=bias)
 
         input_dim = hyper_config.preprocess_dim if hyper_config.preprocess_beta else 1
-        self.hyper_block_scale = get_block("linear")(input_dim, self.out_channels)
-        self.hyper_block_shift = get_block("linear")(input_dim, self.out_channels)
+        self.hyper_block_scale = get_block("linear")(input_dim,
+                                                     self.out_channels)
+        self.hyper_block_shift = get_block("linear")(input_dim,
+                                                     self.out_channels)
 
         if self.hyper_config.include_layer_norm:
-            self.layer_norm = torch.nn.GroupNorm(1, self.out_channels, affine=False)
+            self.layer_norm = torch.nn.GroupNorm(
+                1, self.out_channels, affine=False)
         else:
             self.layer_norm = nn.Identity()
 
@@ -205,10 +226,12 @@ class HyperConvTranspose2d(HyperModule):
             self.batch_norm = nn.Identity()
 
     def forward(self, inputs):
-        scale = self.hyper_block_scale(self._net_inputs).unsqueeze(-1).unsqueeze(-1)
+        scale = self.hyper_block_scale(
+            self._net_inputs).unsqueeze(-1).unsqueeze(-1)
         if self.hyper_config.include_sigmoid_activation:
             scale = torch.sigmoid(scale)
-        shift = self.hyper_block_shift(self._net_inputs).unsqueeze(-1).unsqueeze(-1)
+        shift = self.hyper_block_shift(
+            self._net_inputs).unsqueeze(-1).unsqueeze(-1)
 
         if self.hyper_config.preact_transform:
             pre_act_prev = self.conv2d(inputs)

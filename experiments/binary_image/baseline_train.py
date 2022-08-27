@@ -1,25 +1,27 @@
 import argparse
+import os
 
 import numpy as np
-
-import wandb
 import torch
-import os
-import torch.nn.functional as F
-from experiments.binary_image.models import ResNetEncoder, ResNetDecoder
-
 import torch.nn as nn
+import torch.nn.functional as F
+import wandb
 
-from experiments.train_utils import train, evaluate, predict
-from experiments.binary_image.input_pipeline import load_mnist_data, load_omniglot_data
-from src.models.beta_vae import BetaVAE
+from experiments.binary_image.input_pipeline import load_mnist_data
+from experiments.binary_image.input_pipeline import load_omniglot_data
+from experiments.binary_image.models import ResNetDecoder
+from experiments.binary_image.models import ResNetEncoder
+from experiments.train_utils import evaluate
+from experiments.train_utils import predict
+from experiments.train_utils import train
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
-
+from src.models.beta_vae import BetaVAE
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--experiment_name", type=str, default="hypervae-mnist-train")
+parser.add_argument(
+    "--experiment_name", type=str, default="hypervae-mnist-train")
 
 parser.add_argument("--data_name", type=str, default="omniglot")
 parser.add_argument("--encoder_name", type=str, default="cnn")
@@ -44,37 +46,37 @@ DEVICE = torch.device("cuda" if cuda else "cpu")
 
 class BinaryImageCriterion(nn.Module):
 
-  @staticmethod
-  def get_metric_lst():
-    return ["loss", "rate", "distortion"]
+    @staticmethod
+    def get_metric_lst():
+        return ["loss", "rate", "distortion"]
 
-  @staticmethod
-  def forward(recon_x, x, mu, log_var, z, beta):
-    recon_loss = F.binary_cross_entropy(
-      recon_x.reshape(x.shape[0], -1),
-      x.reshape(x.shape[0], -1),
-      reduction="none",
-    ).sum(dim=-1)
+    @staticmethod
+    def forward(recon_x, x, mu, log_var, z, beta):
+        recon_loss = F.binary_cross_entropy(
+            recon_x.reshape(x.shape[0], -1),
+            x.reshape(x.shape[0], -1),
+            reduction="none",
+        ).sum(dim=-1)
 
-    kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
+        kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
-    loss_dict = {
-      "loss": (recon_loss + beta * kld).mean(dim=0),
-      "distortion": recon_loss.mean(dim=0),
-      "rate": kld.mean(dim=0)
-    }
-    return loss_dict
+        loss_dict = {
+            "loss": (recon_loss + beta * kld).mean(dim=0),
+            "distortion": recon_loss.mean(dim=0),
+            "rate": kld.mean(dim=0)
+        }
+        return loss_dict
 
 
 def build_criterion(device):
-  loss_fnc = BinaryImageCriterion()
-  return loss_fnc.to(device)
+    loss_fnc = BinaryImageCriterion()
+    return loss_fnc.to(device)
 
 
 def build_model(encoder_name, decoder_name, device):
     model = BetaVAE(
-      encoder=ResNetEncoder(),
-      decoder=ResNetDecoder(),
+        encoder=ResNetEncoder(),
+        decoder=ResNetDecoder(),
     )
     return model.to(device)
 
@@ -92,56 +94,66 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
     criterion = build_criterion(DEVICE)
     scheduler = torch.optim.lr_scheduler.MultiStepLR(
-      optimizer, milestones=[200, 350, 500, 750], gamma=10 ** (-1 / 5)
-    )
+        optimizer, milestones=[200, 350, 500, 750], gamma=10**(-1 / 5))
 
     if args.data_name == "mnist":
-      train_loader = load_mnist_data("train", cfg.batch_size, workers=0, data_path="../../logs/data")
-      # valid_loader = load_data("valid", cfg.batch_size, workers=0, data_path="../../logs/data")
-      test_loader = load_mnist_data("test", cfg.batch_size, workers=0, data_path="../../logs/data")
+        train_loader = load_mnist_data(
+            "train", cfg.batch_size, workers=0, data_path="../../logs/data")
+        # valid_loader = load_data("valid", cfg.batch_size, workers=0, data_path="../../logs/data")
+        test_loader = load_mnist_data(
+            "test", cfg.batch_size, workers=0, data_path="../../logs/data")
     elif args.data_name == "omniglot":
-      train_loader = load_omniglot_data("train", cfg.batch_size, workers=0, data_path="../../logs/")
-      test_loader = load_omniglot_data("test", cfg.batch_size, workers=0, data_path="../../logs/")
+        train_loader = load_omniglot_data(
+            "train", cfg.batch_size, workers=0, data_path="../../logs/")
+        test_loader = load_omniglot_data(
+            "test", cfg.batch_size, workers=0, data_path="../../logs/")
     elif args.data_name == "fashionmnist":
-      train_loader = load_mnist_data("train", cfg.batch_size, workers=0, data_path="../../logs/data")
-      test_loader = load_mnist_data("test", cfg.batch_size, workers=0, data_path="../../logs/data")
+        train_loader = load_mnist_data(
+            "train", cfg.batch_size, workers=0, data_path="../../logs/data")
+        test_loader = load_mnist_data(
+            "test", cfg.batch_size, workers=0, data_path="../../logs/data")
     else:
-      raise NotImplementedError
+        raise NotImplementedError
 
-    train(model, train_loader, test_loader, criterion, optimizer, scheduler, DEVICE, cfg)
-    evaluate(model, train_loader, criterion, cfg.total_epochs, "train_eval", DEVICE)
+    train(model,
+          train_loader,
+          test_loader,
+          criterion,
+          optimizer,
+          scheduler,
+          DEVICE,
+          cfg)
+    evaluate(model,
+             train_loader,
+             criterion,
+             cfg.total_epochs,
+             "train_eval",
+             DEVICE)
     evaluate(model, test_loader, criterion, cfg.total_epochs, "test", DEVICE)
 
     true_data, reconstructions, generations = predict(model, test_loader, DEVICE)
     column_names = ["images_id", "truth", "reconstruction", "normal_generation"]
     data_to_log = []
     for i in range(len(true_data)):
-        data_to_log.append(
-            [
-                f"img_{i}",
-                wandb.Image(
-                    np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)
-                ),
-                wandb.Image(
-                    np.clip(
-                        np.moveaxis(
-                            reconstructions[i].cpu().detach().numpy(), 0, -1
-                        ),
-                        0,
-                        255.0,
-                    )
-                ),
-                wandb.Image(
-                    np.clip(
-                        np.moveaxis(
-                            generations[i].cpu().detach().numpy(), 0, -1
-                        ),
-                        0,
-                        255.0,
-                    )
-                ),
-            ]
-        )
+        data_to_log.append([
+            f"img_{i}",
+            wandb.Image(
+                np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
+            wandb.Image(
+                np.clip(
+                    np.moveaxis(reconstructions[i].cpu().detach().numpy(),
+                                0,
+                                -1),
+                    0,
+                    255.0,
+                )),
+            wandb.Image(
+                np.clip(
+                    np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
+                    0,
+                    255.0,
+                )),
+        ])
 
     val_table = wandb.Table(data=data_to_log, columns=column_names)
 

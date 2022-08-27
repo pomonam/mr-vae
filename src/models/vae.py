@@ -8,7 +8,9 @@ import torch.nn.functional as F
 # from ...data.datasets import BaseDataset
 # from ..base import BaseAE
 # from ..base.base_utils import ModelOutput
-from ..nn import BaseDecoder, BaseEncoder
+from ..nn import BaseDecoder
+from ..nn import BaseEncoder
+
 # from ..nn.default_architectures import Encoder_VAE_MLP
 # from .vae_config import VAEConfig
 
@@ -52,8 +54,7 @@ class VAE(BaseAE):
                     "No input dimension provided !"
                     "'input_dim' parameter of BaseAEConfig instance must be set to 'data_shape' "
                     "where the shape of the data is (C, H, W ..). Unable to build encoder "
-                    "automatically"
-                )
+                    "automatically")
 
             encoder = Encoder_VAE_MLP(model_config)
             self.model_config.uses_default_encoder = True
@@ -160,10 +161,10 @@ class VAE(BaseAE):
                 std = torch.exp(0.5 * log_var)
                 z, _ = self._sample_gauss(mu, std)
 
-                log_q_z_given_x = -0.5 * (
-                    log_var + (z - mu) ** 2 / torch.exp(log_var)
-                ).sum(dim=-1)
-                log_p_z = -0.5 * (z ** 2).sum(dim=-1)
+                log_q_z_given_x = -0.5 * (log_var +
+                                          (z - mu)**2 / torch.exp(log_var)).sum(
+                                              dim=-1)
+                log_p_z = -0.5 * (z**2).sum(dim=-1)
 
                 recon_x = self.decoder(z)["reconstruction"]
 
@@ -173,9 +174,9 @@ class VAE(BaseAE):
                         recon_x.reshape(x_rep.shape[0], -1),
                         x_rep.reshape(x_rep.shape[0], -1),
                         reduction="none",
-                    ).sum(dim=-1) - torch.tensor(
-                        [np.prod(self.input_dim) / 2 * np.log(np.pi * 2)]
-                    ).to(
+                    ).sum(dim=-1) - torch.tensor([
+                        np.prod(self.input_dim) / 2 * np.log(np.pi * 2)
+                    ]).to(
                         data.device
                     )  # decoding distribution is assumed unit variance  N(mu, I)
 
@@ -187,11 +188,11 @@ class VAE(BaseAE):
                         reduction="none",
                     ).sum(dim=-1)
 
-                log_p_x.append(
-                    log_p_x_given_z + log_p_z - log_q_z_given_x
-                )  # log(2*pi) simplifies
+                log_p_x.append(log_p_x_given_z + log_p_z -
+                               log_q_z_given_x)  # log(2*pi) simplifies
 
             log_p_x = torch.cat(log_p_x)
 
-            log_p.append((torch.logsumexp(log_p_x, 0) - np.log(len(log_p_x))).item())
+            log_p.append(
+                (torch.logsumexp(log_p_x, 0) - np.log(len(log_p_x))).item())
         return np.mean(log_p)

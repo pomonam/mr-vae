@@ -1,10 +1,12 @@
+import functools
+
 import torch
 from torch import nn
-import functools
 import torch.nn.functional as F
 
 
 def get_activation(act_name):
+
     def identity(x):
         return x
 

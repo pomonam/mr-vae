@@ -39,7 +39,8 @@ class HyperConfig:
     def __init__(self, args):
         self.block_type = get_ns(args, "block_type")
 
-        self.include_sigmoid_activation = get_ns(args, "include_sigmoid_activation")
+        self.include_sigmoid_activation = get_ns(args,
+                                                 "include_sigmoid_activation")
         self.include_layer_norm = get_ns(args, "include_layer_norm")
         self.include_output_layer = get_ns(args, "include_output_layer")
         self.include_shift = get_ns(args, "include_shift")

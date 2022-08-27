@@ -3,12 +3,12 @@ import urllib.request
 
 import h5py
 import numpy as np
+import scipy.io
 import torch
 import torch.nn.parallel
 import torch.utils.data
 import torch.utils.data.dataset
 import torch.utils.data.distributed
-import scipy.io
 
 
 def parse_binary_mnist(data_dir):

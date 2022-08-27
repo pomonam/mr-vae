@@ -23,14 +23,18 @@ class HyperLinear(HyperModule):
         self.hyper_config = hyper_config
         self.bias = bias
 
-        self.linear = nn.Linear(self.in_features, self.out_features, bias=self.bias)
+        self.linear = nn.Linear(
+            self.in_features, self.out_features, bias=self.bias)
 
         input_dim = hyper_config.preprocess_dim if hyper_config.preprocess_beta else 1
-        self.hyper_block_scale = get_block("linear")(input_dim, self.out_features)
-        self.hyper_block_shift = get_block("linear")(input_dim, self.out_features)
+        self.hyper_block_scale = get_block("linear")(input_dim,
+                                                     self.out_features)
+        self.hyper_block_shift = get_block("linear")(input_dim,
+                                                     self.out_features)
 
         if self.hyper_config.include_layer_norm:
-            self.layer_norm = torch.nn.LayerNorm(self.out_features, elementwise_affine=False)
+            self.layer_norm = torch.nn.LayerNorm(
+                self.out_features, elementwise_affine=False)
         else:
             self.layer_norm = nn.Identity()
 

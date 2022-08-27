@@ -2,8 +2,9 @@ import os
 from typing import Optional
 
 import torch
-import torch.nn.functional as F
 import torch.nn as nn
+import torch.nn.functional as F
+
 # from ...data.datasets import BaseDataset
 # from ..base.base_utils import ModelOutput
 # from ..nn import BaseDecoder, BaseEncoder
@@ -16,8 +17,8 @@ class BetaVAE(nn.Module):
 
     def __init__(
         self,
-        encoder = None,
-        decoder = None,
+        encoder=None,
+        decoder=None,
     ):
         super().__init__()
         # BetaVAE.__init__(self, encoder=encoder, decoder=decoder)
