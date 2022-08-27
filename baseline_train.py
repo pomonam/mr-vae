@@ -17,101 +17,58 @@ from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
 from src.utils import seed_everything
+from absl import app
+from absl import flags
+from absl import logging
 from workloads.binary_image.workload import BinaryImageWorkload
 import logging
 import datetime
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--workload", type=str, default="binary_image")
+flags.DEFINE_string('workload', 'binary_image', 'Name of the workload')
+flags.DEFINE_string('data_name', 'mnist', 'Name of the workload')
+flags.DEFINE_string('arch_name', 'constant', 'Name of the workload')
+flags.DEFINE_string('schedule', 'constant', 'Name of the workload')
+flags.DEFINE_float('beta', 1, 'Name of the workload')
 
-parser.add_argument("--data_name", type=str, default="mnist")
-parser.add_argument("--arch_name", type=str, default="constant")
+flags.DEFINE_integer('num_epochs', 1000, 'Name of the workload')
+flags.DEFINE_integer('seed', 0, 'Name of the workload')
+flags.DEFINE_string('checkpoint_dir', 'checkpoints', 'Name of the workload')
 
-parser.add_argument("--lr", type=float, default=1e-4)
-parser.add_argument("--beta", type=float, default=1)
-parser.add_argument("--schedule", type=str, default="constant")
 
-parser.add_argument("--seed", type=int, default=0)
-parser.add_argument("--checkpoint_dir", type=str, default=None)
-
-args = parser.parse_args()
+FLAGS = flags.FLAGS
 
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
-logger = logging.getLogger(__name__)
 
+def main(_):
+  train_dict = {
+    "workload": FLAGS.workload,
+    "data_name": FLAGS.data_name,
+    "arch_name": FLAGS.arch_name,
+    "num_epochs": FLAGS.num_epochs,
+    "beta": FLAGS.beta,
+    "schedule": FLAGS.schedule,
+    "seed": FLAGS.seed,
+    "checkpoint_dir": FLAGS.checkpoint_dir,
+  }
+  train_cfg = TrainConfig().from_dict(train_dict)
+  workload = BinaryImageWorkload(train_cfg, FLAGS.data_name, FLAGS.arch_name)
 
-def main():
-  train_cfg = TrainConfig()
-  train_cfg.from_dict(vars(args))
-  workload = BinaryImageWorkload(train_cfg, args.data_name, args.arch_name)
-
-  logger.info("Model passed sanity check !\n")
-
-  training_signature = (
-    str(datetime.datetime.now())[0:19].replace(" ", "_").replace(":", "-")
+  logging.info("Training started !\n")
+  logging.info(
+    f"Training params:\n - max_epochs: {FLAGS.num_epochs}\n"
+    f" - batch_size: {workload.batch_size}\n"
+    f" - checkpoint saving every {workload.save_interval}\n"
   )
 
-  # training_dir = os.path.join(
-  #   self.training_config.output_dir,
-  #   f"{self.model.model_name}_training_{self._training_signature}",
-  # )
-  #
-  # self.training_dir = training_dir
-  training_dir = "."
-  log_output_dir = "."
-  if not os.path.exists(training_dir):
-    os.makedirs(training_dir)
-    logger.info(
-      f"Created {training_dir}. \n"
-      "Training config, checkpoints and final model will be saved here.\n"
-    )
+  logging.info(f"Model Architecture: {workload.model}\n")
+  logging.info(f"Optimizer: {workload.optimizer}\n")
 
-  log_verbose = False
-
-  # set up log file
-  if log_output_dir is not None:
-    log_dir = log_output_dir
-    log_verbose = True
-
-    # if dir does not exist create it
-    if not os.path.exists(log_dir):
-      os.makedirs(log_dir)
-      logger.info(f"Created {log_dir} folder since did not exists.")
-      logger.info("Training logs will be recodered here.\n")
-      logger.info(" -> Training can be monitored here.\n")
-
-    # create and set logger
-    log_name = f"training_logs_{training_signature}"
-
-    file_logger = logging.getLogger(log_name)
-    file_logger.setLevel(logging.INFO)
-    f_handler = logging.FileHandler(
-      os.path.join(log_dir, f"training_logs_{training_signature}.log")
-    )
-    f_handler.setLevel(logging.INFO)
-    file_logger.addHandler(f_handler)
-
-    # Do not output logs in the console
-    file_logger.propagate = False
-
-    file_logger.info("Training started !\n")
-    file_logger.info(
-      f"Training params:\n - max_epochs: {workload.num_epochs}\n"
-      f" - batch_size: {workload.batch_size}\n"
-      f" - checkpoint saving every {workload.save_interval}\n"
-    )
-
-    file_logger.info(f"Model Architecture: {workload.model}\n")
-    file_logger.info(f"Optimizer: {workload.optimizer}\n")
-
-  logger.info("Successfully launched training !\n")
-
-  for epoch in range(1, workload.num_epochs + 1):
+  for epoch in range(1, FLAGS.num_epochs + 1):
 
     workload.callback_handler.on_epoch_begin(
-      training_config=workload.train_cfg,
+      training_config=train_cfg,
       epoch=epoch,
       train_loader=workload.train_loader,
       eval_loader=workload.eval_loader,
@@ -126,11 +83,11 @@ def main():
     metrics["eval_epoch_loss"] = epoch_eval_loss
     workload.scheduler_step(epoch_eval_loss)
 
-    if epoch % workload.predict_inteval == 0:
+    if epoch % workload.predict_interval == 0:
       true_data, reconstructions, generations = workload.predict()
 
       workload.callback_handler.on_prediction_step(
-        workload.train_cfg,
+        train_cfg,
         true_data=true_data,
         reconstructions=reconstructions,
         generations=generations,
@@ -141,20 +98,20 @@ def main():
 
     # save checkpoints
     if epoch % workload.save_interval == 0:
-      workload.save_checkpoint(dir_path=training_dir, epoch=epoch)
-      logger.info(f"Saved checkpoint at epoch {epoch}\n")
+      workload.save_checkpoint(dir_path=FLAGS.checkpoint_dir, epoch=epoch)
+      logging.info(f"Saved checkpoint at epoch {epoch}\n")
 
     workload.callback_handler.on_log(
-      workload.train_cfg, metrics, logger=logger, global_step=epoch
+      train_cfg, metrics, logger=logging, global_step=epoch
     )
 
-  final_dir = os.path.join(training_dir, "final_model")
+  final_dir = os.path.join(FLAGS.checkpoint_dir, "final_model")
   workload.save_model(dir_path=final_dir)
-  logger.info("Training ended!")
-  logger.info(f"Saved final model in {final_dir}")
+  logging.info("Training ended!")
+  logging.info(f"Saved final model in {final_dir}")
 
   workload.callback_handler.on_train_end(workload.train_cfg)
 
 
 if __name__ == "__main__":
-  main()
+  app.run(main)
