@@ -81,7 +81,7 @@ def build_model(data_name, device):
     else:
         model = BetaVAE(
             encoder=ResNetCelebEncoder(),
-            decoder=ResNetCifarDecoder(),
+            decoder=ResNetCelebDecoder(),
         )
     return model.to(device)
 
