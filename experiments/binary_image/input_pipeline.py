@@ -93,11 +93,13 @@ def load_omniglot_data(split, batch_size, workers=0, data_path="../../logs/"):
     if split == "train" or split == "train_eval":
         data = torch.Tensor(dataset["data"].transpose())
         data = data.view(data.shape[0], 1, 28, 28)
+        data = torch.distributions.Bernoulli(data).sample()
         dataset = torch.utils.data.TensorDataset(data)
 
     elif split == "test":
         data = torch.Tensor(dataset["testdata"].transpose())
         data = data.view(data.shape[0], 1, 28, 28)
+        data = torch.distributions.Bernoulli(data).sample()
         dataset = torch.utils.data.TensorDataset(data)
 
     else:
