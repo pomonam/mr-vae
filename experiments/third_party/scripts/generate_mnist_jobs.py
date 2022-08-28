@@ -13,7 +13,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 CONFIG = {
-  "fixed_kl": np.logspace(-3, 1, num=20),
+  "kl_fixed": np.logspace(-3, 1, num=20),
 }
 
 
