@@ -22,13 +22,12 @@ CONFIG = {
   "preprocess_beta": [0, 1],
   "include_layer_norm": [0, 1],
   "block_type": ["mlp"],
-  "beta": [1.]
 }
 
 if __name__ == "__main__":
   jobs = generate_job_strings(
     CONFIG,
-    command_template="python baseline_train.py --experiment_name {} ".format(
+    command_template="python hyper_train.py --experiment_name {} ".format(
       args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
