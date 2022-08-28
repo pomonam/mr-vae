@@ -7,12 +7,10 @@ from torchvision.datasets import CelebA
 from torchvision.datasets import CIFAR10
 from torchvision.datasets import SVHN
 import torchvision.transforms as transforms
+import math
 
 
 class CropCelebA64(object):
-  """ This class applies cropping for CelebA64. This is a simplified implementation of:
-  https://github.com/andersbll/autoencoding_beyond_pixels/blob/master/dataset/celeba.py
-  """
 
   def __call__(self, pic):
     new_pic = pic.crop((15, 40, 178 - 15, 218 - 30))
@@ -34,6 +32,16 @@ def load_data(data_name,
 
     train_data = CIFAR10(
         data_path, train=True, download=True, transform=train_transform)
+
+    num_train = 45000
+    train_data.data = train_data.data[:num_train, :, :, :]
+    train_data.targets = train_data.targets[:num_train]
+
+    valid_data = CIFAR10(
+        data_path, train=True, download=True, transform=test_transform)
+    valid_data.data = valid_data.data[num_train:, :, :, :]
+    valid_data.targets = valid_data.targets[num_train:]
+
     test_data = CIFAR10(
         data_path, train=False, download=True, transform=test_transform)
 
@@ -43,6 +51,18 @@ def load_data(data_name,
     ])
     train_data = SVHN(
         data_path, split='train', download=True, transform=transform)
+
+    train_ratio = 0.9
+    num_train = math.floor(len(train_data.data) * train_ratio)
+
+    train_data.data = train_data.data[:num_train, :, :, :]
+    train_data.labels = train_data.labels[:num_train]
+
+    valid_data = SVHN(
+        data_path, split='train', download=True, transform=transform)
+    valid_data.data = valid_data.data[num_train:, :, :, :]
+    valid_data.labels = valid_data.labels[num_train:]
+
     test_data = SVHN(
         data_path, split='test', download=True, transform=transform)
 
@@ -64,6 +84,21 @@ def load_data(data_name,
         split='train',
         download=True,
         transform=train_transform)
+
+    train_ratio = 0.9
+    num_train = math.floor(len(train_data.data) * train_ratio)
+
+    train_data.data = train_data.data[:num_train, :, :, :]
+    train_data.labels = train_data.labels[:num_train]
+
+    valid_data = CelebA(
+        "/scratch/ssd002/datasets/celeba_pytorch",
+        split='train',
+        download=True,
+        transform=test_transform)
+    valid_data.data = valid_data.data[num_train:, :, :, :]
+    valid_data.labels = valid_data.labels[num_train:]
+
     test_data = CelebA(
         "/scratch/ssd002/datasets/celeba_pytorch",
         split='test',
@@ -74,11 +109,30 @@ def load_data(data_name,
     raise NotImplementedError("Invalid dataset {} provided.".format(data_name))
 
   is_train = split == "train"
-  loader = torch.utils.data.DataLoader(
-      train_data if split in ["train", "train_eval"] else test_data,
+  if split in ["train", "train_eval"]:
+    loader = torch.utils.data.DataLoader(
+        train_data if split in ["train", "train_eval"] else test_data,
+        pin_memory=True,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=workers,
+        drop_last=is_train,
+        sampler=None)
+  elif split == "valid":
+    loader = torch.utils.data.DataLoader(
+      valid_data,
       pin_memory=True,
       batch_size=batch_size,
-      shuffle=is_train,
+      shuffle=True,
+      num_workers=workers,
+      drop_last=is_train,
+      sampler=None)
+  else:
+    loader = torch.utils.data.DataLoader(
+      test_data,
+      pin_memory=True,
+      batch_size=batch_size,
+      shuffle=True,
       num_workers=workers,
       drop_last=is_train,
       sampler=None)

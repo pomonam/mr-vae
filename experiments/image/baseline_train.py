@@ -6,7 +6,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import wandb
+import math
 
+from src.models.beta_vae import log_sum_exp
 from experiments.image.input_pipeline import load_data
 from experiments.image.models import ResNetCelebDecoder
 from experiments.image.models import ResNetCelebEncoder
@@ -50,6 +52,10 @@ class ImageCriterion(nn.Module):
     return ["loss", "rate", "distortion"]
 
   @staticmethod
+  def get_eval_metric_lst():
+    return ImageCriterion.get_metric_lst() + ["mi"]
+
+  @staticmethod
   def forward(recon_x, x, mu, log_var, z, beta):
     recon_loss = F.mse_loss(
         recon_x.reshape(x.shape[0], -1),
@@ -63,6 +69,36 @@ class ImageCriterion(nn.Module):
         "loss": (recon_loss + beta * kld).mean(dim=0),
         "distortion": recon_loss.mean(dim=0),
         "rate": kld.mean(dim=0)
+    }
+    return loss_dict
+
+  @staticmethod
+  def eval_forward(recon_x, x, mu, log_var, z, beta):
+    recon_loss = F.mse_loss(
+        recon_x.reshape(x.shape[0], -1),
+        x.reshape(x.shape[0], -1),
+        reduction="none",
+    ).sum(dim=-1)
+
+    kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
+
+    # Compute MI as well for eval forward.
+    batch_size, nz = mu.size()
+    neg_entropy = (-0.5 * nz * math.log(2 * math.pi) - 0.5 *
+                   (1 + log_var).sum(-1)).mean()
+    z, mu, log_var = z.unsqueeze(1), mu.unsqueeze(1), log_var.unsqueeze(1)
+    var = log_var.exp()
+    dev = z - mu
+    log_density = -0.5 * ((dev ** 2) / var).sum(dim=-1) - \
+                  0.5 * (nz * math.log(2 * math.pi) + log_var.sum(-1))
+    log_qz = log_sum_exp(log_density, dim=1) - math.log(batch_size)
+    mi = neg_entropy - log_qz.mean(-1)
+
+    loss_dict = {
+      "loss": (recon_loss + beta * kld).mean(dim=0),
+      "distortion": recon_loss.mean(dim=0),
+      "rate": kld.mean(dim=0),
+      "mi": mi
     }
     return loss_dict
 
@@ -96,21 +132,27 @@ def main():
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
-  scheduler = torch.optim.lr_scheduler.MultiStepLR(
-      optimizer, milestones=[60, 120, 180], gamma=0.5)
+  scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+    optimizer, factor=0.5, patience=10, verbose=True
+  )
 
   train_loader = load_data(
       args.data_name,
       "train",
       cfg.batch_size,
-      workers=0,
+      workers=4,
       data_path="../../logs/data")
-  # valid_loader = load_data("valid", cfg.batch_size, workers=0, data_path="../../logs/data")
+  valid_loader = load_data(
+    args.data_name,
+    "valid",
+    cfg.batch_size,
+    workers=2,
+    data_path="../../logs/data")
   test_loader = load_data(
       args.data_name,
       "test",
       cfg.batch_size,
-      workers=0,
+      workers=2,
       data_path="../../logs/data")
 
   train(model,
@@ -120,7 +162,8 @@ def main():
         optimizer,
         scheduler,
         DEVICE,
-        cfg)
+        cfg,
+        valid_loader)
   evaluate(model,
            train_loader,
            criterion,
