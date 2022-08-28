@@ -17,5 +17,5 @@ export PYTHONPATH=$HOME/codes/hyper-vae/experiments/third_party/nvae:$PYTHONPATH
 IFS=$'\n' read -d '' -r -a lines < baseline_jobs
 cd ../nvae
 
-echo ${lines[SLURM_ARRAY_TASK_ID]} --checkpoint_dir /checkpoint/${USER}/${SLURM_JOB_ID}
-eval ${lines[SLURM_ARRAY_TASK_ID]} --checkpoint_dir /checkpoint/${USER}/${SLURM_JOB_ID}
+echo ${lines[SLURM_ARRAY_TASK_ID]} --root /checkpoint/${USER}/${SLURM_JOB_ID}
+eval ${lines[SLURM_ARRAY_TASK_ID]} --root /checkpoint/${USER}/${SLURM_JOB_ID}
