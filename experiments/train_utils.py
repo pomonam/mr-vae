@@ -54,6 +54,7 @@ def evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
   summ_dict = summarize_metric(metric_dict, name=name + "/")
   summ_dict[name + "/" + "au"] = (au_var >= delta).sum().item()
   wandb.log(summ_dict)
+  return metric_dict["loss"].avg
 
 
 def train(model,
@@ -126,7 +127,11 @@ def train(model,
     wandb.log(summ_dict)
     epoch = epoch + 1
 
-    scheduler.step()
+    if "ReduceLROnPlateau" in str(scheduler.__class__):
+      val_loss = evaluate(model, valid_loader, criterion, epoch, "valid", device)
+      scheduler.step(val_loss)
+    else:
+      scheduler.step()
 
     if np.isnan(summ_dict["train_step/loss"]):
       wandb.finish(exit_code=1)
