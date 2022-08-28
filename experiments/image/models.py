@@ -1,203 +1,189 @@
+from collections import OrderedDict
+
 import torch
 import torch.nn as nn
-from src.models.base_encoder import BaseEncoder
-from src.models.base_decoder import BaseDecoder
+
+from src.base_architecture import BaseDecoder
+from src.base_architecture import BaseEncoder
+from src.models.resblock import ResBlock
 
 
-def normal_init(m, mean, std):
-  if isinstance(m, nn.ConvTranspose2d) or isinstance(m, nn.Conv2d):
-    m.weight.data.normal_(mean, std)
-    if m.bias is not None:
-      m.bias.data.zero_()
+class ResNetCifarEncoder(BaseEncoder):
+
+  def __init__(self):
+    BaseEncoder.__init__(self)
+
+    self.input_dim = (3, 32, 32)
+    self.latent_dim = 32
+    self.n_channels = 3
+
+    layers = nn.ModuleList()
+    layers.append(
+        nn.Sequential(nn.Conv2d(self.n_channels, 64, 4, 2, padding=1)))
+    layers.append(nn.Sequential(nn.Conv2d(64, 128, 4, 2, padding=1)))
+    layers.append(nn.Sequential(nn.Conv2d(128, 128, 3, 1, padding=1)))
+    layers.append(
+        nn.Sequential(
+            ResBlock(in_channels=128, out_channels=32),
+            ResBlock(in_channels=128, out_channels=32),
+        ))
+
+    self.layers = layers
+    self.depth = len(layers)
+
+    self.embedding = nn.Linear(128 * 8 * 8, self.latent_dim)
+    self.log_var = nn.Linear(128 * 8 * 8, self.latent_dim)
+
+  def forward(self, x: torch.Tensor):
+    max_depth = self.depth
+    out = x
+
+    output = {}
+    for i in range(max_depth):
+      out = self.layers[i](out)
+
+      if i + 1 == self.depth:
+        output["embedding"] = self.embedding(out.reshape(x.shape[0], -1))
+        output["log_covariance"] = self.log_var(out.reshape(x.shape[0], -1))
+
+    return output
 
 
-def weight_init(model, mean=0, std=0.02):
-  for m in model._modules:
-    normal_init(model._modules[m], mean, std)
-  return
+class ResNetCifarDecoder(BaseDecoder):
+
+  def __init__(self):
+    BaseDecoder.__init__(self)
+
+    self.input_dim = (3, 32, 32)
+    self.latent_dim = 32
+    self.n_channels = 3
+
+    layers = nn.ModuleList()
+
+    layers.append(nn.Linear(self.latent_dim, 128 * 8 * 8))
+
+    layers.append(
+        nn.Sequential(
+            ResBlock(in_channels=128, out_channels=32),
+            ResBlock(in_channels=128, out_channels=32),
+        ))
+    layers.append(nn.Sequential(nn.ConvTranspose2d(128, 64, 4, 2, padding=1)))
+    layers.append(
+        nn.Sequential(
+            nn.ConvTranspose2d(64, self.n_channels, 4, 2, padding=1),
+            nn.Sigmoid()))
+
+    self.layers = layers
+    self.depth = len(layers)
+
+  def forward(self, z: torch.Tensor):
+    output = OrderedDict()
+
+    max_depth = self.depth
+
+    out = z
+
+    for i in range(max_depth):
+      out = self.layers[i](out)
+
+      if i == 0:
+        out = out.reshape(z.shape[0], 128, 8, 8)
+
+      if i + 1 == self.depth:
+        output["reconstruction"] = out
+
+    return output
 
 
-class ResNetEncoder(BaseEncoder):
-  def __init__(self, data_name):
-    super().__init__()
-    channels = 3
-    bias = False
-    c = 64
+class ResNetCelebEncoder(BaseEncoder):
 
-    self.data_name = data_name
+  def __init__(self):
+    BaseEncoder.__init__(self)
 
-    inc = c
-    self.ec0 = nn.Conv2d(channels, inc, kernel_size=3, stride=1, padding=1, bias=bias)
-    self.bn0 = nn.BatchNorm2d(inc)
-    self.ec1 = nn.Conv2d(inc, c, kernel_size=4, stride=2, padding=1, bias=bias)
+    self.input_dim = (3, 64, 64)
+    self.latent_dim = 64
+    self.n_channels = 3
 
-    self.bn1 = nn.BatchNorm2d(c)
-    self.b11 = nn.Conv2d(c, c, kernel_size=3, stride=1, padding=1, bias=bias)
-    self.bn11 = nn.BatchNorm2d(c)
-    self.b12 = nn.Conv2d(c, c, kernel_size=3, stride=1, padding=1, bias=bias)
-    self.bn12 = nn.BatchNorm2d(c)
+    layers = nn.ModuleList()
+    layers.append(
+        nn.Sequential(nn.Conv2d(self.n_channels, 64, 4, 2, padding=1)))
+    layers.append(nn.Sequential(nn.Conv2d(64, 128, 4, 2, padding=1)))
+    layers.append(nn.Sequential(nn.Conv2d(128, 128, 3, 2, padding=1)))
+    layers.append(nn.Sequential(nn.Conv2d(128, 128, 3, 2, padding=1)))
+    layers.append(
+        nn.Sequential(
+            ResBlock(in_channels=128, out_channels=32),
+            ResBlock(in_channels=128, out_channels=32),
+        ))
 
-    c = c * 2
-    self.ec2 = nn.Conv2d(c // 2, c, kernel_size=4, stride=2, padding=1, bias=bias)
-    self.bn2 = nn.BatchNorm2d(c)
-    self.b21 = nn.Conv2d(c, c, kernel_size=3, stride=1, padding=1, bias=bias)
-    self.bn21 = nn.BatchNorm2d(c)
-    self.b22 = nn.Conv2d(c, c, kernel_size=3, stride=1, padding=1, bias=bias)
-    self.bn22 = nn.BatchNorm2d(c)
+    self.layers = layers
+    self.depth = len(layers)
 
-    c_out = c * 2
-    if data_name == "celeba":
-      self.ec3 = nn.Conv2d(c, c_out, kernel_size=4, stride=2, padding=1, bias=bias)
-      self.bn3 = nn.BatchNorm2d(c_out)
-      self.b31 = nn.Conv2d(c_out, c_out, kernel_size=3, stride=1, padding=1, bias=bias)
-      self.bn31 = nn.BatchNorm2d(c_out)
-      self.b32 = nn.Conv2d(c_out, c_out, kernel_size=3, stride=1, padding=1, bias=bias)
-      self.bn32 = nn.BatchNorm2d(c_out)
-      c = c_out
+    self.embedding = nn.Linear(128 * 4 * 4, self.latent_dim)
+    self.log_var = nn.Linear(128 * 4 * 4, self.latent_dim)
 
-    self.ec4 = nn.Conv2d(c, c_out, kernel_size=4, stride=2, padding=1, bias=False)
-    self.act = nn.LeakyReLU(0.02)
+  def forward(self, x: torch.Tensor):
+    max_depth = self.depth
+    out = x
 
-  def forward(self, x):
-    x = self.ec0(x)
-    x = self.bn0(x)
-    x = self.act(x)
+    output = {}
+    for i in range(max_depth):
+      out = self.layers[i](out)
 
-    x = self.ec1(x)
-    x = self.bn1(x)
-    y = x
-    x = self.act(x)
-    x = self.b11(x)
-    x = self.bn11(x)
-    x = self.act(x)
-    x = self.b12(x)
-    x = self.bn12(x)
-    x = self.act(x + y)
+      if i + 1 == self.depth:
+        output["embedding"] = self.embedding(out.reshape(x.shape[0], -1))
+        output["log_covariance"] = self.log_var(out.reshape(x.shape[0], -1))
 
-    x = self.ec2(x)
-    x = self.bn2(x)
-    y = x
-    x = self.act(x)
-    x = self.b21(x)
-    x = self.bn21(x)
-    x = self.act(x)
-    x = self.b22(x)
-    x = self.bn22(x)
-    x = self.act(x + y)
-
-    if self.data_name == "celeba":
-      x = self.ec3(x)
-      x = self.bn3(x)
-      y = x
-      x = self.act(x)
-      x = self.b31(x)
-      x = self.bn31(x)
-      x = self.act(x)
-      x = self.b32(x)
-      x = self.bn32(x)
-      x = self.act(x + y)
-
-    x = self.ec4(x)
-    x = x.view(x.size(0), -1)
-
-    return x
+    return output
 
 
-class ResNetDecoder(BaseDecoder):
-  def __init__(self, data_name):
-    super().__init__()
-    channels = 3
-    self.data_name = data_name
+class ResNetCelebDecoder(BaseDecoder):
 
-    bias = False
-    c = inch = 128
+  def __init__(self):
+    BaseDecoder.__init__(self)
 
-    self.in_channels = inch
-    if self.data_name == "celeba":
-      c = inch = 256
-      self.dc1 = nn.ConvTranspose2d(inch, c, kernel_size=4, stride=2, padding=1, output_padding=0, bias=bias)
-      self.bn1 = nn.BatchNorm2d(c)
-      self.b11 = nn.ConvTranspose2d(c, c, kernel_size=3, stride=1, padding=1, bias=bias)
-      self.bn11 = nn.BatchNorm2d(c)
-      self.b12 = nn.ConvTranspose2d(c, c, kernel_size=3, stride=1, padding=1, bias=bias)
-      self.bn12 = nn.BatchNorm2d(c)
-      inch = c
-      c = c // 2
+    self.input_dim = (3, 64, 64)
+    self.latent_dim = 64
+    self.n_channels = 3
 
-    self.dc2 = nn.ConvTranspose2d(inch, c, kernel_size=4, stride=2, padding=1, output_padding=0, bias=bias)
-    self.bn2 = nn.BatchNorm2d(c)
-    self.b21 = nn.ConvTranspose2d(c, c, kernel_size=3, stride=1, padding=1, bias=bias)
-    self.bn21 = nn.BatchNorm2d(c)
-    self.b22 = nn.ConvTranspose2d(c, c, kernel_size=3, stride=1, padding=1, bias=bias)
-    self.bn22 = nn.BatchNorm2d(c)
+    layers = nn.ModuleList()
 
-    c = c // 2
-    self.dc3 = nn.ConvTranspose2d(c * 2, c, kernel_size=4, stride=2, padding=1, output_padding=0, bias=bias)
-    self.bn3 = nn.BatchNorm2d(c)
-    self.b31 = nn.ConvTranspose2d(c, c, kernel_size=3, stride=1, padding=1, bias=bias)
-    self.bn31 = nn.BatchNorm2d(c)
-    self.b32 = nn.ConvTranspose2d(c, c, kernel_size=3, stride=1, padding=1, bias=bias)
-    self.bn32 = nn.BatchNorm2d(c)
+    layers.append(nn.Linear(self.latent_dim, 128 * 4 * 4))
+    layers.append(nn.ConvTranspose2d(128, 128, 3, 2, padding=1))
 
-    self.dc4 = nn.ConvTranspose2d(c, c, kernel_size=4, stride=2, padding=1, output_padding=0, bias=False)
-    self.bn4 = nn.BatchNorm2d(c)
-    self.dc5 = nn.ConvTranspose2d(c, channels, kernel_size=3, stride=1, padding=1, bias=False)
+    layers.append(
+        nn.Sequential(
+            ResBlock(in_channels=128, out_channels=32),
+            ResBlock(in_channels=128, out_channels=32),
+        ))
+    layers.append(
+        nn.Sequential(
+            nn.ConvTranspose2d(128, 128, 5, 2, padding=1), nn.Sigmoid()))
+    layers.append(
+        nn.Sequential(
+            nn.ConvTranspose2d(128, 64, 5, 2, padding=1, output_padding=1)))
+    layers.append(
+        nn.Sequential(
+            nn.ConvTranspose2d(64, self.n_channels, 4, 2, padding=1),
+            nn.Sigmoid()))
 
-    self.act = nn.LeakyReLU(0.02)
+    self.layers = layers
+    self.depth = len(layers)
 
-    if self.data_name == "celeba":
-      self.in_channels = self.dc1.in_channels
-    else:
-      self.in_channels = self.dc2.in_channels
+  def forward(self, z: torch.Tensor):
+    output = OrderedDict()
 
-    self.fmres = 4
-    out_size = self.in_channels * self.fmres * self.fmres
-    bias = True
-    self.l1l = nn.Linear(64, out_size, bias=bias)
+    max_depth = self.depth
 
-  def forward(self, x):
-    x = x.view(x.size(0), -1)
+    out = z
 
-    x = self.l1l(x)
-    x = x.view(x.size(0), self.in_channels, self.fmres, self.fmres)
+    for i in range(max_depth):
+      out = self.layers[i](out)
 
-    if self.data_name == "celeba":
-      x = self.dc1(x)
-      x = self.bn1(x)
-      y = x
-      x = self.act(x)
-      x = self.b11(x)
-      x = self.bn11(x)
-      x = self.act(x)
-      x = self.b12(x)
-      x = self.bn12(x)
-      x = self.act(x + y)
+      if i == 0:
+        out = out.reshape(z.shape[0], 128, 4, 4)
 
-    x = self.dc2(x)
-    x = self.bn2(x)
-    y = x
-    x = self.act(x)
-    x = self.b21(x)
-    x = self.bn21(x)
-    x = self.act(x)
-    x = self.b22(x)
-    x = self.bn22(x)
-    x = self.act(x + y)
+      if i + 1 == self.depth:
+        output["reconstruction"] = out
 
-    x = self.dc3(x)
-    x = self.bn3(x)
-    y = x
-    x = self.act(x)
-    x = self.b31(x)
-    x = self.bn31(x)
-    x = self.act(x)
-    x = self.b32(x)
-    x = self.bn32(x)
-    x = self.act(x + y)
-
-    x = self.dc4(x)
-    x = self.bn4(x)
-    x = self.act(x)
-    x = self.dc5(x)
-
-    return x
+    return output

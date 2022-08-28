@@ -1,39 +1,43 @@
 import argparse
-import functools
+import math
 import os
 
 import numpy as np
 import torch
-import tqdm
+import torch.nn as nn
+import torch.nn.functional as F
 import wandb
 
-from src.evaluate import AverageMeter
-from experiments.image.input_pipeline import build_input_queue
-from experiments.image.model_pipeline import build_criterion
-from experiments.image.model_pipeline import build_model
-from experiments.init_wandb import init_wandb
+from experiments.image.input_pipeline import load_data
+from experiments.image.models import ResNetCelebDecoder
+from experiments.image.models import ResNetCelebEncoder
+from experiments.image.models import ResNetCifarDecoder
+from experiments.image.models import ResNetCifarEncoder
+from experiments.train_utils import evaluate
+from experiments.train_utils import predict
+from experiments.train_utils import train
+from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
-from src.evaluate import generate_metric_str
-from src.evaluate import initialize_metric
-from src.evaluate import summarize_metric
-from src.evaluate import update_metric
+from src.models.beta_vae import BetaVAE
+from src.models.beta_vae import log_sum_exp
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--experiment_name", type=str, default="hypervae-image-train")
+parser.add_argument(
+    "--experiment_name", type=str, default="hypervae-mnist-train")
 
-parser.add_argument("--data_name", type=str, default="cifar")
+parser.add_argument("--data_name", type=str, default="svhn")
 
-parser.add_argument("--total_epochs", type=int, default=2)
+parser.add_argument("--total_epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=1e-4)
 parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--beta", type=float, default=1)
+parser.add_argument("--beta", type=float, default=1.)
 parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
-parser.add_argument("--save_eval_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=100)
+parser.add_argument("--save_final_checkpoint", type=int, default=0)
+parser.add_argument("--save_freq", type=int, default=500)
 parser.add_argument("--eval_freq", type=int, default=50)
 args = parser.parse_args()
 
@@ -41,165 +45,167 @@ cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
 
-def evaluate(model, biq, criterion, epoch, name, delta=0.01):
-    model.eval()
+class ImageCriterion(nn.Module):
 
-    with torch.no_grad():
-        loader = biq(args.data_name, name, args.batch_size, DEVICE)
-        p_bar = tqdm.tqdm(loader)
-        mi_meter = AverageMeter()
-        metric_dict = initialize_metric(criterion.get_metric_lst())
-        means = []
+  @staticmethod
+  def get_metric_lst():
+    return ["loss", "rate", "distortion"]
 
-        for batch in p_bar:
-            inputs = batch["inputs"]
-            output_dict = model(inputs)
-            means.append(output_dict["mean"])
-            mutual_info = model.calc_mi(inputs)
-            mi_meter.update(mutual_info, inputs.size(0))
+  @staticmethod
+  def get_eval_metric_lst():
+    return ImageCriterion.get_metric_lst() + ["mi"]
 
-            _, loss_dict = criterion.eval_forward(output_dict)
-            metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
-            summ_dict = summarize_metric(metric_dict)
-            summ_str = generate_metric_str(name, epoch, summ_dict)
-            p_bar.set_description(summ_str)
+  @staticmethod
+  def forward(recon_x, x, mu, log_var, z, beta):
+    recon_loss = F.mse_loss(
+        recon_x.reshape(x.shape[0], -1),
+        x.reshape(x.shape[0], -1),
+        reduction="none",
+    ).sum(dim=-1)
 
-    means = torch.cat(means, dim=0)
-    au_mean = means.mean(0, keepdim=True)
+    kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
-    au_var = means - au_mean
-    ns = au_var.size(0)
-    au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
+    loss_dict = {
+        "loss": (recon_loss + beta * kld).mean(dim=0),
+        "distortion": recon_loss.mean(dim=0),
+        "rate": kld.mean(dim=0)
+    }
+    return loss_dict
 
-    summ_dict = summarize_metric(metric_dict, name=name + "/")
-    summ_dict[name + "/" + "mi"] = mi_meter.avg
-    summ_dict[name + "/" + "au"] = (au_var >= delta).sum().item()
-    summ_dict[name + "/" + "au_var"] = au_var
-    wandb.log(summ_dict)
+  @staticmethod
+  def eval_forward(recon_x, x, mu, log_var, z, beta):
+    recon_loss = F.mse_loss(
+        recon_x.reshape(x.shape[0], -1),
+        x.reshape(x.shape[0], -1),
+        reduction="none",
+    ).sum(dim=-1)
+
+    kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
+
+    # Compute MI as well for eval forward.
+    batch_size, nz = mu.size()
+    neg_entropy = (-0.5 * nz * math.log(2 * math.pi) - 0.5 *
+                   (1 + log_var).sum(-1)).mean()
+    z, mu, log_var = z.unsqueeze(1), mu.unsqueeze(1), log_var.unsqueeze(1)
+    var = log_var.exp()
+    dev = z - mu
+    log_density = -0.5 * ((dev ** 2) / var).sum(dim=-1) - \
+                  0.5 * (nz * math.log(2 * math.pi) + log_var.sum(-1))
+    log_qz = log_sum_exp(log_density, dim=1) - math.log(batch_size)
+    mi = neg_entropy - log_qz.mean(-1)
+
+    loss_dict = {
+        "loss": (recon_loss + beta * kld).mean(dim=0),
+        "distortion": recon_loss.mean(dim=0),
+        "rate": kld.mean(dim=0),
+        "mi": mi
+    }
+    return loss_dict
 
 
-def train(model, biq, criterion, optimizer, scheduler, cfg):
-    do_checkpoint = cfg.checkpoint_dir is not None
-    if do_checkpoint and os.path.exists(
-            os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
-        slurm_checkpoint = torch.load(
-            os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
-        model.load_state_dict(slurm_checkpoint["state_dict"])
-        optimizer.load_state_dict(slurm_checkpoint["optimizer"])
-        scheduler.load_state_dict(slurm_checkpoint["scheduler"])
-        epoch = slurm_checkpoint["epoch"]
-    else:
-        epoch = 0
+def build_criterion(device):
+  loss_fnc = ImageCriterion()
+  return loss_fnc.to(device)
 
-    while epoch < cfg.total_epochs:
-        do_evaluate = epoch % cfg.eval_freq == 0
-        do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
-        if do_evaluate:
-            evaluate(model, biq, criterion, epoch, "train_eval")
-            evaluate(model, biq, criterion, epoch, "test")
-
-        if do_checkpoint and do_save:
-            slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")
-            log_info = {
-                "id": wandb.run.id,
-                "epoch": epoch,
-                "state_dict": model.state_dict(),
-                "optimizer": optimizer.state_dict(),
-                "scheduler": scheduler.state_dict()
-            }
-            torch.save(log_info, slurm_check_dir)
-
-        model.train()
-        loader = biq(args.data_name, "train", cfg.batch_size, DEVICE)
-        p_bar = tqdm.tqdm(loader)
-        metric_dict = initialize_metric(criterion.get_metric_lst())
-
-        for batch in p_bar:
-            optimizer.zero_grad()
-            inputs = batch["inputs"]
-            output_dict = model(inputs)
-            loss, loss_dict = criterion(output_dict, cfg.get_beta(epoch))
-            loss.backward()
-            optimizer.step()
-
-            metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
-            summ_dict = summarize_metric(metric_dict)
-            summ_str = generate_metric_str("train", epoch, summ_dict)
-            p_bar.set_description(summ_str)
-
-        summ_dict = summarize_metric(metric_dict, name="train_step/")
-        summ_dict["beta"] = cfg.get_beta(epoch)
-        wandb.log(summ_dict)
-        epoch = epoch + 1
-        scheduler.step()
-
-        if np.isnan(summ_dict["train_step/loss"]):
-            wandb.finish(exit_code=1)
-            raise ValueError()
+def build_model(data_name, device):
+  if data_name in ["cifar", "svhn"]:
+    model = BetaVAE(
+        encoder=ResNetCifarEncoder(),
+        decoder=ResNetCifarDecoder(),
+    )
+  else:
+    model = BetaVAE(
+        encoder=ResNetCelebEncoder(),
+        decoder=ResNetCelebDecoder(),
+    )
+  return model.to(device)
 
 
 def main():
-    init_wandb(
-        args.checkpoint_dir,
-        project_name=args.experiment_name,
-        config=vars(args))
-    cfg = TrainConfig(args)
+  init_wandb(
+      args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
+  cfg = TrainConfig(args)
 
-    seed_everything(cfg.seed)
-    model = build_model(args.data_name, DEVICE)
+  seed_everything(cfg.seed)
+  model = build_model(args.data_name, DEVICE)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
+  optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
+  criterion = build_criterion(DEVICE)
+  scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+      optimizer, factor=0.5, patience=10, verbose=True)
 
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(
+  train_loader = load_data(
+      args.data_name,
+      "train",
+      cfg.batch_size,
+      workers=4,
+      data_path="../../logs/data")
+  valid_loader = load_data(
+      args.data_name,
+      "valid",
+      cfg.batch_size,
+      workers=2,
+      data_path="../../logs/data")
+  test_loader = load_data(
+      args.data_name,
+      "test",
+      cfg.batch_size,
+      workers=2,
+      data_path="../../logs/data")
+
+  train(model,
+        train_loader,
+        test_loader,
+        criterion,
         optimizer,
-        milestones=[60, 120, 180],
-        gamma=0.5
-    )
-    criterion = build_criterion(DEVICE)
+        scheduler,
+        DEVICE,
+        cfg,
+        valid_loader)
+  evaluate(model,
+           train_loader,
+           criterion,
+           cfg.total_epochs,
+           "train_eval",
+           DEVICE)
+  evaluate(model, test_loader, criterion, cfg.total_epochs, "test", DEVICE)
 
-    train(model, build_input_queue, criterion, optimizer, scheduler, cfg)
-    evaluate(model,
-             build_input_queue,
-             criterion,
-             cfg.total_epochs,
-             "train_eval")
-    evaluate(model, build_input_queue, criterion, cfg.total_epochs, "test")
+  true_data, reconstructions, generations = predict(model, test_loader, DEVICE)
+  column_names = ["images_id", "truth", "reconstruction", "normal_generation"]
+  data_to_log = []
+  for i in range(len(true_data)):
+    data_to_log.append([
+        f"img_{i}",
+        wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
+        wandb.Image(
+            np.clip(
+                np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
+                0,
+                255.0,
+            )),
+        wandb.Image(
+            np.clip(
+                np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
+                0,
+                255.0,
+            )),
+    ])
 
-    if args.save_eval_checkpoint is not None:
-        save_checkpoint = os.path.join("checkpoints", "base_{}_{}_{}.pth".format(args.beta,
-                                                                                 args.schedule,
-                                                                                 args.data_name))
-        log_info = {
-            "state_dict": model.state_dict(),
-        }
-        torch.save(log_info, save_checkpoint)
+  val_table = wandb.Table(data=data_to_log, columns=column_names)
 
-    import matplotlib.pyplot as plt
-    # Visualizing the reconstruction
-    img_size = 64 if args.data_name == "celeba" else 32
-    test_loader = build_input_queue(args.data_name, "test", cfg.batch_size, DEVICE)
-    test_batch = next(test_loader)
-    outputs_dict = model.forward(test_batch["inputs"])
-    logits = outputs_dict["logits"].view(-1, 3, img_size, img_size)
-    plt.figure(figsize=(5, 5))
-    plt.axis("square")
-    for i in range(50):
-        data_i = test_batch["inputs"][i].view(3, img_size, img_size).transpose(0, 1).transpose(1, 2).data.cpu().numpy()
-        data_i = np.clip(data_i, -1, 1)
-        data_i = data_i / 2. + 0.5
-        recon_i = logits[i].view(3, img_size, img_size).transpose(0, 1).transpose(1, 2).data.cpu().numpy()
-        recon_i = np.clip(recon_i, -1, 1)
-        recon_i = recon_i / 2. + 0.5
-        plt.subplot(10, 10, 2 * i + 1)
-        plt.imshow(data_i)
-        plt.axis("off")
-        plt.subplot(10, 10, 2 * i + 2)
-        plt.imshow(recon_i)
-        plt.axis("off")
-    wandb.log({"reconstruction": plt})
-    wandb.finish()
+  wandb.log({"image": val_table})
+
+  if args.save_final_checkpoint is not None:
+    save_checkpoint = \
+      os.path.join("checkpoints", "base_{}_{}_{}.pth".format(args.data_name, args.beta, args.schedule))
+    log_info = {
+        "state_dict": model.state_dict(),
+    }
+    torch.save(log_info, save_checkpoint)
+
+  wandb.finish()
 
 
 if __name__ == "__main__":
-    main()
+  main()

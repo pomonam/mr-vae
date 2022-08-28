@@ -1,90 +1,133 @@
+import math
+
 import torch
 import torch.nn.parallel
 import torch.utils.data
 import torch.utils.data.dataset
 import torch.utils.data.distributed
+from torchvision.datasets import CelebA
 from torchvision.datasets import CIFAR10
 from torchvision.datasets import SVHN
-from torchvision.datasets import CelebA
-
 import torchvision.transforms as transforms
 
 
-def load_data(data_name, split, batch_size, workers=0, data_path="../../logs/data"):
+class CropCelebA64(object):
+
+  def __call__(self, pic):
+    new_pic = pic.crop((15, 40, 178 - 15, 218 - 30))
+    return new_pic
+
+  def __repr__(self):
+    return self.__class__.__name__ + '()'
+
+
+def load_data(data_name,
+              split,
+              batch_size,
+              workers=4,
+              data_path="../../logs/data"):
   if data_name == "cifar":
-    normalize = transforms.Normalize(
-      mean=[x / 255.0 for x in [125.3, 123.0, 113.9]],
-      std=[x / 255.0 for x in [63.0, 62.1, 66.7]])
-    transform_train = transforms.Compose([
-      transforms.RandomCrop(32, padding=4),
-      transforms.RandomHorizontalFlip(),
-      transforms.ToTensor(),
-      normalize,
-    ])
-    transform_test = transforms.Compose([
-      transforms.ToTensor(),
-      normalize,
-    ])
-    train_data = CIFAR10(data_path,
-                         train=True,
-                         download=True,
-                         transform=transform_train)
-    test_data = CIFAR10(data_path,
-                        train=False,
-                        download=True,
-                        transform=transform_test)
+    train_transform = transforms.Compose(
+        [transforms.RandomHorizontalFlip(), transforms.ToTensor()])
+    test_transform = transforms.Compose([transforms.ToTensor()])
+
+    train_data = CIFAR10(
+        data_path, train=True, download=True, transform=train_transform)
+
+    num_train = 45000
+    train_data.data = train_data.data[:num_train, :, :, :]
+    train_data.targets = train_data.targets[:num_train]
+
+    valid_data = CIFAR10(
+        data_path, train=True, download=True, transform=test_transform)
+    valid_data.data = valid_data.data[num_train:, :, :, :]
+    valid_data.targets = valid_data.targets[num_train:]
+
+    test_data = CIFAR10(
+        data_path, train=False, download=True, transform=test_transform)
 
   elif data_name == "svhn":
     transform = transforms.Compose([
-      transforms.ToTensor(),
-      transforms.Normalize([x / 255.0 for x in [109.9, 109.7, 113.8]],
-                           [x / 255.0 for x in [50.1, 50.6, 50.8]])
+        transforms.ToTensor(),
     ])
-    train_data = SVHN(data_path,
-                      split='train',
-                      download=True,
-                      transform=transform)
-    test_data = SVHN(data_path,
-                     split='test',
-                     download=True,
-                     transform=transform)
+    train_data = SVHN(
+        data_path, split='train', download=True, transform=transform)
+
+    train_ratio = 0.9
+    num_train = math.floor(len(train_data.data) * train_ratio)
+
+    train_data.data = train_data.data[:num_train, :, :, :]
+    train_data.labels = train_data.labels[:num_train]
+
+    valid_data = SVHN(
+        data_path, split='train', download=True, transform=transform)
+    valid_data.data = valid_data.data[num_train:, :, :, :]
+    valid_data.labels = valid_data.labels[num_train:]
+
+    test_data = SVHN(
+        data_path, split='test', download=True, transform=transform)
 
   elif data_name == "celeba":
-    train_transform = transforms.Compose([transforms.RandomHorizontalFlip(),
-                                          transforms.Resize(64),
-                                          transforms.CenterCrop(64),
-                                          transforms.ToTensor()])
+    train_transform = transforms.Compose([
+        CropCelebA64(),
+        transforms.Resize(64),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+    ])
+
     test_transform = transforms.Compose([
-                                          transforms.Resize(64),
-                                          transforms.CenterCrop(64),
-                                          transforms.ToTensor()])
-    train_data = CelebA("/scratch/ssd002/datasets/celeba_pytorch",
-                        split='train',
-                        download=True,
-                        transform=train_transform)
-    test_data = CelebA("/scratch/ssd002/datasets/celeba_pytorch",
-                       split='test',
-                       download=True,
-                       transform=test_transform)
+        CropCelebA64(),
+        transforms.Resize(64),
+        transforms.ToTensor(),
+    ])
+    train_data = CelebA(
+        "/scratch/ssd002/datasets/celeba_pytorch",
+        split='train',
+        download=True,
+        transform=train_transform)
+
+    valid_data = CelebA(
+        "/scratch/ssd002/datasets/celeba_pytorch",
+        split='valid',
+        download=True,
+        transform=test_transform)
+
+    test_data = CelebA(
+        "/scratch/ssd002/datasets/celeba_pytorch",
+        split='test',
+        download=True,
+        transform=test_transform)
 
   else:
-    raise NotImplementedError(
-      "Invalid dataset {} provided.".format(data_name))
+    raise NotImplementedError("Invalid dataset {} provided.".format(data_name))
 
   is_train = split == "train"
-  loader = torch.utils.data.DataLoader(train_data if split in ["train", "train_eval"] else test_data,
-                                       pin_memory=True,
-                                       batch_size=batch_size,
-                                       shuffle=is_train,
-                                       num_workers=workers,
-                                       drop_last=is_train,
-                                       sampler=None)
+  if split in ["train", "train_eval"]:
+    loader = torch.utils.data.DataLoader(
+        train_data if split in ["train", "train_eval"] else test_data,
+        pin_memory=True,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=workers,
+        drop_last=is_train,
+        sampler=None)
+  elif split == "valid":
+    loader = torch.utils.data.DataLoader(
+        valid_data,
+        pin_memory=True,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=workers,
+        drop_last=is_train,
+        sampler=None)
+  else:
+    loader = torch.utils.data.DataLoader(
+        test_data,
+        pin_memory=True,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=workers,
+        drop_last=is_train,
+        sampler=None)
 
   return loader
-
-
-def build_input_queue(data_name, split, batch_size, device, data_path="../../logs/data"):
-  loader = load_data(data_name=data_name, split=split, batch_size=batch_size, data_path=data_path)
-
-  for batch in loader:
-    yield {"inputs": batch[0].to(device, non_blocking=True)}

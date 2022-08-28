@@ -1,0 +1,10 @@
+python baseline_train.py --experiment_name hypervae_text_train_baseline-v2 --lr 1 --total_epochs 50 --data_name yahoo --schedule cyclic --beta 1.0 
+python baseline_train.py --experiment_name hypervae_text_train_baseline-v2 --lr 1 --total_epochs 50 --data_name yelp --schedule cyclic --beta 1.0 
+python baseline_train.py --experiment_name hypervae_text_train_baseline-v2 --lr 0.3 --total_epochs 50 --data_name yahoo --schedule cyclic --beta 1.0 
+python baseline_train.py --experiment_name hypervae_text_train_baseline-v2 --lr 0.3 --total_epochs 50 --data_name yelp --schedule cyclic --beta 1.0 
+python baseline_train.py --experiment_name hypervae_text_train_baseline-v2 --lr 0.1 --total_epochs 50 --data_name yahoo --schedule cyclic --beta 1.0 
+python baseline_train.py --experiment_name hypervae_text_train_baseline-v2 --lr 0.1 --total_epochs 50 --data_name yelp --schedule cyclic --beta 1.0 
+python baseline_train.py --experiment_name hypervae_text_train_baseline-v2 --lr 0.03 --total_epochs 50 --data_name yahoo --schedule cyclic --beta 1.0 
+python baseline_train.py --experiment_name hypervae_text_train_baseline-v2 --lr 0.03 --total_epochs 50 --data_name yelp --schedule cyclic --beta 1.0 
+python baseline_train.py --experiment_name hypervae_text_train_baseline-v2 --lr 0.01 --total_epochs 50 --data_name yahoo --schedule cyclic --beta 1.0 
+python baseline_train.py --experiment_name hypervae_text_train_baseline-v2 --lr 0.01 --total_epochs 50 --data_name yelp --schedule cyclic --beta 1.0
