@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 CIFAR_CONFIG = {
     "lr": [0.0003],
-    "total_epochs": [100],
+    "total_epochs": [200],
     "data_name": ["cifar"],
     "schedule": ["constant", "cyclic"],
     "beta": np.logspace(-3, 1, num=20),
@@ -22,8 +22,17 @@ CIFAR_CONFIG = {
 
 SVHN_CONFIG = {
     "lr": [0.0003],
-    "total_epochs": [100],
+    "total_epochs": [200],
     "data_name": ["svhn"],
+    "schedule": ["constant", "cyclic"],
+    "beta": np.logspace(-3, 1, num=20),
+    "save_final_checkpoint": [1]
+}
+
+CELEB_CONFIG = {
+    "lr": [0.0003],
+    "total_epochs": [200],
+    "data_name": ["celeba"],
     "schedule": ["constant", "cyclic"],
     "beta": np.logspace(-3, 1, num=20),
     "save_final_checkpoint": [1]
@@ -37,6 +46,11 @@ if __name__ == "__main__":
   jobs += ["\n"]
   jobs += generate_job_strings(
       SVHN_CONFIG,
+      command_template="python baseline_train.py --experiment_name {} ".format(
+          args.experiment_name))
+  jobs += ["\n"]
+  jobs += generate_job_strings(
+      CELEB_CONFIG,
       command_template="python baseline_train.py --experiment_name {} ".format(
           args.experiment_name))
   with open(args.file_name, "w") as f:

@@ -17,6 +17,8 @@ class BaseAE(nn.Module):
     nn.Module.__init__(self)
 
     self.model_name = "BaseAE"
+    self.encoder = encoder
+    self.decoder = decoder
     self.reconstruction_loss = reconstruction_loss
 
   def forward(self, inputs, **kwargs):
