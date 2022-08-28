@@ -14,7 +14,7 @@ class ResNetCifarEncoder(BaseEncoder):
     BaseEncoder.__init__(self)
 
     self.input_dim = (3, 32, 32)
-    self.latent_dim = 64
+    self.latent_dim = 32
     self.n_channels = 3
 
     layers = nn.ModuleList()
@@ -55,7 +55,7 @@ class ResNetCifarDecoder(BaseDecoder):
     BaseDecoder.__init__(self)
 
     self.input_dim = (3, 32, 32)
-    self.latent_dim = 64
+    self.latent_dim = 32
     self.n_channels = 3
 
     layers = nn.ModuleList()
@@ -143,7 +143,7 @@ class ResNetCelebDecoder(BaseDecoder):
     BaseDecoder.__init__(self)
 
     self.input_dim = (3, 64, 64)
-    self.latent_dim = 32
+    self.latent_dim = 64
     self.n_channels = 3
 
     layers = nn.ModuleList()
