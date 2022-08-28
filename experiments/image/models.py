@@ -8,7 +8,7 @@ from src.base_architecture import BaseEncoder
 from src.models.resblock import ResBlock
 
 
-class ResNetCifarEncoder(BaseEncoder):
+class CifarEncoder(BaseEncoder):
 
   def __init__(self):
     BaseEncoder.__init__(self)
@@ -66,7 +66,7 @@ class ResNetCifarEncoder(BaseEncoder):
     return output
 
 
-class ResNetCifarDecoder(BaseDecoder):
+class CifarDecoder(BaseDecoder):
 
   def __init__(self):
     BaseDecoder.__init__(self)

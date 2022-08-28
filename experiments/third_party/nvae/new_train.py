@@ -205,6 +205,7 @@ def train(train_queue,
                                 args.kl_const_portion * args.num_total_iter,
                                 args.kl_const_coeff, args.kl_fixed)
 
+      # print(kl_coeff)
       recon_loss = utils.reconstruction_loss(output, x, crop=model.crop_output)
       balanced_kl, kl_coeffs, kl_vals = utils.kl_balancer(kl_all, kl_coeff, kl_balance=True, alpha_i=alpha_i)
 
