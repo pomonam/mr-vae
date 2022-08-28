@@ -9,11 +9,11 @@ from src.base_architecture import BaseEncoder
 
 class LstmEncoder(BaseEncoder):
 
-  def __init__(self):
+  def __init__(self, vocab_size):
     BaseEncoder.__init__(self)
     self.latent_dim = 32
 
-    self.embed = nn.Embedding(20001, 512)
+    self.embed = nn.Embedding(vocab_size, 512)
     self.lstm = nn.LSTM(
         input_size=512,
         hidden_size=1024,
@@ -38,10 +38,10 @@ class LstmEncoder(BaseEncoder):
 
 class LstmDecoder(BaseDecoder):
 
-  def __init__(self):
+  def __init__(self, vocab_size):
     BaseDecoder.__init__(self)
 
-    self.embed = nn.Embedding(20001, 512, padding_idx=-1)
+    self.embed = nn.Embedding(vocab_size, 512, padding_idx=-1)
     self.trans_linear = nn.Linear(32, 1024, bias=False)
 
     self.dropout_in = nn.Dropout(0.5)
@@ -50,9 +50,9 @@ class LstmDecoder(BaseDecoder):
     self.lstm = nn.LSTM(
         input_size=512 + 32, hidden_size=1024, num_layers=1, batch_first=True)
 
-    self.pred_linear = nn.Linear(1024, 20001, bias=False)
+    self.pred_linear = nn.Linear(1024, vocab_size, bias=False)
 
-    vocab_mask = torch.ones(20001)
+    vocab_mask = torch.ones(vocab_size)
     self.loss = nn.CrossEntropyLoss(weight=vocab_mask, reduce=False)
     self.embed.weight.data.uniform_(-0.1, 0.1)
 

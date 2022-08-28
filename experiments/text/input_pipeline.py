@@ -254,15 +254,15 @@ def load_data(name, split, batch_size, data_path="../../logs/text_data"):
   if split == "train" or split == "train_eval":
     data_batch = train_data.create_data_batch(
         batch_size=batch_size, device=torch.device("cpu"), batch_first=True)
-    return data_batch
+    return data_batch, vocab
   elif split == "valid":
     data_batch = valid_data.create_data_batch(
         batch_size=batch_size, device=torch.device("cpu"), batch_first=True)
-    return data_batch
+    return data_batch, vocab
   elif split == "test":
     data_batch = test_data.create_data_batch(
         batch_size=batch_size, device=torch.device("cpu"), batch_first=True)
-    return data_batch
+    return data_batch, vocab
   else:
     raise NotImplementedError
 
