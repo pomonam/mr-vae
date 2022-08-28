@@ -436,7 +436,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--save',
       type=str,
-      default='exp',
+      default='expa',
       help='id used for storing intermediate results')
   # data
   parser.add_argument(

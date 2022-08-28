@@ -13,7 +13,7 @@
 . $HOME/envs/vae_env
 export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH
 
-IFS=$'\n' read -d '' -r -a lines < baseline_jobs
+IFS=$'\n' read -d '' -r -a lines < baseline_save_jobs
 cd ..
 
 echo ${lines[SLURM_ARRAY_TASK_ID]} --checkpoint_dir /checkpoint/${USER}/${SLURM_JOB_ID}
