@@ -11,8 +11,8 @@ import wandb
 from experiments.image.input_pipeline import load_data
 from experiments.image.models import ResNetCelebDecoder
 from experiments.image.models import ResNetCelebEncoder
-from experiments.image.models import ResNetCifarDecoder
-from experiments.image.models import ResNetCifarEncoder
+from experiments.image.models import CifarEncoder
+from experiments.image.models import CifarDecoder
 from experiments.train_utils import evaluate
 from experiments.train_utils import predict
 from experiments.train_utils import train
@@ -24,9 +24,9 @@ from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--experiment_name", type=str, default="hypervae-mnist-train")
+    "--experiment_name", type=str, default="hvae_image_debug")
 
-parser.add_argument("--data_name", type=str, default="svhn")
+parser.add_argument("--data_name", type=str, default="cifar")
 
 parser.add_argument("--total_epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=1e-4)
@@ -37,7 +37,7 @@ parser.add_argument("--schedule", type=str, default="constant")
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
 parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=500)
+parser.add_argument("--save_freq", type=int, default=50)
 parser.add_argument("--eval_freq", type=int, default=50)
 args = parser.parse_args()
 
@@ -111,8 +111,8 @@ def build_criterion(device):
 def build_model(data_name, device):
   if data_name in ["cifar", "svhn"]:
     model = BetaVAE(
-        encoder=ResNetCifarEncoder(),
-        decoder=ResNetCifarDecoder(),
+        encoder=CifarEncoder(),
+        decoder=CifarDecoder(),
     )
   else:
     model = BetaVAE(

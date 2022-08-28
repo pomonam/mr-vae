@@ -148,7 +148,7 @@ class AutoEncoder(nn.Module):
 
     self.vanilla_vae = self.num_latent_scales == 1 and self.num_groups_per_scale == 1
 
-    # encoder parameteres
+    # encoder parameters
     self.num_channels_enc = args.num_channels_enc
     self.num_channels_dec = args.num_channels_dec
     self.num_preprocess_blocks = args.num_preprocess_blocks  # block is defined as series of Normal followed by Down
