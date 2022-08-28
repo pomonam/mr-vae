@@ -16,7 +16,7 @@ from ..nn import BaseEncoder
 
 
 class VAE(BaseAE):
-    """Vanilla Variational Autoencoder model.
+  """Vanilla Variational Autoencoder model.
 
     Args:
         model_config (VAEConfig): The Variational Autoencoder configuration setting the main
@@ -37,35 +37,35 @@ class VAE(BaseAE):
         provided MLP you may end up with a ``MemoryError``.
     """
 
-    def __init__(
-        self,
-        model_config: VAEConfig,
-        encoder: Optional[BaseEncoder] = None,
-        decoder: Optional[BaseDecoder] = None,
-    ):
+  def __init__(
+      self,
+      model_config: VAEConfig,
+      encoder: Optional[BaseEncoder] = None,
+      decoder: Optional[BaseDecoder] = None,
+  ):
 
-        BaseAE.__init__(self, model_config=model_config, decoder=decoder)
+    BaseAE.__init__(self, model_config=model_config, decoder=decoder)
 
-        self.model_name = "VAE"
+    self.model_name = "VAE"
 
-        if encoder is None:
-            if model_config.input_dim is None:
-                raise AttributeError(
-                    "No input dimension provided !"
-                    "'input_dim' parameter of BaseAEConfig instance must be set to 'data_shape' "
-                    "where the shape of the data is (C, H, W ..). Unable to build encoder "
-                    "automatically")
+    if encoder is None:
+      if model_config.input_dim is None:
+        raise AttributeError(
+            "No input dimension provided !"
+            "'input_dim' parameter of BaseAEConfig instance must be set to 'data_shape' "
+            "where the shape of the data is (C, H, W ..). Unable to build encoder "
+            "automatically")
 
-            encoder = Encoder_VAE_MLP(model_config)
-            self.model_config.uses_default_encoder = True
+      encoder = Encoder_VAE_MLP(model_config)
+      self.model_config.uses_default_encoder = True
 
-        else:
-            self.model_config.uses_default_encoder = False
+    else:
+      self.model_config.uses_default_encoder = False
 
-        self.set_encoder(encoder)
+    self.set_encoder(encoder)
 
-    def forward(self, inputs: BaseDataset, **kwargs):
-        """
+  def forward(self, inputs: BaseDataset, **kwargs):
+    """
         The VAE model
 
         Args:
@@ -76,58 +76,58 @@ class VAE(BaseAE):
 
         """
 
-        x = inputs["data"]
+    x = inputs["data"]
 
-        encoder_output = self.encoder(x)
+    encoder_output = self.encoder(x)
 
-        mu, log_var = encoder_output.embedding, encoder_output.log_covariance
+    mu, log_var = encoder_output.embedding, encoder_output.log_covariance
 
-        std = torch.exp(0.5 * log_var)
-        z, eps = self._sample_gauss(mu, std)
-        recon_x = self.decoder(z)["reconstruction"]
+    std = torch.exp(0.5 * log_var)
+    z, eps = self._sample_gauss(mu, std)
+    recon_x = self.decoder(z)["reconstruction"]
 
-        loss, recon_loss, kld = self.loss_function(recon_x, x, mu, log_var, z)
+    loss, recon_loss, kld = self.loss_function(recon_x, x, mu, log_var, z)
 
-        output = ModelOutput(
-            reconstruction_loss=recon_loss,
-            reg_loss=kld,
-            loss=loss,
-            recon_x=recon_x,
-            z=z,
-        )
+    output = ModelOutput(
+        reconstruction_loss=recon_loss,
+        reg_loss=kld,
+        loss=loss,
+        recon_x=recon_x,
+        z=z,
+    )
 
-        return output
+    return output
 
-    def loss_function(self, recon_x, x, mu, log_var, z):
+  def loss_function(self, recon_x, x, mu, log_var, z):
 
-        if self.model_config.reconstruction_loss == "mse":
+    if self.model_config.reconstruction_loss == "mse":
 
-            recon_loss = F.mse_loss(
-                recon_x.reshape(x.shape[0], -1),
-                x.reshape(x.shape[0], -1),
-                reduction="none",
-            ).sum(dim=-1)
+      recon_loss = F.mse_loss(
+          recon_x.reshape(x.shape[0], -1),
+          x.reshape(x.shape[0], -1),
+          reduction="none",
+      ).sum(dim=-1)
 
-        elif self.model_config.reconstruction_loss == "bce":
+    elif self.model_config.reconstruction_loss == "bce":
 
-            recon_loss = F.binary_cross_entropy(
-                recon_x.reshape(x.shape[0], -1),
-                x.reshape(x.shape[0], -1),
-                reduction="none",
-            ).sum(dim=-1)
+      recon_loss = F.binary_cross_entropy(
+          recon_x.reshape(x.shape[0], -1),
+          x.reshape(x.shape[0], -1),
+          reduction="none",
+      ).sum(dim=-1)
 
-        KLD = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
+    KLD = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
-        return (recon_loss + KLD).mean(dim=0), recon_loss.mean(dim=0), KLD.mean(dim=0)
+    return (recon_loss + KLD).mean(dim=0), recon_loss.mean(dim=0), KLD.mean(dim=0)
 
-    def _sample_gauss(self, mu, std):
-        # Reparametrization trick
-        # Sample N(0, I)
-        eps = torch.randn_like(std)
-        return mu + eps * std, eps
+  def _sample_gauss(self, mu, std):
+    # Reparametrization trick
+    # Sample N(0, I)
+    eps = torch.randn_like(std)
+    return mu + eps * std, eps
 
-    def get_nll(self, data, n_samples=1, batch_size=100):
-        """
+  def get_nll(self, data, n_samples=1, batch_size=100):
+    """
         Function computed the estimate negative log-likelihood of the model. It uses importance
         sampling method with the approximate posterior distribution. This may take a while.
 
@@ -138,61 +138,58 @@ class VAE(BaseAE):
             batch_size (int): The batchsize to use to avoid memory issues
         """
 
-        if n_samples <= batch_size:
-            n_full_batch = 1
-        else:
-            n_full_batch = n_samples // batch_size
-            n_samples = batch_size
+    if n_samples <= batch_size:
+      n_full_batch = 1
+    else:
+      n_full_batch = n_samples // batch_size
+      n_samples = batch_size
 
-        log_p = []
+    log_p = []
 
-        for i in range(len(data)):
-            x = data[i].unsqueeze(0)
+    for i in range(len(data)):
+      x = data[i].unsqueeze(0)
 
-            log_p_x = []
+      log_p_x = []
 
-            for j in range(n_full_batch):
+      for j in range(n_full_batch):
 
-                x_rep = torch.cat(batch_size * [x])
+        x_rep = torch.cat(batch_size * [x])
 
-                encoder_output = self.encoder(x_rep)
-                mu, log_var = encoder_output.embedding, encoder_output.log_covariance
+        encoder_output = self.encoder(x_rep)
+        mu, log_var = encoder_output.embedding, encoder_output.log_covariance
 
-                std = torch.exp(0.5 * log_var)
-                z, _ = self._sample_gauss(mu, std)
+        std = torch.exp(0.5 * log_var)
+        z, _ = self._sample_gauss(mu, std)
 
-                log_q_z_given_x = -0.5 * (log_var +
-                                          (z - mu)**2 / torch.exp(log_var)).sum(
-                                              dim=-1)
-                log_p_z = -0.5 * (z**2).sum(dim=-1)
+        log_q_z_given_x = -0.5 * (log_var +
+                                  (z - mu)**2 / torch.exp(log_var)).sum(dim=-1)
+        log_p_z = -0.5 * (z**2).sum(dim=-1)
 
-                recon_x = self.decoder(z)["reconstruction"]
+        recon_x = self.decoder(z)["reconstruction"]
 
-                if self.model_config.reconstruction_loss == "mse":
+        if self.model_config.reconstruction_loss == "mse":
 
-                    log_p_x_given_z = -0.5 * F.mse_loss(
-                        recon_x.reshape(x_rep.shape[0], -1),
-                        x_rep.reshape(x_rep.shape[0], -1),
-                        reduction="none",
-                    ).sum(dim=-1) - torch.tensor([
-                        np.prod(self.input_dim) / 2 * np.log(np.pi * 2)
-                    ]).to(
-                        data.device
-                    )  # decoding distribution is assumed unit variance  N(mu, I)
+          log_p_x_given_z = -0.5 * F.mse_loss(
+              recon_x.reshape(x_rep.shape[0], -1),
+              x_rep.reshape(x_rep.shape[0], -1),
+              reduction="none",
+          ).sum(dim=-1) - torch.tensor([
+              np.prod(self.input_dim) / 2 * np.log(np.pi * 2)
+          ]).to(data.device
+               )  # decoding distribution is assumed unit variance  N(mu, I)
 
-                elif self.model_config.reconstruction_loss == "bce":
+        elif self.model_config.reconstruction_loss == "bce":
 
-                    log_p_x_given_z = -F.binary_cross_entropy(
-                        recon_x.reshape(x_rep.shape[0], -1),
-                        x_rep.reshape(x_rep.shape[0], -1),
-                        reduction="none",
-                    ).sum(dim=-1)
+          log_p_x_given_z = -F.binary_cross_entropy(
+              recon_x.reshape(x_rep.shape[0], -1),
+              x_rep.reshape(x_rep.shape[0], -1),
+              reduction="none",
+          ).sum(dim=-1)
 
-                log_p_x.append(log_p_x_given_z + log_p_z -
-                               log_q_z_given_x)  # log(2*pi) simplifies
+        log_p_x.append(log_p_x_given_z + log_p_z -
+                       log_q_z_given_x)  # log(2*pi) simplifies
 
-            log_p_x = torch.cat(log_p_x)
+      log_p_x = torch.cat(log_p_x)
 
-            log_p.append(
-                (torch.logsumexp(log_p_x, 0) - np.log(len(log_p_x))).item())
-        return np.mean(log_p)
+      log_p.append((torch.logsumexp(log_p_x, 0) - np.log(len(log_p_x))).item())
+    return np.mean(log_p)

@@ -10,7 +10,7 @@ parser.add_argument("--file_name", type=str, default="baseline_save_jobs")
 parser.add_argument(
     "--experiment_name",
     type=str,
-    default="hypervae_binary_image_train_baseline")
+    default="hv_binary_image_save_jobs")
 
 args = parser.parse_args()
 
@@ -33,15 +33,15 @@ OMNIGLOT_CONFIG = {
 }
 
 if __name__ == "__main__":
-    jobs = generate_job_strings(
-        MNIST_CONFIG,
-        command_template="python baseline_train.py --experiment_name {} "
-        .format(args.experiment_name))
-    jobs += ["\n"]
-    jobs += generate_job_strings(
-        OMNIGLOT_CONFIG,
-        command_template="python baseline_train.py --experiment_name {} "
-        .format(args.experiment_name))
-    with open(args.file_name, "w") as f:
-        f.writelines(jobs)
-    generate_sh_file(args.file_name, len(jobs))
+  jobs = generate_job_strings(
+      MNIST_CONFIG,
+      command_template="python baseline_train.py --experiment_name {} ".format(
+          args.experiment_name))
+  jobs += ["\n"]
+  jobs += generate_job_strings(
+      OMNIGLOT_CONFIG,
+      command_template="python baseline_train.py --experiment_name {} ".format(
+          args.experiment_name))
+  with open(args.file_name, "w") as f:
+    f.writelines(jobs)
+  generate_sh_file(args.file_name, len(jobs))
