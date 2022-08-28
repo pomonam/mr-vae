@@ -1,21 +1,27 @@
 import argparse
 
+import numpy as np
+
 from experiments.array_utils import generate_job_strings
 from experiments.array_utils import generate_sh_file
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--file_name", type=str, default="baseline_jobs")
+parser.add_argument("--file_name", type=str, default="hyper_jobs")
 parser.add_argument(
-    "--experiment_name", type=str, default="hv_image_baseline_jobs")
+    "--experiment_name", type=str, default="hypervae_image_hyper_baseline_v3")
 
 args = parser.parse_args()
 
 CONFIG = {
-    "lr": [1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
-    "total_epochs": [100],
+    "lr": [3e-4, 1e-4, 3e-5],
+    "total_epochs": [200],
     "data_name": ["cifar", "svhn", "celeba"],
-    "schedule": ["cyclic"],
-    "beta": [1.]
+    "include_shift": [0, 1],
+    "include_residual_connection": [0, 1],
+    "include_sigmoid_activation": [0, 1],
+    "preprocess_beta": [0, 1],
+    "include_layer_norm": [0, 1],
+    "block_type": ["mlp"],
 }
 
 if __name__ == "__main__":

@@ -37,12 +37,12 @@ def hyper_evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
         means.append(output_dict["mu"])
 
         loss_dict = criterion.eval_forward(
-            recon_x=output_dict["reconstruction"],
-            x=output_dict["data"],
-            mu=output_dict["mu"],
-            log_var=output_dict["log_var"],
-            z=output_dict["z"],
-            beta=1.)
+          recon_x=output_dict["reconstruction"],
+          x=output_dict["data"],
+          mu=output_dict["mu"],
+          log_var=output_dict["log_var"],
+          z=output_dict["z"],
+          beta=1.)
         metric_dict = update_metric(metric_dict,
                                     loss_dict,
                                     batch["data"].size(0))
@@ -57,7 +57,7 @@ def hyper_evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
 
       au_var = means - au_mean
       ns = au_var.size(0)
-      au_var = (au_var**2).sum(dim=0) / (ns - 1)
+      au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
 
       if sample == mid_point:
         mid_loss = summ_dict["loss"]
@@ -69,33 +69,64 @@ def hyper_evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
       mi_lst.append(summ_dict["mi"])
 
     wandb.log({
-        f"{name}/loss_lst": loss_lst,
-        f"{name}/rate_lst": rate_lst,
-        f"{name}/dist_lst": dist_lst,
-        f"{name}/sample_lst": sample_lst,
-        f"{name}/au_lst": au_lst,
-        f"{name}/mi_lst": mi_lst,
+      f"{name}/loss_lst": loss_lst,
+      f"{name}/rate_lst": rate_lst,
+      f"{name}/dist_lst": dist_lst,
+      f"{name}/sample_lst": sample_lst,
+      f"{name}/au_lst": au_lst,
+      f"{name}/mi_lst": mi_lst,
     })
 
     rd_data = [[x, y] for (x, y) in zip(rate_lst, dist_lst)]
     table = wandb.Table(data=rd_data, columns=["rate", "distortion"])
     wandb.log({
-        f"{name}/rd_curve":
-            wandb.plot.line(table, "rate", "distortion", title="RD Curve")
+      f"{name}/rd_curve":
+        wandb.plot.line(table, "rate", "distortion", title="RD Curve")
     })
 
     rate_lst = np.array(rate_lst)
     dist_lst = np.array(dist_lst)
     auc_dict = {
-        f"{name}/max_rate": np.max(rate_lst),
-        f"{name}/min_rate": np.min(rate_lst),
-        f"{name}/abs_rate": np.max(rate_lst) - np.min(rate_lst),
-        f"{name}/max_dist": np.max(dist_lst),
-        f"{name}/min_dist": np.min(dist_lst),
-        f"{name}/abs_dist": np.max(dist_lst) - np.min(dist_lst),
+      f"{name}/max_rate": np.max(rate_lst),
+      f"{name}/min_rate": np.min(rate_lst),
+      f"{name}/abs_rate": np.max(rate_lst) - np.min(rate_lst),
+      f"{name}/max_dist": np.max(dist_lst),
+      f"{name}/min_dist": np.min(dist_lst),
+      f"{name}/abs_dist": np.max(dist_lst) - np.min(dist_lst),
     }
     wandb.log(auc_dict)
   return mid_loss
+
+
+def hyper_single_evaluate(model, loader, criterion, epoch, name, device):
+  model.eval()
+
+  with torch.no_grad():
+    sample_lst = model.get_test_samples(20)
+    mid_point = sample_lst[len(sample_lst) // 2]
+
+    queue = build_input_queue(loader, device)
+    p_bar = tqdm.tqdm(queue)
+    metric_dict = initialize_metric(criterion.get_eval_metric_lst())
+
+    for batch in p_bar:
+      output_dict = model.fixed_forward(batch, mid_point)
+
+      loss_dict = criterion.eval_forward(
+        recon_x=output_dict["reconstruction"],
+        x=output_dict["data"],
+        mu=output_dict["mu"],
+        log_var=output_dict["log_var"],
+        z=output_dict["z"],
+        beta=1.)
+      metric_dict = update_metric(metric_dict,
+                                  loss_dict,
+                                  batch["data"].size(0))
+      summ_dict = summarize_metric(metric_dict)
+      summ_str = generate_metric_str(name, epoch, summ_dict)
+      p_bar.set_description(summ_str)
+
+  return loss_dict["loss"]
 
 
 def hyper_train(model,
@@ -109,9 +140,9 @@ def hyper_train(model,
                 valid_loader=None):
   do_checkpoint = cfg.checkpoint_dir is not None
   if do_checkpoint and os.path.exists(
-      os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
+          os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
     slurm_checkpoint = torch.load(
-        os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
+      os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
     model.load_state_dict(slurm_checkpoint["state_dict"])
     optimizer.load_state_dict(slurm_checkpoint["optimizer"])
     scheduler.load_state_Dict(slurm_checkpoint["scheduler"])
@@ -135,11 +166,11 @@ def hyper_train(model,
     if do_checkpoint and do_save:
       slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")
       log_info = {
-          "id": wandb.run.id,
-          "epoch": epoch,
-          "state_dict": model.state_dict(),
-          "optimizer": optimizer.state_dict(),
-          "scheduler": scheduler.state_dict()
+        "id": wandb.run.id,
+        "epoch": epoch,
+        "state_dict": model.state_dict(),
+        "optimizer": optimizer.state_dict(),
+        "scheduler": scheduler.state_dict()
       }
       torch.save(log_info, slurm_check_dir)
 
@@ -151,12 +182,12 @@ def hyper_train(model,
     for batch in p_bar:
       output_dict = model.sample_forward(batch)
       loss_dict = criterion(
-          recon_x=output_dict["reconstruction"],
-          x=output_dict["data"],
-          mu=output_dict["mu"],
-          log_var=output_dict["log_var"],
-          z=output_dict["z"],
-          beta=output_dict["beta"])
+        recon_x=output_dict["reconstruction"],
+        x=output_dict["data"],
+        mu=output_dict["mu"],
+        log_var=output_dict["log_var"],
+        z=output_dict["z"],
+        beta=output_dict["beta"])
       optimizer.zero_grad()
       loss_dict["loss"].backward()
       optimizer.step()
@@ -172,12 +203,12 @@ def hyper_train(model,
     epoch = epoch + 1
 
     if "ReduceLROnPlateau" in str(scheduler.__class__):
-      val_loss = hyper_evaluate(model,
-                                valid_loader,
-                                criterion,
-                                epoch,
-                                "valid",
-                                device)
+      val_loss = hyper_single_evaluate(model,
+                                       valid_loader,
+                                       criterion,
+                                       epoch,
+                                       "valid",
+                                       device)
       scheduler.step(val_loss)
     else:
       scheduler.step()

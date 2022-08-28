@@ -8,27 +8,24 @@ import torch.nn as nn
 import torch.nn.functional as F
 import wandb
 
-from experiments.binary_image.hyper_models import HyperResNetDecoder
-from experiments.binary_image.hyper_models import HyperResNetEncoder
-from experiments.binary_image.input_pipeline import load_mnist_data
-from experiments.binary_image.input_pipeline import load_omniglot_data
+from experiments.image.input_pipeline import load_data
+from experiments.image.hyper_models import HyperResNetCifarEncoder, HyperResNetCelebDecoder, HyperResNetCelebEncoder, \
+  HyperResNetCifarDecoder
 from experiments.hyper_train_utils import hyper_evaluate
 from experiments.hyper_train_utils import hyper_predict
 from experiments.hyper_train_utils import hyper_train
 from experiments.wandb_utils import init_wandb
-from src.config import HyperConfig
 from src.config import TrainConfig
 from src.hyper.models.beta_vae import BetaHyperVAE
 from src.models.beta_vae import log_sum_exp
 from src.utils import seed_everything
+from src.config import HyperConfig
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--experiment_name", type=str, default="hypervae-mnist-train")
+  "--experiment_name", type=str, default="hypervae-mnist-train")
 
-parser.add_argument("--data_name", type=str, default="omniglot")
-parser.add_argument("--encoder_name", type=str, default="cnn")
-parser.add_argument("--decoder_name", type=str, default="cnn")
+parser.add_argument("--data_name", type=str, default="svhn")
 
 parser.add_argument("--preprocess_beta", type=int, default=0)
 parser.add_argument("--block_type", type=str, default="mlp")
@@ -37,7 +34,7 @@ parser.add_argument("--include_layer_norm", type=int, default=0)
 parser.add_argument("--include_shift", type=int, default=1)
 parser.add_argument("--include_residual_connection", type=int, default=1)
 
-parser.add_argument("--total_epochs", type=int, default=5)
+parser.add_argument("--total_epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=1e-4)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--beta", type=float, default=1.)
@@ -46,16 +43,15 @@ parser.add_argument("--schedule", type=str, default="constant")
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
 parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=500)
-# Never evaluate during training.
-parser.add_argument("--eval_freq", type=int, default=2000)
+parser.add_argument("--save_freq", type=int, default=100)
+parser.add_argument("--eval_freq", type=int, default=500)
 args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
 
-class HyperBinaryImageCriterion(nn.Module):
+class HyperImageCriterion(nn.Module):
 
   @staticmethod
   def get_metric_lst():
@@ -63,31 +59,31 @@ class HyperBinaryImageCriterion(nn.Module):
 
   @staticmethod
   def get_eval_metric_lst():
-    return HyperBinaryImageCriterion.get_metric_lst() + ["mi"]
+    return HyperImageCriterion.get_metric_lst() + ["mi"]
 
   @staticmethod
   def forward(recon_x, x, mu, log_var, z, beta):
-    recon_loss = F.binary_cross_entropy(
-        recon_x.reshape(x.shape[0], -1),
-        x.reshape(x.shape[0], -1),
-        reduction="none",
+    recon_loss = F.mse_loss(
+      recon_x.reshape(x.shape[0], -1),
+      x.reshape(x.shape[0], -1),
+      reduction="none",
     ).sum(dim=-1)
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
     loss_dict = {
-        "loss": (recon_loss + beta.squeeze(-1) * kld).mean(dim=0),
-        "distortion": recon_loss.mean(dim=0),
-        "rate": kld.mean(dim=0)
+      "loss": (recon_loss + beta.squeeze(-1) * kld).mean(dim=0),
+      "distortion": recon_loss.mean(dim=0),
+      "rate": kld.mean(dim=0)
     }
     return loss_dict
 
   @staticmethod
   def eval_forward(recon_x, x, mu, log_var, z, beta):
-    recon_loss = F.binary_cross_entropy(
-        recon_x.reshape(x.shape[0], -1),
-        x.reshape(x.shape[0], -1),
-        reduction="none",
+    recon_loss = F.mse_loss(
+      recon_x.reshape(x.shape[0], -1),
+      x.reshape(x.shape[0], -1),
+      reduction="none",
     ).sum(dim=-1)
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
@@ -105,53 +101,67 @@ class HyperBinaryImageCriterion(nn.Module):
     mi = neg_entropy - log_qz.mean(-1)
 
     loss_dict = {
-        "loss": (recon_loss + beta * kld).mean(dim=0),
-        "distortion": recon_loss.mean(dim=0),
-        "rate": kld.mean(dim=0),
-        "mi": mi
+      "loss": (recon_loss + beta * kld).mean(dim=0),
+      "distortion": recon_loss.mean(dim=0),
+      "rate": kld.mean(dim=0),
+      "mi": mi
     }
     return loss_dict
 
 
 def build_criterion(device):
-  loss_fnc = HyperBinaryImageCriterion()
+  loss_fnc = HyperImageCriterion()
   return loss_fnc.to(device)
 
 
-def build_model(encoder_name, decoder_name, hyper_cfg, device):
-  model = BetaHyperVAE(
-      encoder=HyperResNetEncoder(hyper_cfg),
-      decoder=HyperResNetDecoder(hyper_cfg),
-      hyper_cfg=hyper_cfg)
+def build_model(data_name, hyper_cfg, device):
+  if data_name in ["cifar", "svhn"]:
+    model = BetaHyperVAE(
+      encoder=HyperResNetCifarEncoder(hyper_cfg),
+      decoder=HyperResNetCifarDecoder(hyper_cfg),
+      hyper_cfg=hyper_cfg
+    )
+  else:
+    model = BetaHyperVAE(
+      encoder=HyperResNetCelebEncoder(hyper_cfg),
+      decoder=HyperResNetCelebDecoder(hyper_cfg),
+      hyper_cfg=hyper_cfg
+    )
   return model.to(device)
 
 
 def main():
   init_wandb(
-      args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
+    args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
   hyper_cfg = HyperConfig(args)
 
   seed_everything(cfg.seed)
-  model = build_model(args.encoder_name, args.decoder_name, hyper_cfg, DEVICE)
+  model = build_model(args.data_name, hyper_cfg, DEVICE)
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
-  scheduler = torch.optim.lr_scheduler.MultiStepLR(
-      optimizer, milestones=[200, 350, 500, 750], gamma=10**(-1 / 5))
+  scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+    optimizer, factor=0.5, patience=10, verbose=True)
 
-  if args.data_name == "mnist":
-    train_loader = load_mnist_data(
-        "train", cfg.batch_size, workers=4, data_path="../../logs/data")
-    test_loader = load_mnist_data(
-        "test", cfg.batch_size, workers=4, data_path="../../logs/data")
-  elif args.data_name == "omniglot":
-    train_loader = load_omniglot_data(
-        "train", cfg.batch_size, workers=4, data_path="../../logs/")
-    test_loader = load_omniglot_data(
-        "test", cfg.batch_size, workers=4, data_path="../../logs/")
-  else:
-    raise NotImplementedError
+  train_loader = load_data(
+    args.data_name,
+    "train",
+    cfg.batch_size,
+    workers=4,
+    data_path="../../logs/data")
+  valid_loader = load_data(
+    args.data_name,
+    "valid",
+    cfg.batch_size,
+    workers=2,
+    data_path="../../logs/data")
+  test_loader = load_data(
+    args.data_name,
+    "test",
+    cfg.batch_size,
+    workers=2,
+    data_path="../../logs/data")
 
   hyper_train(model,
               train_loader,
@@ -160,19 +170,15 @@ def main():
               optimizer,
               scheduler,
               DEVICE,
-              cfg)
+              cfg,
+              valid_loader)
   hyper_evaluate(model,
                  train_loader,
                  criterion,
                  cfg.total_epochs,
                  "train_eval",
                  DEVICE)
-  hyper_evaluate(model,
-                 test_loader,
-                 criterion,
-                 cfg.total_epochs,
-                 "test",
-                 DEVICE)
+  hyper_evaluate(model, test_loader, criterion, cfg.total_epochs, "test", DEVICE)
 
   for sample in model.get_test_samples(5):
     true_data, reconstructions, generations = hyper_predict(model, test_loader, sample, DEVICE)
@@ -180,20 +186,20 @@ def main():
     data_to_log = []
     for i in range(len(true_data)):
       data_to_log.append([
-          f"img_{i}",
-          wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
-          wandb.Image(
-              np.clip(
-                  np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
-                  0,
-                  255.0,
-              )),
-          wandb.Image(
-              np.clip(
-                  np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
-                  0,
-                  255.0,
-              )),
+        f"img_{i}",
+        wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
+        wandb.Image(
+          np.clip(
+            np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
+            0,
+            255.0,
+          )),
+        wandb.Image(
+          np.clip(
+            np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
+            0,
+            255.0,
+          )),
       ])
 
     val_table = wandb.Table(data=data_to_log, columns=column_names)
@@ -203,7 +209,7 @@ def main():
     save_checkpoint = \
       os.path.join("checkpoints", "base_{}.pth".format(args.data_name))
     log_info = {
-        "state_dict": model.state_dict(),
+      "state_dict": model.state_dict(),
     }
     torch.save(log_info, save_checkpoint)
 
