@@ -85,19 +85,11 @@ def load_data(data_name,
         download=True,
         transform=train_transform)
 
-    train_ratio = 0.9
-    num_train = math.floor(len(train_data.data) * train_ratio)
-
-    train_data.data = train_data.data[:num_train, :, :, :]
-    train_data.labels = train_data.labels[:num_train]
-
     valid_data = CelebA(
         "/scratch/ssd002/datasets/celeba_pytorch",
-        split='train',
+        split='valid',
         download=True,
         transform=test_transform)
-    valid_data.data = valid_data.data[num_train:, :, :, :]
-    valid_data.labels = valid_data.labels[num_train:]
 
     test_data = CelebA(
         "/scratch/ssd002/datasets/celeba_pytorch",
