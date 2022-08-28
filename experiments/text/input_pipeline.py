@@ -1,8 +1,8 @@
-import torch
-import numpy as np
+from collections import defaultdict
 import os
 
-from collections import defaultdict
+import numpy as np
+import torch
 
 
 class VocabEntry(object):

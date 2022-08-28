@@ -1,28 +1,29 @@
 import argparse
+import math
 import os
 
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+import tqdm
 import wandb
 
-from src.evaluate import generate_metric_str
-from src.evaluate import initialize_metric
-from src.evaluate import summarize_metric
-from src.evaluate import update_metric
 from experiments.text.input_pipeline import load_data
-from experiments.text.models import LstmEncoder
 from experiments.text.models import LstmDecoder
+from experiments.text.models import LstmEncoder
 from experiments.train_utils import evaluate
 from experiments.train_utils import train
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
+from src.evaluate import generate_metric_str
+from src.evaluate import initialize_metric
+from src.evaluate import summarize_metric
+from src.evaluate import update_metric
 from src.models.beta_vae import BetaVAE
-from src.utils import seed_everything
-import tqdm
-import math
 from src.models.beta_vae import log_sum_exp
-import torch.nn.functional as F
+from src.utils import seed_everything
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--experiment_name", type=str, default="hypervae-text-train")
@@ -88,10 +89,10 @@ class TextCriterion(nn.Module):
     mi = neg_entropy - log_qz.mean(-1)
 
     loss_dict = {
-      "loss": (recon_loss + beta * kld).mean(dim=0),
-      "distortion": recon_loss.mean(dim=0),
-      "rate": kld.mean(dim=0),
-      "mi": mi
+        "loss": (recon_loss + beta * kld).mean(dim=0),
+        "distortion": recon_loss.mean(dim=0),
+        "rate": kld.mean(dim=0),
+        "mi": mi
     }
     return loss_dict
 
@@ -235,8 +236,7 @@ def train(model,
           mu=output_dict["mu"],
           log_var=output_dict["log_var"],
           z=output_dict["z"],
-          beta=cfg.get_beta(epoch)
-      )
+          beta=cfg.get_beta(epoch))
       optimizer.zero_grad()
       loss_dict["loss"].backward()
       torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
@@ -250,7 +250,12 @@ def train(model,
     epoch = epoch + 1
 
     if "ReduceLROnPlateau" in str(scheduler.__class__):
-      val_loss = evaluate(model, valid_loader, criterion, epoch, "valid", device)
+      val_loss = evaluate(model,
+                          valid_loader,
+                          criterion,
+                          epoch,
+                          "valid",
+                          device)
       scheduler.step(val_loss)
     else:
       scheduler.step()

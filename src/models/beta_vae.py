@@ -1,7 +1,8 @@
+import math
+
 import torch
 
 from src.base_model import VAE
-import math
 
 
 def log_sum_exp(value, dim=None, keepdim=False):

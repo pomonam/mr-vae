@@ -1,4 +1,5 @@
 import argparse
+import math
 import os
 
 import numpy as np
@@ -6,9 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import wandb
-import math
 
-from src.models.beta_vae import log_sum_exp
 from experiments.image.input_pipeline import load_data
 from experiments.image.models import ResNetCelebDecoder
 from experiments.image.models import ResNetCelebEncoder
@@ -20,6 +19,7 @@ from experiments.train_utils import train
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
 from src.models.beta_vae import BetaVAE
+from src.models.beta_vae import log_sum_exp
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
@@ -95,10 +95,10 @@ class ImageCriterion(nn.Module):
     mi = neg_entropy - log_qz.mean(-1)
 
     loss_dict = {
-      "loss": (recon_loss + beta * kld).mean(dim=0),
-      "distortion": recon_loss.mean(dim=0),
-      "rate": kld.mean(dim=0),
-      "mi": mi
+        "loss": (recon_loss + beta * kld).mean(dim=0),
+        "distortion": recon_loss.mean(dim=0),
+        "rate": kld.mean(dim=0),
+        "mi": mi
     }
     return loss_dict
 
@@ -133,8 +133,7 @@ def main():
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
   scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, factor=0.5, patience=10, verbose=True
-  )
+      optimizer, factor=0.5, patience=10, verbose=True)
 
   train_loader = load_data(
       args.data_name,
@@ -143,11 +142,11 @@ def main():
       workers=4,
       data_path="../../logs/data")
   valid_loader = load_data(
-    args.data_name,
-    "valid",
-    cfg.batch_size,
-    workers=2,
-    data_path="../../logs/data")
+      args.data_name,
+      "valid",
+      cfg.batch_size,
+      workers=2,
+      data_path="../../logs/data")
   test_loader = load_data(
       args.data_name,
       "test",

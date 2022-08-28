@@ -1,3 +1,5 @@
+import math
+
 import torch
 import torch.nn.parallel
 import torch.utils.data
@@ -7,7 +9,6 @@ from torchvision.datasets import CelebA
 from torchvision.datasets import CIFAR10
 from torchvision.datasets import SVHN
 import torchvision.transforms as transforms
-import math
 
 
 class CropCelebA64(object):
@@ -112,21 +113,21 @@ def load_data(data_name,
         sampler=None)
   elif split == "valid":
     loader = torch.utils.data.DataLoader(
-      valid_data,
-      pin_memory=True,
-      batch_size=batch_size,
-      shuffle=True,
-      num_workers=workers,
-      drop_last=is_train,
-      sampler=None)
+        valid_data,
+        pin_memory=True,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=workers,
+        drop_last=is_train,
+        sampler=None)
   else:
     loader = torch.utils.data.DataLoader(
-      test_data,
-      pin_memory=True,
-      batch_size=batch_size,
-      shuffle=True,
-      num_workers=workers,
-      drop_last=is_train,
-      sampler=None)
+        test_data,
+        pin_memory=True,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=workers,
+        drop_last=is_train,
+        sampler=None)
 
   return loader
