@@ -3,13 +3,13 @@ import torch.nn as nn
 
 
 class BaseEncoder(nn.Module):
-    """This is a base class for Encoders neural networks."""
+  """This is a base class for Encoders neural networks."""
 
-    def __init__(self):
-        nn.Module.__init__(self)
+  def __init__(self):
+    nn.Module.__init__(self)
 
-    def forward(self, x):
-        r"""This function must be implemented in a child class.
+  def forward(self, x):
+    r"""This function must be implemented in a child class.
         It takes the input data and returns an instance of
         :class:`~pythae.models.base.base_utils.ModelOutput`.
         If you decide to provide your own encoder network, you must make sure your
@@ -41,17 +41,17 @@ class BaseEncoder(nn.Module):
         Returns:
             output (~pythae.models.base.base_utils.ModelOutput): The output of the encoder
         """
-        raise NotImplementedError()
+    raise NotImplementedError()
 
 
 class BaseDecoder(nn.Module):
-    """This is a base class for Decoders neural networks."""
+  """This is a base class for Decoders neural networks."""
 
-    def __init__(self):
-        nn.Module.__init__(self)
+  def __init__(self):
+    nn.Module.__init__(self)
 
-    def forward(self, z: torch.Tensor):
-        r"""This function must be implemented in a child class.
+  def forward(self, z: torch.Tensor):
+    r"""This function must be implemented in a child class.
         It takes the input data and returns an instance of
         :class:`~pythae.models.base.base_utils.ModelOutput`.
         If you decide to provide your own decoder network, you must make sure your
@@ -88,19 +88,19 @@ class BaseDecoder(nn.Module):
             BATCH x channels x ...
 
         """
-        raise NotImplementedError()
+    raise NotImplementedError()
 
 
 class BaseMetric(nn.Module):
-    """This is a base class for Metrics neural networks
+  """This is a base class for Metrics neural networks
     (only applicable for Riemannian based VAE)
     """
 
-    def __init__(self):
-        nn.Module.__init__(self)
+  def __init__(self):
+    nn.Module.__init__(self)
 
-    def forward(self, x):
-        r"""This function must be implemented in a child class.
+  def forward(self, x):
+    r"""This function must be implemented in a child class.
         It takes the input data and returns an instance of
         :class:`~pythae.models.base.base_utils.ModelOutput`.
         If you decide to provide your own metric network, you must make sure your
@@ -131,17 +131,17 @@ class BaseMetric(nn.Module):
         Returns:
             output (~pythae.models.base.base_utils.ModelOutput): The output of the metric
         """
-        raise NotImplementedError()
+    raise NotImplementedError()
 
 
 class BaseDiscriminator(nn.Module):
-    """This is a base class for Discriminator neural networks."""
+  """This is a base class for Discriminator neural networks."""
 
-    def __init__(self):
-        nn.Module.__init__(self)
+  def __init__(self):
+    nn.Module.__init__(self)
 
-    def forward(self, x):
-        r"""This function must be implemented in a child class.
+  def forward(self, x):
+    r"""This function must be implemented in a child class.
         It takes the input data and returns an instance of
         :class:`~pythae.models.base.base_utils.ModelOutput`.
         If you decide to provide your own disctriminator network, you must make sure your
@@ -172,4 +172,4 @@ class BaseDiscriminator(nn.Module):
         Returns:
             output (~pythae.models.base.base_utils.ModelOutput): The output of the encoder
         """
-        raise NotImplementedError()
+    raise NotImplementedError()
