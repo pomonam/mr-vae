@@ -1,21 +1,23 @@
+import numpy as np
 import torch
 import torch.nn as nn
-from src.base_architecture import BaseDecoder, BaseEncoder
-import numpy as np
 import torch.nn.functional as F
+
+from src.base_architecture import BaseDecoder
+from src.base_architecture import BaseEncoder
 
 
 class BaseAE(nn.Module):
 
-  def __init__(
-      self,
-      encoder: BaseDecoder = None,
-      decoder: BaseDecoder = None,
-  ):
+  def __init__(self,
+               encoder: BaseDecoder = None,
+               decoder: BaseDecoder = None,
+               reconstruction_loss: str = "mse"):
 
     nn.Module.__init__(self)
 
     self.model_name = "BaseAE"
+    self.reconstruction_loss = reconstruction_loss
 
   def forward(self, inputs, **kwargs):
     raise NotImplementedError()
@@ -60,7 +62,11 @@ class VAE(BaseAE):
                decoder: BaseDecoder = None,
                reconstruction_loss: str = "mse"):
 
-    BaseAE.__init__(self, encoder=encoder, decoder=decoder)
+    BaseAE.__init__(
+        self,
+        encoder=encoder,
+        decoder=decoder,
+        reconstruction_loss=reconstruction_loss)
 
     self.model_name = "VAE"
 

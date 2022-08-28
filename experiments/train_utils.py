@@ -110,8 +110,7 @@ def train(model,
           mu=output_dict["mu"],
           log_var=output_dict["log_var"],
           z=output_dict["z"],
-          beta=cfg.get_beta(epoch)
-      )
+          beta=cfg.get_beta(epoch))
       optimizer.zero_grad()
       loss_dict["loss"].backward()
       optimizer.step()
@@ -128,7 +127,12 @@ def train(model,
     epoch = epoch + 1
 
     if "ReduceLROnPlateau" in str(scheduler.__class__):
-      val_loss = evaluate(model, valid_loader, criterion, epoch, "valid", device)
+      val_loss = evaluate(model,
+                          valid_loader,
+                          criterion,
+                          epoch,
+                          "valid",
+                          device)
       scheduler.step(val_loss)
     else:
       scheduler.step()

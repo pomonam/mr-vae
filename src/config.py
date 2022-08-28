@@ -38,17 +38,11 @@ class HyperConfig:
 
   def __init__(self, args):
     self.block_type = get_ns(args, "block_type")
+    self.preprocess_beta = get_ns(args, "preprocess_beta")
 
     self.include_sigmoid_activation = get_ns(args, "include_sigmoid_activation")
     self.include_layer_norm = get_ns(args, "include_layer_norm")
-    self.include_output_layer = get_ns(args, "include_output_layer")
     self.include_shift = get_ns(args, "include_shift")
 
     self.include_residual_connection = get_ns(args,
                                               "include_residual_connection")
-    # self.include_chunk = get_ns(args, "include_chunk")
-
-    self.preact_transform = get_ns(args, "preact_transform")
-
-    self.sample_type = get_ns(args, "sample_type")
-    self.preprocess_beta = get_ns(args, "preprocess_beta")
