@@ -31,7 +31,7 @@ parser.add_argument(
 parser.add_argument("--data_name", type=str, default="yahoo")
 
 parser.add_argument("--total_epochs", type=int, default=3)
-parser.add_argument("--lr", type=float, default=1)
+parser.add_argument("--lr", type=float, default=1.)
 parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--beta", type=float, default=1.)
 parser.add_argument("--schedule", type=str, default="constant")
@@ -40,7 +40,7 @@ parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
 parser.add_argument("--save_final_checkpoint", type=int, default=0)
 parser.add_argument("--save_freq", type=int, default=5)
-parser.add_argument("--eval_freq", type=int, default=5)
+parser.add_argument("--eval_freq", type=int, default=15)
 args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
@@ -225,8 +225,9 @@ def train(model,
 
     model.train()
     metric_dict = initialize_metric(criterion.get_metric_lst())
+    p_bar = tqdm.tqdm(np.random.permutation(len(train_loader)))
 
-    for i in np.random.permutation(len(train_loader)):
+    for i in p_bar:
       batch = train_loader[i]
       batch = {"data": batch.to(device, non_blocking=True)}
       output_dict = model(batch)
@@ -283,8 +284,8 @@ def main():
   model = build_model(vocab_size, DEVICE)
   optimizer = torch.optim.SGD(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
-  scheduler = torch.optim.lr_scheduler.StepLR(
-      optimizer, step_size=15, gamma=0.5)
+  scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+      optimizer, patience=2, factor=0.5, cooldown=15)
 
   train(model,
         train_loader,
