@@ -146,14 +146,14 @@ def main():
 
   if args.data_name == "mnist":
     train_loader = load_mnist_data(
-        "train", cfg.batch_size, workers=1, data_path="../../logs/data")
+        "train", cfg.batch_size, workers=2, data_path="../../logs/data")
     test_loader = load_mnist_data(
-        "test", cfg.batch_size, workers=1, data_path="../../logs/data")
+        "test", cfg.batch_size, workers=2, data_path="../../logs/data")
   elif args.data_name == "omniglot":
     train_loader = load_omniglot_data(
-        "train", cfg.batch_size, workers=1, data_path="../../logs/data")
+        "train", cfg.batch_size, workers=2, data_path="../../logs/data")
     test_loader = load_omniglot_data(
-        "test", cfg.batch_size, workers=1, data_path="../../logs/data")
+        "test", cfg.batch_size, workers=2, data_path="../../logs/data")
   else:
     raise NotImplementedError
 
