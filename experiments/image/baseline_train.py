@@ -9,10 +9,9 @@ import torch.nn.functional as F
 import wandb
 
 from experiments.image.input_pipeline import load_data
-from experiments.image.models import ResNetCelebDecoder
-from experiments.image.models import ResNetCelebEncoder
-from experiments.image.models import CifarEncoder
-from experiments.image.models import CifarDecoder
+from experiments.image.models import CelebConvDecoder,CelebResNetDecoder,CelebConvEncoder,CelebResNetEncoder
+# from experiments.image.models import ResNetCelebEncoder
+from experiments.image.models import CifarConvEncoder,CifarResNetEncoder,CifarResNetDecoder,CifarConvDecoder
 from experiments.train_utils import evaluate
 from experiments.train_utils import predict
 from experiments.train_utils import train
@@ -25,6 +24,7 @@ from src.utils import seed_everything
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment_name", type=str, default="hvae_image_debug")
 
+parser.add_argument("--arch_name", type=str, default="resnet")
 parser.add_argument("--data_name", type=str, default="cifar")
 
 parser.add_argument("--total_epochs", type=int, default=3)
@@ -36,8 +36,8 @@ parser.add_argument("--schedule", type=str, default="constant")
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
 parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=50)
-parser.add_argument("--eval_freq", type=int, default=50)
+parser.add_argument("--save_freq", type=int, default=25)
+parser.add_argument("--eval_freq", type=int, default=25)
 args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
@@ -110,13 +110,13 @@ def build_criterion(device):
 def build_model(data_name, device):
   if data_name in ["cifar", "svhn"]:
     model = BetaVAE(
-        encoder=CifarEncoder(),
-        decoder=CifarDecoder(),
+        encoder=CifarConvEncoder() if args.arch_name == "conv" else CifarResNetEncoder(),
+        decoder=CifarConvDecoder() if args.arch_name == "conv" else CifarResNetDecoder(),
     )
   else:
     model = BetaVAE(
-        encoder=ResNetCelebEncoder(),
-        decoder=ResNetCelebDecoder(),
+        encoder=CelebConvEncoder() if args.arch_name == "conv" else CelebResNetEncoder(),
+        decoder=CelebConvDecoder() if args.arch_name == "conv" else CelebResNetDecoder(),
     )
   return model.to(device)
 
