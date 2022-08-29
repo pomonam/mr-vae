@@ -158,7 +158,8 @@ class SyncBatchNormSwish(_BatchNorm):
       else:  # use exponential moving average
         exponential_average_factor = self.momentum
 
-    need_sync = self.training or not self.track_running_stats
+    # need_sync = self.training or not self.track_running_stats
+    need_sync = False
     if need_sync:
       process_group = torch.distributed.group.WORLD
       if self.process_group:
