@@ -28,8 +28,7 @@ from experiments.wandb_utils import init_wandb
 
 
 def main(args):
-  init_wandb(
-      args.save, project_name=args.experiment_name, config=vars(args))
+  init_wandb(args.save, project_name=args.experiment_name, config=vars(args))
 
   # ensures that weight initializations are all the same
   torch.manual_seed(args.seed)
@@ -203,7 +202,8 @@ def train(train_queue,
       kl_coeff = utils.kl_coeff(global_step,
                                 args.kl_anneal_portion * args.num_total_iter,
                                 args.kl_const_portion * args.num_total_iter,
-                                args.kl_const_coeff, args.kl_fixed)
+                                args.kl_const_coeff,
+                                args.kl_fixed)
 
       # print(kl_coeff)
       recon_loss = utils.reconstruction_loss(output, x, crop=model.crop_output)
@@ -261,7 +261,7 @@ def train(train_queue,
       log_dict["train/lr"] = cnn_optimizer.state_dict()['param_groups'][0]['lr']
 
       # writer.add_scalar('train/nelbo_iter', loss, global_step)
-      log_dict["train/nelbo_iter"] =loss
+      log_dict["train/nelbo_iter"] = loss
 
       # writer.add_scalar('train/kl_iter', torch.mean(sum(kl_all)), global_step)
       log_dict["train/kl_iter"] = torch.mean(sum(kl_all))
@@ -271,8 +271,8 @@ def train(train_queue,
       #     torch.mean(
       #         utils.reconstruction_loss(output, x, crop=model.crop_output)),
       #     global_step)
-      log_dict["train/recon_iter"] =torch.mean(
-              utils.reconstruction_loss(output, x, crop=model.crop_output))
+      log_dict["train/recon_iter"] = torch.mean(
+          utils.reconstruction_loss(output, x, crop=model.crop_output))
 
       # writer.add_scalar('kl_coeff/coeff', kl_coeff, global_step)
       log_dict["train/coeff"] = kl_coeff
@@ -425,14 +425,11 @@ def cleanup():
 if __name__ == '__main__':
   parser = argparse.ArgumentParser('encoder decoder examiner')
   # experimental results
-  parser.add_argument(
-      '--experiment_name',
-      type=str,
-      default='nvae')
+  parser.add_argument('--experiment_name', type=str, default='nvae')
   parser.add_argument(
       '--root',
       type=str,
-      default='/tmp/nasvae/expr2',
+      default='/tmp/nasvae/expr22',
       help='location of the results')
   parser.add_argument(
       '--save',

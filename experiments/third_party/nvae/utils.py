@@ -252,7 +252,9 @@ def kl_balancer(kl_all, kl_coeff=1.0, kl_balance=False, alpha_i=None):
 
 
 def kl_coeff(step, total_step, constant_step, min_kl_coeff, fixed_kl):
-  return max(min(((step - constant_step) / total_step) * fixed_kl, fixed_kl), min_kl_coeff)
+  return max(
+      min(((step - constant_step) / total_step) * fixed_kl, fixed_kl),
+      min_kl_coeff)
 
 
 def log_iw(decoder, x, log_q, log_p, crop=False):

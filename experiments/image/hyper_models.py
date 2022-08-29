@@ -141,11 +141,9 @@ class HyperResNetCelebEncoder(BaseHyperEncoder):
     layers.append(
         nn.Sequential(
             ResBlock(in_channels=128, out_channels=32),
-          HyperLayer(128, hyper_cfg),
-
-          ResBlock(in_channels=128, out_channels=32),
-          HyperLayer(128, hyper_cfg),
-
+            HyperLayer(128, hyper_cfg),
+            ResBlock(in_channels=128, out_channels=32),
+            HyperLayer(128, hyper_cfg),
         ))
 
     self.layers = layers
@@ -207,10 +205,13 @@ class HyperResNetCelebDecoder(BaseHyperDecoder):
         ))
     layers.append(
         nn.Sequential(
-            nn.ConvTranspose2d(128, 128, 5, 2, padding=1), HyperLayer(128, hyper_cfg), nn.Sigmoid()))
+            nn.ConvTranspose2d(128, 128, 5, 2, padding=1),
+            HyperLayer(128, hyper_cfg),
+            nn.Sigmoid()))
     layers.append(
         nn.Sequential(
-            nn.ConvTranspose2d(128, 64, 5, 2, padding=1, output_padding=1), HyperLayer(64, hyper_cfg)))
+            nn.ConvTranspose2d(128, 64, 5, 2, padding=1, output_padding=1),
+            HyperLayer(64, hyper_cfg)))
     layers.append(
         nn.Sequential(
             nn.ConvTranspose2d(64, self.n_channels, 4, 2, padding=1),

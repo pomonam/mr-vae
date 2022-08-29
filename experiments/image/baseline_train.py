@@ -23,8 +23,7 @@ from src.models.beta_vae import log_sum_exp
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--experiment_name", type=str, default="hvae_image_debug")
+parser.add_argument("--experiment_name", type=str, default="hvae_image_debug")
 
 parser.add_argument("--data_name", type=str, default="cifar")
 
