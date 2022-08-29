@@ -8,8 +8,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import wandb
 
-from experiments.binary_image.hyper_models import HyperResNetDecoder
-from experiments.binary_image.hyper_models import HyperResNetEncoder
+from experiments.binary_image.hyper_models import HyperResNetDecoder, HyperResNetEncoder, HyperConvDecoder, HyperConvEncoder
+from experiments.binary_image.hyper_models import HyperResNetEncoder, HyperConvDecoder, HyperConvEncoder, HyperResNetDecoder
 from experiments.binary_image.input_pipeline import load_mnist_data
 from experiments.binary_image.input_pipeline import load_omniglot_data
 from experiments.hyper_train_utils import hyper_evaluate
@@ -24,11 +24,11 @@ from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--experiment_name", type=str, default="hypervae-mnist-train")
+    "--experiment_name", type=str, default="hvae_binary_image_debug")
 
-parser.add_argument("--data_name", type=str, default="omniglot")
-parser.add_argument("--encoder_name", type=str, default="cnn")
-parser.add_argument("--decoder_name", type=str, default="cnn")
+parser.add_argument("--data_name", type=str, default="mnist")
+parser.add_argument("--encoder_name", type=str, default="conv")
+parser.add_argument("--decoder_name", type=str, default="conv")
 
 parser.add_argument("--preprocess_beta", type=int, default=0)
 parser.add_argument("--block_type", type=str, default="mlp")
@@ -36,6 +36,7 @@ parser.add_argument("--include_sigmoid_activation", type=int, default=0)
 parser.add_argument("--include_layer_norm", type=int, default=0)
 parser.add_argument("--include_shift", type=int, default=1)
 parser.add_argument("--include_residual_connection", type=int, default=1)
+parser.add_argument("--include_output_stem", type=int, default=0)
 
 parser.add_argument("--total_epochs", type=int, default=5)
 parser.add_argument("--lr", type=float, default=1e-4)
@@ -119,9 +120,23 @@ def build_criterion(device):
 
 
 def build_model(encoder_name, decoder_name, hyper_cfg, device):
+  if encoder_name == "conv":
+    encoder = HyperConvEncoder(hyper_cfg)
+  elif encoder_name == "resnet":
+    encoder = HyperResNetEncoder(hyper_cfg)
+  else:
+    raise
+
+  if decoder_name == "conv":
+    decoder = HyperConvDecoder(hyper_cfg)
+  elif decoder_name == "resnet":
+    decoder = HyperResNetDecoder(hyper_cfg)
+  else:
+    raise
+
   model = BetaHyperVAE(
-      encoder=HyperResNetEncoder(hyper_cfg),
-      decoder=HyperResNetDecoder(hyper_cfg),
+      encoder=encoder,
+      decoder=decoder,
       hyper_cfg=hyper_cfg)
   return model.to(device)
 
@@ -142,14 +157,14 @@ def main():
 
   if args.data_name == "mnist":
     train_loader = load_mnist_data(
-        "train", cfg.batch_size, workers=4, data_path="../../logs/data")
+        "train", cfg.batch_size, workers=2, data_path="../../logs/data")
     test_loader = load_mnist_data(
-        "test", cfg.batch_size, workers=4, data_path="../../logs/data")
+        "test", cfg.batch_size, workers=2, data_path="../../logs/data")
   elif args.data_name == "omniglot":
     train_loader = load_omniglot_data(
-        "train", cfg.batch_size, workers=4, data_path="../../logs/")
+        "train", cfg.batch_size, workers=2, data_path="../../logs/")
     test_loader = load_omniglot_data(
-        "test", cfg.batch_size, workers=4, data_path="../../logs/")
+        "test", cfg.batch_size, workers=2, data_path="../../logs/")
   else:
     raise NotImplementedError
 
