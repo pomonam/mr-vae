@@ -16,7 +16,7 @@ import torch.nn.functional as F
 from utils import average_tensor
 
 BN_EPS = 1e-5
-SYNC_BN = True
+SYNC_BN = False
 
 OPS = OrderedDict([
     ('res_elu', lambda Cin, Cout, stride: ELUConv(Cin, Cout, 3, stride, 1)),
@@ -190,7 +190,7 @@ class SyncBatchNorm(nn.Module):
 
   def __init__(self, *args, **kwargs):
     super(SyncBatchNorm, self).__init__()
-    self.bn = nn.SyncBatchNorm(*args, **kwargs)
+    self.bn = nn.BatchNorm2d(*args, **kwargs)
 
   def forward(self, x):
     # Sync BN only works with distributed data parallel with 1 GPU per process. I don't use DDP, so I need to let

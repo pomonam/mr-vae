@@ -432,7 +432,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--root',
       type=str,
-      default='/tmp/nasvae/expr',
+      default='/tmp/nasvae/expr2',
       help='location of the results')
   parser.add_argument(
       '--save',
@@ -680,5 +680,5 @@ if __name__ == '__main__':
   # for debugging
   print('starting in debug mode')
   args.distributed = False
-  init_processes(0, 1, main, args)
-  # main(args)
+  # init_processes(0, 1, main, args)
+  main(args)
