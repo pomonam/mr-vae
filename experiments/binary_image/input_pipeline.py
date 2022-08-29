@@ -1,82 +1,68 @@
 import os
-import urllib.request
+import urllib
 
-import h5py
-import numpy as np
 import scipy.io
 import torch
 import torch.nn.parallel
 import torch.utils.data
 import torch.utils.data.dataset
 import torch.utils.data.distributed
+from PIL import Image
+from torch.utils.data import Dataset
+from torchvision.datasets import MNIST
+import torchvision.transforms as transforms
 
 
-def parse_binary_mnist(data_dir):
+class Binarize(object):
 
-  def lines_to_np_array(ls):
-    return np.array([[int(i) for i in line.split()] for line in ls])
+  def __call__(self, pic):
+    return torch.Tensor(pic.size()).bernoulli_(pic)
 
-  with open(os.path.join(data_dir, "binarized_mnist_train.amat")) as f:
-    lines = f.readlines()
-  train_data = lines_to_np_array(lines).astype("float32")
-  with open(os.path.join(data_dir, "binarized_mnist_valid.amat")) as f:
-    lines = f.readlines()
-  validation_data = lines_to_np_array(lines).astype("float32")
-  with open(os.path.join(data_dir, "binarized_mnist_test.amat")) as f:
-    lines = f.readlines()
-  test_data = lines_to_np_array(lines).astype("float32")
-  return train_data, validation_data, test_data
+  def __repr__(self):
+    return self.__class__.__name__ + "()"
 
 
-def download_binary_mnist(data_path):
-  if not os.path.isdir(data_path):
-    os.mkdir(data_path)
-  subdatasets = ["train", "valid", "test"]
-  for subdataset in subdatasets:
-    fn = "binarized_mnist_{}.amat".format(subdataset)
-    url = "http://www.cs.toronto.edu/~larocheh/public/datasets/binarized_mnist/binarized_mnist_{}.amat".format(
-        subdataset)
-    local_filename = os.path.join(data_path, fn)
-    urllib.request.urlretrieve(url, local_filename)
+class Omniglot(Dataset):
 
-  train, validation, test = parse_binary_mnist(data_path)
+  def __init__(self, data, transform):
+    self.data = data
+    self.transform = transform
 
-  data_dict = {"train": train, "valid": validation, "test": test}
-  file_name = os.path.join(data_path, "binary_mnist.h5")
-  f = h5py.File(file_name, "w")
-  f.create_dataset("train", data=data_dict["train"])
-  f.create_dataset("valid", data=data_dict["valid"])
-  f.create_dataset("test", data=data_dict["test"])
-  f.close()
+  def __getitem__(self, index):
+    d = self.data[index]
+    img = Image.fromarray(d)
+    return self.transform(img), 0
 
-
-def load_binary_mnist(file_name):
-  f = h5py.File(file_name, "r")
-  x_train = f["train"][::]
-  x_val = f["valid"][::]
-  x_test = f["test"][::]
-  return x_train, x_val, x_test
+  def __len__(self):
+    return len(self.data)
 
 
 def load_mnist_data(split, batch_size, workers=0, data_path="logs/data"):
-  file_name = os.path.join(data_path, "binary_mnist.h5")
-  if not os.path.exists(file_name):
-    download_binary_mnist(data_path)
+  train_transform = transforms.Compose([
+      transforms.ToTensor(),
+      Binarize(),
+  ])
+  test_transform = transforms.Compose([
+      transforms.ToTensor(),
+  ])
 
-  train_data, valid_data, test_data = load_binary_mnist(file_name)
+  train_data = MNIST(
+      root=data_path,
+      train=True,
+      download=True,
+      transform=train_transform if split == "train" else test_transform)
+  if split == "train_eval":
+    train_data.data[train_data.data >= 127.5] = 255.
+    train_data.data[train_data.data < 127.5] = 0.
 
-  if split == "train" or split == "train_eval":
-    dataset = np.reshape(train_data, (train_data.shape[0], 1, 28, 28))
-  elif split == "valid":
-    dataset = np.reshape(valid_data, (valid_data.shape[0], 1, 28, 28))
-  elif split == "test":
-    dataset = np.reshape(test_data, (test_data.shape[0], 1, 28, 28))
-  else:
-    raise ValueError("Invalid split {:split}")
+  test_data = MNIST(
+      root=data_path, train=False, download=True, transform=test_transform)
+  test_data.data[test_data.data >= 127.5] = 255.
+  test_data.data[test_data.data < 127.5] = 0.
 
   is_train = split == "train"
   loader = torch.utils.data.DataLoader(
-      dataset,
+      train_data if split in ["train", "train_eval"] else test_data,
       pin_memory=True,
       batch_size=batch_size,
       shuffle=True,
@@ -87,25 +73,56 @@ def load_mnist_data(split, batch_size, workers=0, data_path="logs/data"):
   return loader
 
 
-def load_omniglot_data(split, batch_size, workers=0, data_path="../../logs/"):
-  dataset = scipy.io.loadmat(os.path.join(data_path, 'omniglot/chardata.mat'))
+def download_omniglot(data_dir):
+  filename = 'chardata.mat'
+  if not os.path.exists(data_dir):
+    os.mkdir(data_dir)
+  url = 'https://raw.github.com/yburda/iwae/master/datasets/OMNIGLOT/chardata.mat'
 
+  filepath = os.path.join(data_dir, filename)
+  if not os.path.exists(filepath):
+    filepath, _ = urllib.request.urlretrieve(url, filepath)
+    print('Downloaded', filename)
+
+  return
+
+
+def load_omniglot_data(split, batch_size, workers=0, data_path="../../logs/"):
+  download_omniglot(data_path)
+  dataset = scipy.io.loadmat(os.path.join(data_path, "chardata.mat"))
+
+  train_transform = transforms.Compose([
+      transforms.ToTensor(),
+      Binarize(),
+  ])
+
+  test_transform = transforms.Compose([
+      transforms.ToTensor(),
+  ])
+
+  is_train = split == "train"
   if split == "train" or split == "train_eval":
-    data = torch.Tensor(dataset["data"].transpose())
-    data = data.view(data.shape[0], 1, 28, 28)
-    data = torch.distributions.Bernoulli(data).sample()
-    dataset = torch.utils.data.TensorDataset(data)
+    data = 255 * dataset["data"].astype("float32").reshape(
+        (28, 28, -1)).transpose((2, 1, 0))
+    data = data.astype("uint8")
+    if is_train:
+      dataset = Omniglot(data, train_transform)
+    else:
+      data[data >= 127.5] = 255.
+      data[data < 127.5] = 0.
+      dataset = Omniglot(data, test_transform)
 
   elif split == "test":
-    data = torch.Tensor(dataset["testdata"].transpose())
-    data = data.view(data.shape[0], 1, 28, 28)
-    data = torch.distributions.Bernoulli(data).sample()
-    dataset = torch.utils.data.TensorDataset(data)
+    data = 255 * dataset["testdata"].astype("float32").reshape(
+        (28, 28, -1)).transpose((2, 1, 0))
+    data = data.astype("uint8")
+    data[data >= 127.5] = 255.
+    data[data < 127.5] = 0.
+    dataset = Omniglot(data, test_transform)
 
   else:
     raise ValueError("Invalid split {:split}")
 
-  is_train = split == "train"
   loader = torch.utils.data.DataLoader(
       dataset,
       pin_memory=True,

@@ -10,8 +10,8 @@ import wandb
 
 from experiments.binary_image.input_pipeline import load_mnist_data
 from experiments.binary_image.input_pipeline import load_omniglot_data
-from experiments.binary_image.models import ResNetDecoder
-from experiments.binary_image.models import ResNetEncoder
+from experiments.binary_image.models import ResNetDecoder, ConvDecoder
+from experiments.binary_image.models import ResNetEncoder, ConvEncoder
 from experiments.train_utils import evaluate
 from experiments.train_utils import predict
 from experiments.train_utils import train
@@ -23,17 +23,17 @@ from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--experiment_name", type=str, default="hypervae-mnist-train")
+    "--experiment_name", type=str, default="hvae_binary_image_debug")
 
 parser.add_argument("--data_name", type=str, default="mnist")
-parser.add_argument("--encoder_name", type=str, default="cnn")
-parser.add_argument("--decoder_name", type=str, default="cnn")
+parser.add_argument("--encoder_name", type=str, default="resnet")
+parser.add_argument("--decoder_name", type=str, default="resnet")
 
 parser.add_argument("--total_epochs", type=int, default=3)
-parser.add_argument("--lr", type=float, default=1e-4)
+parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--beta", type=float, default=1.)
-parser.add_argument("--schedule", type=str, default="constant")
+parser.add_argument("--schedule", type=str, default="monotonic")
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
@@ -110,9 +110,23 @@ def build_criterion(device):
 
 
 def build_model(encoder_name, decoder_name, device):
+  if encoder_name == "conv":
+    encoder = ConvEncoder()
+  elif encoder_name == "resnet":
+    encoder = ResNetEncoder()
+  else:
+    raise
+
+  if decoder_name == "conv":
+    decoder = ConvDecoder()
+  elif decoder_name == "resnet":
+    decoder = ResNetDecoder()
+  else:
+    raise
+
   model = BetaVAE(
-      encoder=ResNetEncoder(),
-      decoder=ResNetDecoder(),
+      encoder=encoder,
+      decoder=decoder,
   )
   return model.to(device)
 
@@ -132,14 +146,14 @@ def main():
 
   if args.data_name == "mnist":
     train_loader = load_mnist_data(
-        "train", cfg.batch_size, workers=4, data_path="../../logs/data")
+        "train", cfg.batch_size, workers=1, data_path="../../logs/data")
     test_loader = load_mnist_data(
-        "test", cfg.batch_size, workers=4, data_path="../../logs/data")
+        "test", cfg.batch_size, workers=1, data_path="../../logs/data")
   elif args.data_name == "omniglot":
     train_loader = load_omniglot_data(
-        "train", cfg.batch_size, workers=4, data_path="../../logs/")
+        "train", cfg.batch_size, workers=1, data_path="../../logs/data")
     test_loader = load_omniglot_data(
-        "test", cfg.batch_size, workers=4, data_path="../../logs/")
+        "test", cfg.batch_size, workers=1, data_path="../../logs/data")
   else:
     raise NotImplementedError
 

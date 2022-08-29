@@ -12,8 +12,7 @@ args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
-    "total_epochs": [200],
-    # "data_name": ["cifar", "svhn", "celeba"],
+    "total_epochs": [200],  # "data_name": ["cifar", "svhn", "celeba"],
     "data_name": ["cifar", "svhn"],
     "schedule": ["cyclic"],
     "beta": [1.]

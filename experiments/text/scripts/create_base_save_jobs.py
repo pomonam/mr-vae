@@ -7,8 +7,7 @@ from experiments.array_utils import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="baseline_save_jobs")
-parser.add_argument(
-    "--experiment_name", type=str, default="hv_text_save_jobs")
+parser.add_argument("--experiment_name", type=str, default="hv_text_save_jobs")
 
 args = parser.parse_args()
 
