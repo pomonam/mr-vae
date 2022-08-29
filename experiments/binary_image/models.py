@@ -19,27 +19,27 @@ class ConvEncoder(BaseEncoder):
 
     layers = nn.ModuleList()
     layers.append(
-        nn.Sequential(
-            nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-        ))
+      nn.Sequential(
+        nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
+        nn.BatchNorm2d(128),
+        nn.ReLU(),
+      )
+    )
     layers.append(
-        nn.Sequential(
-            nn.Conv2d(128, 256, 4, 2, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU()))
+      nn.Sequential(
+        nn.Conv2d(128, 256, 4, 2, padding=1), nn.BatchNorm2d(256), nn.ReLU()
+      )
+    )
     layers.append(
-        nn.Sequential(
-            nn.Conv2d(256, 512, 4, 2, padding=1),
-            nn.BatchNorm2d(512),
-            nn.ReLU()))
+      nn.Sequential(
+        nn.Conv2d(256, 512, 4, 2, padding=1), nn.BatchNorm2d(512), nn.ReLU()
+      )
+    )
     layers.append(
-        nn.Sequential(
-            nn.Conv2d(512, 1024, 4, 2, padding=1),
-            nn.BatchNorm2d(1024),
-            nn.ReLU()))
-
+      nn.Sequential(
+        nn.Conv2d(512, 1024, 4, 2, padding=1), nn.BatchNorm2d(1024), nn.ReLU()
+      )
+    )
     self.layers = layers
     self.depth = len(layers)
 
@@ -73,24 +73,29 @@ class ConvDecoder(BaseDecoder):
     layers = nn.ModuleList()
 
     layers.append(nn.Linear(self.latent_dim, 1024 * 4 * 4))
-    layers.append(nn.ReLU())
+
     layers.append(
-        nn.Sequential(
-            nn.ConvTranspose2d(1024, 512, 3, 2, padding=1),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-        ))
+      nn.Sequential(
+        nn.ConvTranspose2d(1024, 512, 3, 2, padding=1),
+        nn.BatchNorm2d(512),
+        nn.ReLU(),
+      )
+    )
     layers.append(
-        nn.Sequential(
-            nn.ConvTranspose2d(512, 128, 3, 2, padding=1, output_padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-        ))
+      nn.Sequential(
+        nn.ConvTranspose2d(512, 256, 3, 2, padding=1, output_padding=1),
+        nn.BatchNorm2d(256),
+        nn.ReLU(),
+      )
+    )
     layers.append(
-        nn.Sequential(
-            nn.ConvTranspose2d(
-                128, self.n_channels, 3, 2, padding=1, output_padding=1),
-            nn.Sigmoid()))
+      nn.Sequential(
+        nn.ConvTranspose2d(
+          256, self.n_channels, 3, 2, padding=1, output_padding=1
+        ),
+        nn.Sigmoid(),
+      )
+    )
     self.layers = layers
     self.depth = len(layers)
 
@@ -182,7 +187,6 @@ class ResNetDecoder(BaseDecoder):
     layers = nn.ModuleList()
 
     layers.append(nn.Linear(self.latent_dim, 128 * 4 * 4))
-    layers.append(nn.ReLU())
 
     layers.append(
         nn.Sequential(
