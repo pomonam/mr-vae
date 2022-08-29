@@ -43,6 +43,7 @@ class HyperConfig:
     self.include_sigmoid_activation = get_ns(args, "include_sigmoid_activation")
     self.include_layer_norm = get_ns(args, "include_layer_norm")
     self.include_shift = get_ns(args, "include_shift")
+    self.include_output_stem = get_ns(args, "include_output_stem")
 
     self.include_residual_connection = get_ns(args,
                                               "include_residual_connection")
