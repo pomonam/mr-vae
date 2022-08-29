@@ -6,16 +6,16 @@ from experiments.array_utils import generate_job_strings
 from experiments.array_utils import generate_sh_file
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--file_name", type=str, default="baseline_save_jobs")
-parser.add_argument("--experiment_name", type=str, default="hv_text_save_jobs")
+parser.add_argument("--file_name", type=str, default="baseline_jobs")
+parser.add_argument("--experiment_name", type=str, default="hv_text_baseline")
 
 args = parser.parse_args()
 
 CONFIG = {
-    "lr": [1],
+    "lr": [1.],
     "total_epochs": [50],
     "data_name": ["yahoo", "yelp"],
-    "schedule": ["cyclic", "constant"],
+    "schedule": ["monotonic", "constant"],
     "beta": np.logspace(-3, 1, num=20),
     "save_final_checkpoint": [1]
 }

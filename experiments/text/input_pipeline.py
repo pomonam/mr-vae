@@ -265,13 +265,3 @@ def load_data(name, split, batch_size, data_path="../../logs/text_data"):
     return data_batch, vocab
   else:
     raise NotImplementedError
-
-
-# def build_input_queue(name, split, batch_size, device, data_path="../../logs/text_data"):
-#     data = load_data(name=name, split=split, batch_size=batch_size,
-#                      data_path=data_path)
-#     data_batch = data.create_data_batch(batch_size=batch_size,
-#                                         device=device,
-#                                         batch_first=True)
-#     for batch in data_batch:
-#         yield {"inputs": batch.to(device, non_blocking=True)}
