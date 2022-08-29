@@ -16,8 +16,7 @@ CONV_CONFIG = {
     "lr": [1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
     "total_epochs": [100],
     "data_name": ["cifar", "svhn", "celeba"],
-    "encoder_name": ["conv"],
-    "decoder_name": ["conv"],
+    "arch_name": ["conv"],
     "schedule": ["monotonic"],
     "beta": [1.]
 }
@@ -26,8 +25,7 @@ RENSET_CONFIG = {
     "lr": [1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
     "total_epochs": [100],
     "data_name": ["cifar", "svhn", "celeba"],
-    "encoder_name": ["resnet"],
-    "decoder_name": ["resnet"],
+    "arch_name": ["resnet"],
     "schedule": ["monotonic"],
     "beta": [1.]
 }

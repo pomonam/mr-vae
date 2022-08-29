@@ -1,30 +1,30 @@
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.001 --total_epochs 100 --data_name cifar --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.001 --total_epochs 100 --data_name svhn --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.001 --total_epochs 100 --data_name celeba --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.0003 --total_epochs 100 --data_name cifar --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.0003 --total_epochs 100 --data_name svhn --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.0003 --total_epochs 100 --data_name celeba --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.0001 --total_epochs 100 --data_name cifar --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.0001 --total_epochs 100 --data_name svhn --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.0001 --total_epochs 100 --data_name celeba --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 3e-05 --total_epochs 100 --data_name cifar --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 3e-05 --total_epochs 100 --data_name svhn --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 3e-05 --total_epochs 100 --data_name celeba --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 1e-05 --total_epochs 100 --data_name cifar --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 1e-05 --total_epochs 100 --data_name svhn --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 1e-05 --total_epochs 100 --data_name celeba --encoder_name conv --decoder_name conv --schedule monotonic --beta 1.0
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.001 --total_epochs 100 --data_name cifar --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.001 --total_epochs 100 --data_name svhn --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.001 --total_epochs 100 --data_name celeba --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.0003 --total_epochs 100 --data_name cifar --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.0003 --total_epochs 100 --data_name svhn --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.0003 --total_epochs 100 --data_name celeba --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.0001 --total_epochs 100 --data_name cifar --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.0001 --total_epochs 100 --data_name svhn --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 0.0001 --total_epochs 100 --data_name celeba --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 3e-05 --total_epochs 100 --data_name cifar --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 3e-05 --total_epochs 100 --data_name svhn --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 3e-05 --total_epochs 100 --data_name celeba --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 1e-05 --total_epochs 100 --data_name cifar --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 1e-05 --total_epochs 100 --data_name svhn --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0 
-python baseline_train.py --experiment_name hv_image_sweep --lr 1e-05 --total_epochs 100 --data_name celeba --encoder_name resnet --decoder_name resnet --schedule monotonic --beta 1.0
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.001 --total_epochs 100 --data_name cifar --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.001 --total_epochs 100 --data_name svhn --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.001 --total_epochs 100 --data_name celeba --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.0003 --total_epochs 100 --data_name cifar --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.0003 --total_epochs 100 --data_name svhn --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.0003 --total_epochs 100 --data_name celeba --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.0001 --total_epochs 100 --data_name cifar --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.0001 --total_epochs 100 --data_name svhn --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.0001 --total_epochs 100 --data_name celeba --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 3e-05 --total_epochs 100 --data_name cifar --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 3e-05 --total_epochs 100 --data_name svhn --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 3e-05 --total_epochs 100 --data_name celeba --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 1e-05 --total_epochs 100 --data_name cifar --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 1e-05 --total_epochs 100 --data_name svhn --arch_name conv --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 1e-05 --total_epochs 100 --data_name celeba --arch_name conv --schedule monotonic --beta 1.0
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.001 --total_epochs 100 --data_name cifar --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.001 --total_epochs 100 --data_name svhn --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.001 --total_epochs 100 --data_name celeba --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.0003 --total_epochs 100 --data_name cifar --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.0003 --total_epochs 100 --data_name svhn --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.0003 --total_epochs 100 --data_name celeba --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.0001 --total_epochs 100 --data_name cifar --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.0001 --total_epochs 100 --data_name svhn --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 0.0001 --total_epochs 100 --data_name celeba --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 3e-05 --total_epochs 100 --data_name cifar --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 3e-05 --total_epochs 100 --data_name svhn --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 3e-05 --total_epochs 100 --data_name celeba --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 1e-05 --total_epochs 100 --data_name cifar --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 1e-05 --total_epochs 100 --data_name svhn --arch_name resnet --schedule monotonic --beta 1.0 
+python baseline_train.py --experiment_name hv_image_sweep --lr 1e-05 --total_epochs 100 --data_name celeba --arch_name resnet --schedule monotonic --beta 1.0
