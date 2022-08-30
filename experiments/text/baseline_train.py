@@ -28,8 +28,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
   "--experiment_name", type=str, default="hypervae-text-train")
 
-parser.add_argument("--decoder_name", type=str, default="trans")
-parser.add_argument("--data_name", type=str, default="yahoo")
+parser.add_argument("--decoder_name", type=str, default="lstm")
+parser.add_argument("--data_name", type=str, default="ptb")
 
 parser.add_argument("--total_epochs", type=int, default=3)
 parser.add_argument("--lr", type=float, default=0.001)
