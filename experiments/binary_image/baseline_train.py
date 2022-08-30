@@ -10,8 +10,10 @@ import wandb
 
 from experiments.binary_image.input_pipeline import load_mnist_data
 from experiments.binary_image.input_pipeline import load_omniglot_data
-from experiments.binary_image.models import ResNetDecoder, ConvDecoder
-from experiments.binary_image.models import ResNetEncoder, ConvEncoder
+from experiments.binary_image.models import ConvDecoder
+from experiments.binary_image.models import ConvEncoder
+from experiments.binary_image.models import ResNetDecoder
+from experiments.binary_image.models import ResNetEncoder
 from experiments.train_utils import evaluate
 from experiments.train_utils import predict
 from experiments.train_utils import train
@@ -29,8 +31,8 @@ parser.add_argument("--data_name", type=str, default="mnist")
 parser.add_argument("--encoder_name", type=str, default="resnet")
 parser.add_argument("--decoder_name", type=str, default="resnet")
 
-parser.add_argument("--total_epochs", type=int, default=5)
-parser.add_argument("--warmup_epochs", type=int, default=5)
+parser.add_argument("--total_epochs", type=int, default=10)
+parser.add_argument("--warmup_epochs", type=int, default=10)
 
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
@@ -150,8 +152,7 @@ def main():
       start_factor=1e-10,
       end_factor=1.,
       total_iters=cfg.warmup_epochs)
-  cosine_epochs = max(
-      cfg.total_epochs - cfg.warmup_epochs, 1)
+  cosine_epochs = max(cfg.total_epochs - cfg.warmup_epochs, 1)
   scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
       optimizer, T_max=cosine_epochs)
   scheduler = torch.optim.lr_scheduler.SequentialLR(

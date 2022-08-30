@@ -8,8 +8,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import wandb
 
-from experiments.binary_image.hyper_models import HyperResNetDecoder, HyperResNetEncoder, HyperConvDecoder, HyperConvEncoder
-from experiments.binary_image.hyper_models import HyperResNetEncoder, HyperConvDecoder, HyperConvEncoder, HyperResNetDecoder
+from experiments.binary_image.hyper_models import HyperConvDecoder
+from experiments.binary_image.hyper_models import HyperConvEncoder
+from experiments.binary_image.hyper_models import HyperResNetDecoder
+from experiments.binary_image.hyper_models import HyperResNetEncoder
 from experiments.binary_image.input_pipeline import load_mnist_data
 from experiments.binary_image.input_pipeline import load_omniglot_data
 from experiments.hyper_train_utils import hyper_evaluate
@@ -134,10 +136,7 @@ def build_model(encoder_name, decoder_name, hyper_cfg, device):
   else:
     raise
 
-  model = BetaHyperVAE(
-      encoder=encoder,
-      decoder=decoder,
-      hyper_cfg=hyper_cfg)
+  model = BetaHyperVAE(encoder=encoder, decoder=decoder, hyper_cfg=hyper_cfg)
   return model.to(device)
 
 

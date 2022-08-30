@@ -48,7 +48,7 @@ def generate_sh_file(file_name: str,
   lines += "#SBATCH -c 4\n"
   lines += "\n"
 
-  lines += ". $HOME/envs/vae_env\n"
+  lines += ". $HOME/envs/hvae_env\n"
   lines += "export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH\n"
   lines += "\n"
 
