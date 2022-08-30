@@ -134,33 +134,33 @@ class CifarResNetEncoder(BaseEncoder):
     layers = nn.ModuleList()
 
     layers.append(
-        nn.Sequential(
-            nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-        ))
+      nn.Sequential(
+        nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
+        nn.BatchNorm2d(64),
+        nn.ReLU(),
+      ))
 
     layers.append(
-        nn.Sequential(
-            nn.Conv2d(64, 128, 4, 2, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-        ))
+      nn.Sequential(
+        nn.Conv2d(64, 128, 4, 2, padding=1),
+        nn.BatchNorm2d(128),
+        nn.ReLU(),
+      ))
 
     layers.append(
-        nn.Sequential(
-            nn.Conv2d(128, 128, 3, 1, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-        ))
+      nn.Sequential(
+        nn.Conv2d(128, 128, 3, 1, padding=1),
+        nn.BatchNorm2d(128),
+        nn.ReLU(),
+      ))
 
     layers.append(
-        nn.Sequential(
-          ResBlock(channels=128),
-          nn.ReLU(),
-          ResBlock(channels=128),
-          nn.ReLU(),
-        ))
+      nn.Sequential(
+        ResBlock(channels=128),
+        nn.ReLU(),
+        ResBlock(channels=128),
+        nn.ReLU(),
+      ))
 
     self.layers = layers
     self.depth = len(layers)
@@ -189,7 +189,7 @@ class CifarResNetDecoder(BaseDecoder):
     BaseDecoder.__init__(self)
 
     self.input_dim = (3, 32, 32)
-    self.latent_dim = 32
+    self.latent_dim = latent_dim
     self.n_channels = 3
 
     layers = nn.ModuleList()
@@ -197,24 +197,24 @@ class CifarResNetDecoder(BaseDecoder):
     layers.append(nn.Linear(self.latent_dim, 128 * 8 * 8))
 
     layers.append(
-        nn.Sequential(
-            ResBlock(channels=128),
-            nn.ReLU(),
-            ResBlock(channels=128),
-            nn.ReLU(),
-        ))
+      nn.Sequential(
+        ResBlock(channels=128),
+        nn.ReLU(),
+        ResBlock(channels=128),
+        nn.ReLU(),
+      ))
 
     layers.append(
-        nn.Sequential(
-            nn.ConvTranspose2d(128, 64, 4, 2, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-        ))
+      nn.Sequential(
+        nn.ConvTranspose2d(128, 64, 4, 2, padding=1),
+        nn.BatchNorm2d(64),
+        nn.ReLU(),
+      ))
 
     layers.append(
-        nn.Sequential(
-            nn.ConvTranspose2d(64, self.n_channels, 4, 2, padding=1),
-            nn.Sigmoid()))
+      nn.Sequential(
+        nn.ConvTranspose2d(64, self.n_channels, 4, 2, padding=1),
+        nn.Sigmoid()))
     self.layers = layers
     self.depth = len(layers)
 
@@ -396,13 +396,13 @@ class CelebResNetEncoder(BaseEncoder):
     )
 
     layers.append(
-        nn.Sequential(
-            ResBlock(channels=128),
-            nn.ReLU(),
-          ResBlock(channels=128),
-          nn.ReLU()
+      nn.Sequential(
+        ResBlock(channels=128),
+        nn.ReLU(),
+        ResBlock(channels=128),
+        nn.ReLU()
 
-        ))
+      ))
 
     self.layers = layers
     self.depth = len(layers)
@@ -440,22 +440,22 @@ class CelebResNetDecoder(BaseDecoder):
 
     layers.append(
       nn.Sequential(
-        nn.ConvTranspose2d(128, 128, 3, 2, padding=2),
+        nn.ConvTranspose2d(128, 128, 3, 2, padding=1),
         nn.BatchNorm2d(128),
         nn.ReLU(),
       )
     )
     layers.append(
-        nn.Sequential(
-            ResBlock(channels=128),
-            nn.ReLU(),
-          ResBlock(channels=128),
-          nn.ReLU(),
-        ))
+      nn.Sequential(
+        ResBlock(channels=128),
+        nn.ReLU(),
+        ResBlock(channels=128),
+        nn.ReLU(),
+      ))
 
     layers.append(
       nn.Sequential(
-        nn.ConvTranspose2d(128, 128, 5, 2, padding=1,),
+        nn.ConvTranspose2d(128, 128, 5, 2, padding=1, ),
         nn.BatchNorm2d(128),
         nn.Sigmoid(),
       )
