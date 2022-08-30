@@ -26,6 +26,8 @@ _site
 .vscode
 .env
 
+experiments/binary_image/wandb
+
 experiments/image/checkpoints
 experiments/image/wandb
 
