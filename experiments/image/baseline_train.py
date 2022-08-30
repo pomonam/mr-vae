@@ -27,8 +27,8 @@ parser.add_argument(
 parser.add_argument("--arch_name", type=str, default="resnet")
 parser.add_argument("--data_name", type=str, default="cifar")
 
-parser.add_argument("--total_epochs", type=int, default=5)
-parser.add_argument("--warmup_epochs", type=int, default=5)
+parser.add_argument("--total_epochs", type=int, default=10)
+parser.add_argument("--warmup_epochs", type=int, default=10)
 
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
