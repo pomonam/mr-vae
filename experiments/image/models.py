@@ -369,7 +369,7 @@ class CelebResNetEncoder(BaseEncoder):
     layers.append(
       nn.Sequential(
         nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
-        nn.BatchNorm2d(128),
+        nn.BatchNorm2d(64),
         nn.ReLU(),
       )
     )
@@ -456,7 +456,7 @@ class CelebResNetDecoder(BaseDecoder):
     layers.append(
       nn.Sequential(
         nn.ConvTranspose2d(128, 128, 5, 2, padding=1,),
-        nn.BatchNorm2d(256),
+        nn.BatchNorm2d(128),
         nn.Sigmoid(),
       )
     )
