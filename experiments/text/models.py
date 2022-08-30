@@ -10,39 +10,33 @@ from src.base_architecture import BaseEncoder
 
 class LstmEncoder(BaseEncoder):
 
-  def __init__(self, vocab_size):
+  def __init__(self, vocab_size, v1=True):
     BaseEncoder.__init__(self)
+    # v1 is for yahoo, v2 is for ptb.
+
     self.latent_dim = 32
 
+    embed_dim = 512 if v1 else 256
     enc_emb_hparams = {
       'name': 'lookup_table',
-      "dim": 512,
+      "dim": embed_dim,
       "dropout_rate": 0.,
       'initializer': {
         'type': 'normal_',
         'kwargs': {
           'mean': 0.0,
-          'std': 512 ** -0.5,
+          'std': embed_dim ** -0.5,
         },
       }
     }
-    self.embed = nn.Embedding(vocab_size, 512)
     self.embed = tx.modules.WordEmbedder(
             vocab_size=vocab_size, hparams=enc_emb_hparams)
 
-    # self.lstm = nn.LSTM(
-    #     input_size=512,
-    #     hidden_size=512,
-    #     num_layers=1,
-    #     batch_first=True,
-    #     dropout=0.,
-    #     bias=False
-    # )
-
+    hidden_size = 550 if v1 else 256
     enc_cell_hparams = {
       "type": "LSTMCell",
       "kwargs": {
-        "num_units": 512,
+        "num_units": hidden_size,
         "bias": 0.
       },
       "num_layers": 1
@@ -53,8 +47,8 @@ class LstmEncoder(BaseEncoder):
         "rnn_cell": enc_cell_hparams,
       })
 
-    self.embedding = nn.Linear(1024, self.latent_dim)
-    self.log_var = nn.Linear(1024, self.latent_dim)
+    self.embedding = nn.Linear(hidden_size * 2, self.latent_dim)
+    self.log_var = nn.Linear(hidden_size * 2, self.latent_dim)
 
   def forward(self, batch):
     text_ids = batch["text_ids"]
@@ -72,28 +66,31 @@ class LstmEncoder(BaseEncoder):
 
 class LstmDecoder(BaseDecoder):
 
-  def __init__(self, vocab_size):
+  def __init__(self, vocab_size, v1=True):
     BaseDecoder.__init__(self)
 
+    embed_dim = 512 if v1 else 256
     dec_emb_hparams = {
       'name': 'lookup_table',
-      "dim": 512,
+      "dim": embed_dim,
       "dropout_rate": 0.5,
       'initializer': {
         'type': 'normal_',
         'kwargs': {
           'mean': 0.0,
-          'std': 512 ** -0.5,
+          'std': embed_dim ** -0.5,
         },
       }
     }
     self.decoder_w_embedder = tx.modules.WordEmbedder(
       vocab_size=vocab_size, hparams=dec_emb_hparams)
 
+    hidden_size = 550 if v1 else 256
+    self.hidden_size = hidden_size
     dec_cell_hparams = {
       "type": "LSTMCell",
       "kwargs": {
-        "num_units": 512,
+        "num_units": hidden_size,
         "bias": 0.
       },
       "dropout": {"output_keep_prob": 1. - 0.5},
@@ -101,18 +98,14 @@ class LstmDecoder(BaseDecoder):
     }
 
     self.lstm_decoder = tx.modules.BasicRNNDecoder(
-      input_size=(self.decoder_w_embedder.dim +
-                  32),
+      input_size=(self.decoder_w_embedder.dim + 32),
       vocab_size=vocab_size,
       token_embedder=self._embed_fn_rnn,
       hparams={"rnn_cell": dec_cell_hparams})
 
-    self.mlp_linear_layer = nn.Linear(32, 1024, bias=True)
-
+    self.mlp_linear_layer = nn.Linear(32, hidden_size * 2)
 
   def _embed_fn_rnn(self, tokens: torch.LongTensor):
-    r"""Generates word embeddings
-    """
     embedding = self.decoder_w_embedder(tokens)
     latent_z = self._latent_z
     if len(embedding.size()) > 2:
@@ -122,33 +115,12 @@ class LstmDecoder(BaseDecoder):
   def forward(self, z: torch.Tensor):
     raise LookupError
 
-  def special_decode(self, input, z):
-    batch_size, _ = z.size()
-    seq_len = input.size(1)
-
-    word_embed = self.embed(input)
-    word_embed = self.dropout_in(word_embed)
-
-    z_ = z.unsqueeze(1).expand(batch_size, seq_len, 32)
-    word_embed = torch.cat((word_embed, z_), -1)
-
-    z = z.view(batch_size, 32)
-    c_init = self.trans_linear(z).unsqueeze(0)
-    h_init = torch.tanh(c_init)
-    output, _ = self.lstm(word_embed, (h_init, c_init))
-
-    output = self.dropout_out(output)
-    output_logits = self.pred_linear(output)
-
-    return output_logits
-
   def decode(self,
              helper,
              latent_z,
              text_ids,
              seq_lengths,
              max_decoding_length = None):
-    self._latent_z = latent_z
     fc_output = self.mlp_linear_layer(latent_z)
 
     lstm_states = torch.chunk(fc_output, 2, dim=1)
@@ -181,27 +153,26 @@ class LstmDecoder(BaseDecoder):
       labels=data_batch["text_ids"][:, 1:], logits=logits,
       sequence_length=seq_lengths)
 
-    # batch_size, seq_len = src.size()
-    # output_logits = self.special_decode(src, z)
-    # tgt = tgt.contiguous().view(-1)
-    # loss = self.loss(output_logits.view(-1, output_logits.size(2)), tgt)
     return rc_loss
 
 
 class TransformerDecoder(BaseDecoder):
 
-  def __init__(self, vocab_size):
+  def __init__(self, vocab_size, v1=True):
     BaseDecoder.__init__(self)
 
+    embd_dim = 512 if v1 else 256
+    hidden_size = 512 if v1 else 256
+    self.hidden_size = hidden_size
     dec_emb_hparams = {
       'name': 'lookup_table',
-      "dim": 512,
+      "dim": embd_dim,
       "dropout_rate": 0.,
       'initializer': {
         'type': 'normal_',
         'kwargs': {
           'mean': 0.0,
-          'std': 512 ** -0.5,
+          'std': embd_dim ** -0.5,
         },
       }
     }
@@ -209,7 +180,7 @@ class TransformerDecoder(BaseDecoder):
       vocab_size=vocab_size, hparams=dec_emb_hparams)
 
     dec_pos_emb_hparams = {
-      'dim': 512,
+      'dim': hidden_size,
     }
     self.decoder_p_embedder = tx.modules.SinusoidsPositionEmbedder(
       position_size=300,
@@ -220,7 +191,6 @@ class TransformerDecoder(BaseDecoder):
     attention_dropout = 0.2
     residual_dropout = 0.2
     num_blocks = 3
-    hidden_size = 512
     trans_hparams = {
       'output_layer_bias': False,
       'embedding_dropout': embedding_dropout,
@@ -279,17 +249,16 @@ class TransformerDecoder(BaseDecoder):
       token_pos_embedder=self._embed_fn_transformer,
       hparams=trans_hparams)
 
-    self.mlp_linear_layer = nn.Linear(32, 512, bias=True)
+    self.mlp_linear_layer = nn.Linear(32, hidden_size, bias=True)
 
   def _embed_fn_transformer(self,
                             tokens: torch.LongTensor,
                             positions: torch.LongTensor):
       r"""Generates word embeddings combined with positional embeddings
       """
-      hidden_size = 512
       output_p_embed = self.decoder_p_embedder(positions)
       output_w_embed = self.decoder_w_embedder(tokens)
-      output_w_embed = output_w_embed * hidden_size ** 0.5
+      output_w_embed = output_w_embed * self.hidden_size ** 0.5
       output_embed = output_w_embed + output_p_embed
       return output_embed
 
