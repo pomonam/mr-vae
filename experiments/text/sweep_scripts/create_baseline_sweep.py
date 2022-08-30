@@ -15,6 +15,7 @@ args = parser.parse_args()
 CONFIG = {
     "lr": [3e-3, 1e-3, 3e-4],
     "data_name": ["yahoo", "ptb"],
+    "total_epochs": [100],
     "decoder_name": ["lstm", "trans"],
     "schedule": ["monotonic"],
     "beta": [1.]
