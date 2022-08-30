@@ -144,11 +144,20 @@ def main():
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
-  scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+
+  scheduler1 = torch.optim.lr_scheduler.LinearLR(
       optimizer,
-      int(cfg.total_epochs - cfg.warmup_epochs - 1),
-      eta_min=1e-5
-  )
+      start_factor=1e-10,
+      end_factor=1.,
+      total_iters=cfg.warmup_epochs)
+  cosine_epochs = max(
+      cfg.total_epochs - cfg.warmup_epochs, 1)
+  scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
+      optimizer, T_max=cosine_epochs)
+  scheduler = torch.optim.lr_scheduler.SequentialLR(
+      optimizer,
+      schedulers=[scheduler1, scheduler2],
+      milestones=[cfg.warmup_epochs])
 
   if args.data_name == "mnist":
     train_loader = load_mnist_data(
