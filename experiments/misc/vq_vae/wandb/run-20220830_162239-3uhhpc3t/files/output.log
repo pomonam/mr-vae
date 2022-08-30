@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/vq_vae/baseline_train.py", line 157, in <module>
+    main()
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/vq_vae/baseline_train.py", line 75, in main
+    model = build_model(args.data_name, DEVICE)
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/vq_vae/baseline_train.py", line 61, in build_model
+    lamb=args.lamb
+  File "/Users/juhanbae/codes/hyper-vae/src/models/vq_vae.py", line 26, in __init__
+    self._set_quantizer(model_config)
+  File "/Users/juhanbae/codes/hyper-vae/src/models/vq_vae.py", line 38, in _set_quantizer
+    z = self.encoder(x).embedding
+AttributeError: 'dict' object has no attribute 'embedding'

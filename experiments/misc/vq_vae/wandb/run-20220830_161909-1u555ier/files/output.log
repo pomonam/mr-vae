@@ -1,0 +1,31 @@
+100%|██████████| 9912422/9912422 [00:02<00:00, 3898211.42it/s]
+100%|██████████| 28881/28881 [00:00<00:00, 8308346.63it/s]
+Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+Downloading http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz to ../../logs/data/MNIST/raw/train-images-idx3-ubyte.gz
+Extracting ../../logs/data/MNIST/raw/train-images-idx3-ubyte.gz to ../../logs/data/MNIST/raw
+Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
+Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz to ../../logs/data/MNIST/raw/train-labels-idx1-ubyte.gz
+Extracting ../../logs/data/MNIST/raw/train-labels-idx1-ubyte.gz to ../../logs/data/MNIST/raw
+Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+100%|██████████| 1648877/1648877 [00:00<00:00, 5681080.21it/s]
+100%|██████████| 4542/4542 [00:00<00:00, 16829089.02it/s]
+0it [00:00, ?it/s]
+Traceback (most recent call last):
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/vq_vae/baseline_train.py", line 157, in <module>
+    main()
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/vq_vae/baseline_train.py", line 109, in main
+    cfg,
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/vq_vae/train_utils.py", line 91, in train
+    output_dict = model(batch)
+  File "/Users/juhanbae/opt/anaconda3/envs/vae/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/juhanbae/codes/hyper-vae/src/models/vq_vae.py", line 64, in forward
+    quantizer_output = self.quantizer(embeddings)
+  File "/Users/juhanbae/opt/anaconda3/envs/vae/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1208, in __getattr__
+    type(self).__name__, name))
+AttributeError: 'VQVAE' object has no attribute 'quantizer'
+Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz to ../../logs/data/MNIST/raw/t10k-images-idx3-ubyte.gz
+Extracting ../../logs/data/MNIST/raw/t10k-images-idx3-ubyte.gz to ../../logs/data/MNIST/raw
+Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
+Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz to ../../logs/data/MNIST/raw/t10k-labels-idx1-ubyte.gz
+Extracting ../../logs/data/MNIST/raw/t10k-labels-idx1-ubyte.gz to ../../logs/data/MNIST/raw

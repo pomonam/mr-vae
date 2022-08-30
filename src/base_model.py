@@ -10,7 +10,7 @@ from src.base_architecture import BaseEncoder
 class BaseAE(nn.Module):
 
   def __init__(self,
-               encoder: BaseDecoder = None,
+               encoder: BaseEncoder = None,
                decoder: BaseDecoder = None,
                reconstruction_loss: str = "mse"):
 
