@@ -1,0 +1,154 @@
+Files already downloaded and verified
+Files already downloaded and verified
+Files already downloaded and verified
+Files already downloaded and verified
+Files already downloaded and verified
+Files already downloaded and verified
+
+
+
+
+
+
+
+
+
+
+
+Epoch 0	train_eval	|	loss = 208.9288	rate = 0.025	distortion = 208.9039	mi = 4.7942: : 351it [00:24, 14.08it/s]
+
+
+Epoch 0	test	|	loss = 207.734	rate = 0.025	distortion = 207.709	mi = 4.7707: : 79it [00:05, 15.25it/s]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 0	train	|	loss = 656.5737	rate = 33.7082	distortion = 656.5737: : 351it [00:53,  6.61it/s]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 1	train	|	loss = 472.2548	rate = 17.7663	distortion = 458.0417: : 351it [00:52,  6.72it/s]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 2	train	|	loss = 450.7262	rate = 13.7622	distortion = 436.9639: : 351it [00:52,  6.69it/s]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 3	train	|	loss = 318.4638	rate = 20.1626	distortion = 298.3013: : 351it [00:52,  6.69it/s]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 4	train	|	loss = 93.9356	rate = 21.5894	distortion = 72.3462: : 351it [00:51,  6.78it/s]
+/home/baejuhan/anaconda3/envs/vae/lib/python3.7/site-packages/torch/optim/lr_scheduler.py:156: UserWarning: The epoch parameter in `scheduler.step()` was not necessary and is being deprecated where possible. Please use `scheduler.step()` to step the scheduler. During the deprecation, if epoch is different from None, the closed form is used instead of the new chainable form, where available. Please open an issue if you are unable to replicate your use case: https://github.com/pytorch/pytorch/issues/new/choose.
+  warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning)

@@ -10,11 +10,11 @@ from src.models.resblock import ResBlock
 
 class CifarConvEncoder(BaseEncoder):
 
-  def __init__(self):
+  def __init__(self, latent_dim):
     BaseEncoder.__init__(self)
 
     self.input_dim = (3, 32, 32)
-    self.latent_dim = 32
+    self.latent_dim = latent_dim
     self.n_channels = 3
 
     layers = nn.ModuleList()
@@ -68,11 +68,11 @@ class CifarConvEncoder(BaseEncoder):
 
 class CifarConvDecoder(BaseDecoder):
 
-  def __init__(self):
+  def __init__(self, latent_dim):
     BaseDecoder.__init__(self)
 
     self.input_dim = (3, 32, 32)
-    self.latent_dim = 32
+    self.latent_dim = latent_dim
     self.n_channels = 3
 
     layers = nn.ModuleList()
@@ -124,11 +124,11 @@ class CifarConvDecoder(BaseDecoder):
 
 class CifarResNetEncoder(BaseEncoder):
 
-  def __init__(self):
+  def __init__(self, latent_dim):
     BaseEncoder.__init__(self)
 
     self.input_dim = (3, 32, 32)
-    self.latent_dim = 32
+    self.latent_dim = latent_dim
     self.n_channels = 3
 
     layers = nn.ModuleList()
@@ -185,7 +185,7 @@ class CifarResNetEncoder(BaseEncoder):
 
 class CifarResNetDecoder(BaseDecoder):
 
-  def __init__(self):
+  def __init__(self, latent_dim):
     BaseDecoder.__init__(self)
 
     self.input_dim = (3, 32, 32)
