@@ -10,7 +10,7 @@ import tqdm
 import wandb
 
 from experiments.text.input_pipeline import load_data
-from experiments.text.models import LstmDecoder
+from experiments.text.models import LstmDecoder, TransformerDecoder
 from experiments.text.models import LstmEncoder
 from experiments.train_utils import evaluate
 from experiments.train_utils import train
@@ -28,10 +28,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--experiment_name", type=str, default="hypervae-text-train")
 
-parser.add_argument("--data_name", type=str, default="yahoo")
+parser.add_argument("--decoder_name", type=str, default="trans")
+parser.add_argument("--data_name", type=str, default="ptb")
 
 parser.add_argument("--total_epochs", type=int, default=3)
-parser.add_argument("--lr", type=float, default=1.)
+parser.add_argument("--lr", type=float, default=0.001)
 parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--beta", type=float, default=1.)
 parser.add_argument("--schedule", type=str, default="constant")
@@ -102,10 +103,10 @@ def build_criterion(device):
   return loss_fnc.to(device)
 
 
-def build_model(vocab_size, device):
+def build_model(vocab_size, decoder_name, device):
   model = BetaVAE(
       encoder=LstmEncoder(vocab_size),
-      decoder=LstmDecoder(vocab_size),
+      decoder=LstmDecoder(vocab_size) if decoder_name == "lstm" else TransformerDecoder(vocab_size),
   )
   return model.to(device)
 
@@ -118,16 +119,19 @@ def build_input_queue(loader, device):
       yield {"data": batch.to(device, non_blocking=True)}
 
 
-def evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
+def evaluate(model, iterator, criterion, epoch, name, device, start_token, end_token, delta=0.01, ):
   model.eval()
 
   with torch.no_grad():
-    loader = build_input_queue(loader, device)
-    p_bar = tqdm.tqdm(loader)
+    iterator.switch_to_dataset(name)
+    p_bar = tqdm.tqdm(iterator)
     metric_dict = initialize_metric(criterion.get_eval_metric_lst())
     means = []
 
+    num_words = 0.
+    nll_total = 0.
     for batch in p_bar:
+      batch = {"data": batch, "start_tokens": start_token, "end_token":end_token}
       output_dict = model(batch)
       means.append(output_dict["mu"])
 
@@ -138,11 +142,13 @@ def evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
           log_var=output_dict["log_var"],
           z=output_dict["z"],
           beta=1.)
-      metric_dict = update_metric(metric_dict, loss_dict, batch["data"].size(0))
+      metric_dict = update_metric(metric_dict, loss_dict, batch["data"]["text_ids"].size(0))
       summ_dict = summarize_metric(metric_dict)
       summ_str = generate_metric_str(name, epoch, summ_dict)
       p_bar.set_description(summ_str)
 
+      num_words += len(batch["data"]["length"] - 1)
+      nll_total += loss_dict["loss"].item()
   means = torch.cat(means, dim=0)
   au_mean = means.mean(0, keepdim=True)
 
@@ -152,6 +158,11 @@ def evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
 
   summ_dict = summarize_metric(metric_dict, name=name + "/")
   summ_dict[name + "/" + "au"] = (au_var >= delta).sum().item()
+
+  log_ppl = nll_total / num_words
+  ppl = math.exp(log_ppl)
+  summ_dict[name + "/" + "log_ppl"] = log_ppl
+  summ_dict[name + "/" + "ppl"] = ppl
   wandb.log(summ_dict)
   return metric_dict["loss"].avg
 
@@ -184,14 +195,16 @@ def evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
 
 
 def train(model,
-          train_loader,
-          test_loader,
+          iterator,
+          # test_loader,
           criterion,
           optimizer,
           scheduler,
           device,
           cfg,
-          valid_loader=None):
+          start_token,
+          end_token
+          ):
   do_checkpoint = cfg.checkpoint_dir is not None
   if do_checkpoint and os.path.exists(
       os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
@@ -205,12 +218,28 @@ def train(model,
     epoch = 0
 
   while epoch < cfg.total_epochs:
-    do_evaluate = epoch % cfg.eval_freq == 0 and epoch != 0
+    do_evaluate = epoch % cfg.eval_freq == 0
     do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
     if do_evaluate:
-      evaluate(model, train_loader, criterion, epoch, "train_eval", device)
-      evaluate(model, test_loader, criterion, epoch, "test", device)
+      evaluate(model,
+               iterator,
+               criterion,
+               epoch,
+               "train",
+               device,
+               start_token,
+               end_token
+               )
+      evaluate(model,
+               iterator,
+               criterion,
+               epoch,
+               "test",
+               device,
+               start_token,
+               end_token
+               )
 
     if do_checkpoint and do_save:
       slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")
@@ -225,11 +254,11 @@ def train(model,
 
     model.train()
     metric_dict = initialize_metric(criterion.get_metric_lst())
-    p_bar = tqdm.tqdm(np.random.permutation(len(train_loader)))
+    iterator.switch_to_dataset("train")
+    p_bar = tqdm.tqdm(iterator)
 
-    for i in p_bar:
-      batch = train_loader[i]
-      batch = {"data": batch.to(device, non_blocking=True)}
+    for batch in p_bar:
+      batch = {"data": batch, "start_tokens": start_token, "end_token":end_token}
       output_dict = model(batch)
       loss_dict = criterion(
           recon_x=output_dict["reconstruction"],
@@ -242,7 +271,10 @@ def train(model,
       loss_dict["loss"].backward()
       torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
       optimizer.step()
-      metric_dict = update_metric(metric_dict, loss_dict, batch["data"].size(0))
+      metric_dict = update_metric(metric_dict, loss_dict, batch["data"]["text_ids"].size(0))
+      summ_dict = summarize_metric(metric_dict)
+      summ_str = generate_metric_str("train", epoch, summ_dict)
+      p_bar.set_description(summ_str)
 
     summ_dict = summarize_metric(metric_dict, name="train_step/")
     summ_dict["beta"] = cfg.get_beta(epoch)
@@ -252,11 +284,14 @@ def train(model,
 
     if "ReduceLROnPlateau" in str(scheduler.__class__):
       val_loss = evaluate(model,
-                          valid_loader,
+                          iterator,
                           criterion,
                           epoch,
                           "valid",
-                          device)
+                          device,
+                          start_token,
+                          end_token
+                          )
       scheduler.step(val_loss)
     else:
       scheduler.step()
@@ -273,36 +308,41 @@ def main():
 
   seed_everything(cfg.seed)
 
-  train_loader, vocab = load_data(
-      args.data_name, "train", cfg.batch_size, data_path="../../logs/text_data")
-  valid_loader, _ = load_data(
-      args.data_name, "valid", cfg.batch_size, data_path="../../logs/text_data")
-  test_loader, _ = load_data(
-      args.data_name, "test", cfg.batch_size, data_path="../../logs/text_data")
-
-  vocab_size = len(vocab)
-  model = build_model(vocab_size, DEVICE)
-  optimizer = torch.optim.SGD(model.parameters(), lr=cfg.lr)
+  train_data, iterator, vocab = load_data(args.data_name, "train", cfg.batch_size,
+                                          data_path="../../logs/text_data", device=DEVICE)
+  model = build_model(train_data.vocab.size, args.decoder_name, DEVICE)
+  optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
   scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-      optimizer, patience=2, factor=0.5, cooldown=15)
+      optimizer, patience=2, factor=0.5, cooldown=15, min_lr=1e-6)
+
+  start_tokens = torch.full(
+    (cfg.batch_size,),
+    vocab.bos_token_id,
+    dtype=torch.long).to(DEVICE)
+  end_token = vocab.eos_token_id
 
   train(model,
-        train_loader,
-        test_loader,
+        iterator,
         criterion,
         optimizer,
         scheduler,
         DEVICE,
         cfg,
-        valid_loader)
+        start_tokens,
+        end_token
+        )
   evaluate(model,
-           train_loader,
+           iterator,
            criterion,
            cfg.total_epochs,
            "train_eval",
-           DEVICE)
-  evaluate(model, test_loader, criterion, cfg.total_epochs, "test", DEVICE)
+           DEVICE,
+           start_tokens,
+           end_token
+           )
+  evaluate(model, iterator, criterion, cfg.total_epochs, "test", DEVICE,         start_tokens,
+        end_token)
 
   if args.save_final_checkpoint is not None:
     save_checkpoint = \
