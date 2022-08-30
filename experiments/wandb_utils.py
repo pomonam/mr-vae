@@ -4,7 +4,7 @@ import pathlib
 import wandb
 
 
-def init_api() -> wandb.Api:
+def init_api():
   api = wandb.Api()
   return api
 
