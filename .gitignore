@@ -27,8 +27,9 @@ _site
 .env
 
 experiments/binary_image/wandb
+experiments/image/wandb
+experiments/text/wandb
 
 experiments/image/checkpoints
-experiments/image/wandb
 
 experiments/omniglot/checkpoints

@@ -104,7 +104,7 @@ def build_criterion(device):
 
 
 def build_model(vocab_size, data_name, decoder_name, device):
-  v1 = True if data_name == "yahoo" else False
+  v1 = data_name == "yahoo"
   model = BetaVAE(
     encoder=LstmEncoder(vocab_size, v1=v1),
     decoder=LstmDecoder(vocab_size, v1=v1) if decoder_name == "lstm" else TransformerDecoder(vocab_size, v1=v1),
