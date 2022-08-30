@@ -1,0 +1,13 @@
+0it [00:00, ?it/s]
+Traceback (most recent call last):
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/vq_vae/baseline_train.py", line 157, in <module>
+    main()
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/vq_vae/baseline_train.py", line 109, in main
+    cfg,
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/vq_vae/train_utils.py", line 91, in train
+    output_dict = model(batch)
+  File "/Users/juhanbae/opt/anaconda3/envs/vae/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/juhanbae/codes/hyper-vae/src/models/vq_vae.py", line 68, in forward
+    quantized_embed = quantizer_output.quantized_vector
+AttributeError: 'dict' object has no attribute 'quantized_vector'
