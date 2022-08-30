@@ -21,22 +21,25 @@ from src.models.beta_vae import log_sum_exp
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--experiment_name", type=str, default="hvae_image_debug")
+parser.add_argument(
+    "--experiment_name", type=str, default="hv_image_debug")
 
 parser.add_argument("--arch_name", type=str, default="conv")
 parser.add_argument("--data_name", type=str, default="cifar")
 
-parser.add_argument("--total_epochs", type=int, default=3)
-parser.add_argument("--lr", type=float, default=1e-4)
+parser.add_argument("--total_epochs", type=int, default=5)
+parser.add_argument("--warmup_epochs", type=int, default=5)
+
+parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--beta", type=float, default=1.)
-parser.add_argument("--schedule", type=str, default="constant")
+parser.add_argument("--schedule", type=str, default="monotonic")
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
 parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=25)
-parser.add_argument("--eval_freq", type=int, default=25)
+parser.add_argument("--save_freq", type=int, default=50)
+parser.add_argument("--eval_freq", type=int, default=10)
 args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
@@ -108,15 +111,20 @@ def build_criterion(device):
 
 def build_model(data_name, device):
   if data_name in ["cifar", "svhn"]:
+    if data_name == "cifar":
+      latent_dim = 256
+    else:
+      latent_dim = 32
     model = BetaVAE(
-      encoder=CifarConvEncoder() if args.arch_name == "conv" else CifarResNetEncoder(),
-      decoder=CifarConvDecoder() if args.arch_name == "conv" else CifarResNetDecoder(),
+      encoder=CifarConvEncoder(latent_dim) if args.arch_name == "conv" else CifarResNetEncoder(latent_dim),
+      decoder=CifarConvDecoder(latent_dim) if args.arch_name == "conv" else CifarResNetDecoder(latent_dim),
     )
   else:
     model = BetaVAE(
       encoder=CelebConvEncoder() if args.arch_name == "conv" else CelebResNetEncoder(),
       decoder=CelebConvDecoder() if args.arch_name == "conv" else CelebResNetDecoder(),
     )
+  model.reconstruction_loss = "mse"
   return model.to(device)
 
 
@@ -130,8 +138,19 @@ def main():
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
-  scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, factor=0.5, patience=10, verbose=True)
+  scheduler1 = torch.optim.lr_scheduler.LinearLR(
+      optimizer,
+      start_factor=1e-10,
+      end_factor=1.,
+      total_iters=cfg.warmup_epochs)
+  cosine_epochs = max(
+      cfg.total_epochs - cfg.warmup_epochs, 1)
+  scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
+      optimizer, T_max=cosine_epochs)
+  scheduler = torch.optim.lr_scheduler.SequentialLR(
+      optimizer,
+      schedulers=[scheduler1, scheduler2],
+      milestones=[cfg.warmup_epochs])
 
   train_loader = load_data(
     args.data_name,
@@ -139,12 +158,12 @@ def main():
     cfg.batch_size,
     workers=4,
     data_path="../../logs/data")
-  valid_loader = load_data(
-    args.data_name,
-    "valid",
-    cfg.batch_size,
-    workers=2,
-    data_path="../../logs/data")
+  # valid_loader = load_data(
+  #   args.data_name,
+  #   "valid",
+  #   cfg.batch_size,
+  #   workers=2,
+  #   data_path="../../logs/data")
   test_loader = load_data(
     args.data_name,
     "test",
@@ -160,7 +179,8 @@ def main():
         scheduler,
         DEVICE,
         cfg,
-        valid_loader)
+        # valid_loader
+        )
   evaluate(model,
            train_loader,
            criterion,
@@ -196,7 +216,8 @@ def main():
 
   if args.save_final_checkpoint is not None:
     save_checkpoint = \
-      os.path.join("checkpoints", "base_{}_{}_{}.pth".format(args.data_name, args.beta, args.schedule))
+      os.path.join("checkpoints", "base_{}_{}_{}_{}.pth".format(args.data_name, args.arch_name,
+                                                                args.beta, args.schedule))
     log_info = {
       "state_dict": model.state_dict(),
     }

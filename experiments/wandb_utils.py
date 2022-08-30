@@ -19,7 +19,7 @@ def init_wandb(checkpoint_dir: str,
                run_name: str = None,
                config: dict = None) -> None:
   if checkpoint_dir is None:
-    wandb.init(project=project_name, name=run_name, config=config, dir=log_dir)
+    wandb.init(project=project_name, name=run_name, config=config)
   else:
     # If the run_id was previously saved, resume from there
     wandb_id_file_path = pathlib.Path(
