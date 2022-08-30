@@ -1,0 +1,22 @@
+{
+    "os": "Darwin-21.5.0-x86_64-i386-64bit",
+    "python": "3.7.13",
+    "heartbeatAt": "2022-08-30T19:11:32.698052",
+    "startedAt": "2022-08-30T19:11:31.705560",
+    "docker": null,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/juhanbae/codes/hyper-vae/experiments/binary_image/baseline_train.py",
+    "codePath": "experiments/binary_image/baseline_train.py",
+    "git": {
+        "remote": "https://github.com/pomonam/hyper-vae",
+        "commit": "314282a3402a80edb5f3136be5f38acab9a2ffaf"
+    },
+    "email": "juhan.bae@mail.utoronto.ca",
+    "root": "/Users/juhanbae/codes/hyper-vae",
+    "host": "Juhans-MacBook-Pro.local",
+    "username": "juhanbae",
+    "executable": "/Users/juhanbae/opt/anaconda3/envs/vae/bin/python"
+}

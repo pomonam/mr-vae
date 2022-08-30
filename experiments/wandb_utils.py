@@ -1,6 +1,5 @@
-import os
 import pathlib
-
+import os
 import wandb
 
 
@@ -13,6 +12,9 @@ def init_wandb(checkpoint_dir: str,
                project_name: str,
                run_name: str = None,
                config: dict = None) -> None:
+  # Put your wandb API key here
+  os.environ["WANDB_API_KEY"] = "REDACTED"
+
   if checkpoint_dir is None:
     wandb.init(project=project_name, name=run_name, config=config)
   else:
