@@ -26,7 +26,6 @@ class BetaVAE(VAE):
       decoder=None,
   ):
     super().__init__()
-    # BetaVAE.__init__(self, encoder=encoder, decoder=decoder)
     self.encoder = encoder
     self.decoder = decoder
     self.model_name = "BetaVAE"
@@ -43,7 +42,7 @@ class BetaVAE(VAE):
     try:
       recon_x = self.decoder(z)["reconstruction"]
     except LookupError:
-      recon_x = self.decoder.ar_forward(x, z)
+      recon_x = self.decoder.ar_forward(x, z, inputs)
 
     output = {
         "reconstruction": recon_x,

@@ -16,6 +16,7 @@ setup(
         "pyDeprecate==0.3.1",
         "numpy",
         "lmdb",
+        "texar-pytorch",
         "tensorboardX",
         "pytorch-fid",
         "python-dotenv",
