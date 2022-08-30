@@ -1,12 +1,7 @@
 import os
 import pathlib
 
-from dotenv import find_dotenv
-from dotenv import load_dotenv
 import wandb
-
-log_dir = pathlib.Path(__file__).parents[1] / "logs"
-load_dotenv(find_dotenv())
 
 
 def init_api() -> wandb.Api:
@@ -30,12 +25,11 @@ def init_wandb(checkpoint_dir: str,
           project=project_name,
           name=run_name,
           resume=resume_id,
-          config=config,
-          dir=log_dir)
+          config=config)
     else:
       # If the run_id doesn't exist, then create a new run and write the id the file
       run = wandb.init(
-          project=project_name, name=run_name, config=config, dir=log_dir)
+          project=project_name, name=run_name, config=config)
       wandb_id_file_path.write_text(str(run.id))
 
   wandb_config = wandb.config
