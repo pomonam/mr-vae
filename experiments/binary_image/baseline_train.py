@@ -23,13 +23,15 @@ from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_binary_image_debug")
+    "--experiment_name", type=str, default="hv_binary_image_debug")
 
 parser.add_argument("--data_name", type=str, default="mnist")
 parser.add_argument("--encoder_name", type=str, default="resnet")
 parser.add_argument("--decoder_name", type=str, default="resnet")
 
-parser.add_argument("--total_epochs", type=int, default=3)
+parser.add_argument("--total_epochs", type=int, default=5)
+parser.add_argument("--warmup_epochs", type=int, default=5)
+
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--beta", type=float, default=1.)
@@ -38,8 +40,8 @@ parser.add_argument("--schedule", type=str, default="monotonic")
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
 parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=500)
-parser.add_argument("--eval_freq", type=int, default=50)
+parser.add_argument("--save_freq", type=int, default=50)
+parser.add_argument("--eval_freq", type=int, default=10)
 args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
@@ -83,7 +85,7 @@ class BinaryImageCriterion(nn.Module):
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
-    # Compute MI as well for eval forward.
+    # Compute MI as well for eval_forward.
     batch_size, nz = mu.size()
     neg_entropy = (-0.5 * nz * math.log(2 * math.pi) - 0.5 *
                    (1 + log_var).sum(-1)).mean()
@@ -128,6 +130,7 @@ def build_model(encoder_name, decoder_name, device):
       encoder=encoder,
       decoder=decoder,
   )
+  model.reconstruction_loss = "bce"
   return model.to(device)
 
 
@@ -141,8 +144,11 @@ def main():
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
-  scheduler = torch.optim.lr_scheduler.MultiStepLR(
-      optimizer, milestones=[200, 350, 500, 750], gamma=10**(-1 / 5))
+  scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+      optimizer,
+      int(cfg.total_epochs - cfg.warmup_epochs - 1),
+      eta_min=1e-5
+  )
 
   if args.data_name == "mnist":
     train_loader = load_mnist_data(
@@ -193,13 +199,29 @@ def main():
                 255.0,
             )),
     ])
-
   val_table = wandb.Table(data=data_to_log, columns=column_names)
   wandb.log({"image": val_table})
 
+  # Uncomment ot compute NLL.
+  # TODO(JB): This function gives negative NLL.
+  # test_loader = load_mnist_data(
+  #   "test", 10000, workers=0, data_path="../../logs/data")
+  # test_data = next(iter(test_loader))
+  # test_data = test_data[0]
+  # test_data = test_data.to(DEVICE).type(torch.float)
+  # with torch.no_grad():
+  #   nll = []
+  #   for i in range(5):
+  #     nll_i = model.get_nll(test_data, n_samples=500, batch_size=500)
+  #     print(f"Round {i + 1} nll: {nll_i}")
+  #     nll.append(nll_i)
+  # wandb.log({"nll_mean": np.mean(nll), "nll_std": np.std(nll)})
+
   if args.save_final_checkpoint is not None:
     save_checkpoint = \
-      os.path.join("checkpoints", "base_{}_{}_{}.pth".format(args.data_name, args.beta, args.schedule))
+      os.path.join("checkpoints", "base_{}_{}_{}_{}_{}.pth".
+                   format(args.data_name, args.encoder_name,
+                          args.decoder_name, args.beta, args.schedule))
     log_info = {
         "state_dict": model.state_dict(),
     }

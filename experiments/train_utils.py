@@ -31,7 +31,6 @@ def evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
     for batch in p_bar:
       output_dict = model(batch)
       means.append(output_dict["mu"])
-
       loss_dict = criterion.eval_forward(
           recon_x=output_dict["reconstruction"],
           x=output_dict["data"],
@@ -126,16 +125,17 @@ def train(model,
     wandb.log(summ_dict)
     epoch = epoch + 1
 
-    if "ReduceLROnPlateau" in str(scheduler.__class__):
-      val_loss = evaluate(model,
-                          valid_loader,
-                          criterion,
-                          epoch,
-                          "valid",
-                          device)
-      scheduler.step(val_loss)
-    else:
-      scheduler.step()
+    if epoch > cfg.warmup_epochs:
+      if "ReduceLROnPlateau" in str(scheduler.__class__):
+        val_loss = evaluate(model,
+                            valid_loader,
+                            criterion,
+                            epoch,
+                            "valid",
+                            device)
+        scheduler.step(val_loss)
+      else:
+        scheduler.step()
 
     if np.isnan(summ_dict["train_step/loss"]):
       wandb.finish(exit_code=1)
