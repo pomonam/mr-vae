@@ -30,7 +30,7 @@ class LstmEncoder(BaseEncoder):
       }
     }
     self.embed = tx.modules.WordEmbedder(
-            vocab_size=vocab_size, hparams=enc_emb_hparams)
+      vocab_size=vocab_size, hparams=enc_emb_hparams)
 
     hidden_size = 550 if v1 else 256
     enc_cell_hparams = {
@@ -120,7 +120,7 @@ class LstmDecoder(BaseDecoder):
              latent_z,
              text_ids,
              seq_lengths,
-             max_decoding_length = None):
+             max_decoding_length=None):
     fc_output = self.mlp_linear_layer(latent_z)
 
     lstm_states = torch.chunk(fc_output, 2, dim=1)
@@ -134,6 +134,7 @@ class LstmDecoder(BaseDecoder):
 
   def ar_forward(self, x, z, batch):
     data_batch = x
+    self._latent_z = z
 
     helper = self.lstm_decoder.create_helper(
       decoding_strategy="train_greedy",
@@ -254,13 +255,13 @@ class TransformerDecoder(BaseDecoder):
   def _embed_fn_transformer(self,
                             tokens: torch.LongTensor,
                             positions: torch.LongTensor):
-      r"""Generates word embeddings combined with positional embeddings
+    r"""Generates word embeddings combined with positional embeddings
       """
-      output_p_embed = self.decoder_p_embedder(positions)
-      output_w_embed = self.decoder_w_embedder(tokens)
-      output_w_embed = output_w_embed * self.hidden_size ** 0.5
-      output_embed = output_w_embed + output_p_embed
-      return output_embed
+    output_p_embed = self.decoder_p_embedder(positions)
+    output_w_embed = self.decoder_w_embedder(tokens)
+    output_w_embed = output_w_embed * self.hidden_size ** 0.5
+    output_embed = output_w_embed + output_p_embed
+    return output_embed
 
   def forward(self, z: torch.Tensor):
     raise LookupError
@@ -270,7 +271,7 @@ class TransformerDecoder(BaseDecoder):
              latent_z,
              text_ids,
              seq_lengths,
-             max_decoding_length = None):
+             max_decoding_length=None):
     self._latent_z = latent_z
     fc_output = self.mlp_linear_layer(latent_z)
 
@@ -285,6 +286,7 @@ class TransformerDecoder(BaseDecoder):
 
   def ar_forward(self, x, z, batch):
     data_batch = x
+    self._latent_z = z
 
     seq_lengths = data_batch["length"] - 1
     outputs = self.decode(
