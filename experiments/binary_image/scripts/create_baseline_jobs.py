@@ -1,14 +1,13 @@
 import argparse
+
 import numpy as np
+
 from experiments.array_utils import generate_job_strings
 from experiments.array_utils import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="baseline_jobs")
-parser.add_argument(
-    "--experiment_name",
-    type=str,
-    default="hv_b_image_jobs")
+parser.add_argument("--experiment_name", type=str, default="hv_b_image_jobs")
 
 args = parser.parse_args()
 

@@ -1,16 +1,16 @@
 import os
 import urllib
 
+from PIL import Image
 import scipy.io
 import torch
 import torch.nn.parallel
 import torch.utils.data
+from torch.utils.data import Dataset
 import torch.utils.data.dataset
 import torch.utils.data.distributed
-from PIL import Image
-from torch.utils.data import Dataset
 from torchvision.datasets import MNIST
-import torchvision.transforms as transforms
+from torchvision import transforms
 
 
 class Binarize(object):
