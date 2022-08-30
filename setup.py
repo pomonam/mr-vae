@@ -17,7 +17,6 @@ setup(
         "numpy",
         "lmdb",
         "texar-pytorch",
-        "tensorboardX",
         "pytorch-fid",
         "python-dotenv",
         "h5py",
