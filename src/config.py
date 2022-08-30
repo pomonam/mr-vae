@@ -11,6 +11,8 @@ class TrainConfig:
 
   def __init__(self, args):
     self.total_epochs = get_ns(args, "total_epochs")
+    self.warmup_epochs = get_ns(args, "warmup_epochs")
+
     self.lr = get_ns(args, "lr")
     self.batch_size = get_ns(args, "batch_size")
     self.beta = get_ns(args, "beta")

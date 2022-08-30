@@ -98,7 +98,7 @@ class VAE(BaseAE):
         x_rep = torch.cat(batch_size * [x])
 
         encoder_output = self.encoder(x_rep)
-        mu, log_var = encoder_output.embedding, encoder_output.log_covariance
+        mu, log_var = encoder_output["embedding"], encoder_output["log_covariance"]
 
         std = torch.exp(0.5 * log_var)
         z, _ = self._sample_gauss(mu, std)
@@ -109,7 +109,7 @@ class VAE(BaseAE):
 
         recon_x = self.decoder(z)["reconstruction"]
 
-        if self.model_config.reconstruction_loss == "mse":
+        if self.reconstruction_loss == "mse":
 
           log_p_x_given_z = -0.5 * F.mse_loss(
               recon_x.reshape(x_rep.shape[0], -1),
@@ -120,7 +120,7 @@ class VAE(BaseAE):
           ]).to(data.device
                )  # decoding distribution is assumed unit variance  N(mu, I)
 
-        elif self.model_config.reconstruction_loss == "bce":
+        elif self.reconstruction_loss == "bce":
 
           log_p_x_given_z = -F.binary_cross_entropy(
               recon_x.reshape(x_rep.shape[0], -1),

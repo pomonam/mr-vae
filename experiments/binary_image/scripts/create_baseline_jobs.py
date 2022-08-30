@@ -8,13 +8,13 @@ parser.add_argument("--file_name", type=str, default="baseline_sweep")
 parser.add_argument(
     "--experiment_name",
     type=str,
-    default="hv_b_image_sweep_v2")
+    default="hv_b_image_sweep")
 
 args = parser.parse_args()
 
-CONV_CONFIG = {
-    "lr": [1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
-    "total_epochs": [200],
+CONV_CONFIG1 = {
+    "lr": [1e-4],
+    "total_epochs": [1000],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["conv"],
     "decoder_name": ["conv"],
@@ -22,9 +22,29 @@ CONV_CONFIG = {
     "beta": [1.]
 }
 
-RENSET_CONFIG = {
+CONV_CONFIG2 = {
+    "lr": [3e-05],
+    "total_epochs": [1000],
+    "data_name": ["omniglot"],
+    "encoder_name": ["conv"],
+    "decoder_name": ["conv"],
+    "schedule": ["monotonic"],
+    "beta": [1.]
+}
+
+RENSET_CONFIG1 = {
     "lr": [1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
-    "total_epochs": [200],
+    "total_epochs": [1000],
+    "data_name": ["mnist", "omniglot"],
+    "encoder_name": ["resnet"],
+    "decoder_name": ["resnet"],
+    "schedule": ["monotonic"],
+    "beta": [1.]
+}
+
+RENSET_CONFIG2 = {
+    "lr": [1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
+    "total_epochs": [1000],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
