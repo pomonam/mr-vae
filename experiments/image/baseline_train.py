@@ -24,7 +24,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--experiment_name", type=str, default="hv_image_debug")
 
-parser.add_argument("--arch_name", type=str, default="conv")
+parser.add_argument("--arch_name", type=str, default="resnet")
 parser.add_argument("--data_name", type=str, default="cifar")
 
 parser.add_argument("--total_epochs", type=int, default=5)
