@@ -9,9 +9,10 @@ import torch.nn.functional as F
 import wandb
 
 from experiments.image.input_pipeline import load_data
-from experiments.image.hyper_models import HyperResNetCifarEncoder, HyperResNetCelebDecoder, HyperResNetCelebEncoder, \
-  HyperResNetCifarDecoder
+from experiments.image.hyper_models import HyperCelebConvDecoder, HyperCelebResNetDecoder, HyperCelebResNetEncoder, HyperCifarResNetDecoder, HyperCifarResNetEncoder, HyperCifarConvEncoder
 from experiments.hyper_train_utils import hyper_evaluate
+from experiments.image.hyper_models import HyperCifarConvDecoder, HyperCelebConvEncoder, HyperCelebConvDecoder
+
 from experiments.hyper_train_utils import hyper_predict
 from experiments.hyper_train_utils import hyper_train
 from experiments.wandb_utils import init_wandb
@@ -23,9 +24,10 @@ from src.config import HyperConfig
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--experiment_name", type=str, default="hypervae-mnist-train")
+    "--experiment_name", type=str, default="hv_image_debug")
 
-parser.add_argument("--data_name", type=str, default="svhn")
+parser.add_argument("--arch_name", type=str, default="resnet")
+parser.add_argument("--data_name", type=str, default="cifar")
 
 parser.add_argument("--preprocess_beta", type=int, default=0)
 parser.add_argument("--block_type", type=str, default="mlp")
@@ -34,17 +36,18 @@ parser.add_argument("--include_layer_norm", type=int, default=0)
 parser.add_argument("--include_shift", type=int, default=1)
 parser.add_argument("--include_residual_connection", type=int, default=1)
 
-parser.add_argument("--total_epochs", type=int, default=3)
-parser.add_argument("--lr", type=float, default=1e-4)
+parser.add_argument("--total_epochs", type=int, default=10)
+parser.add_argument("--warmup_epochs", type=int, default=10)
+
+parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--beta", type=float, default=1.)
-parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
 parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=100)
-parser.add_argument("--eval_freq", type=int, default=500)
+parser.add_argument("--save_freq", type=int, default=50)
+# Never evaluate during training.
+parser.add_argument("--eval_freq", type=int, default=2000)
 args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
@@ -116,14 +119,18 @@ def build_criterion(device):
 
 def build_model(data_name, hyper_cfg, device):
   if data_name in ["cifar", "svhn"]:
+    if data_name == "cifar":
+      latent_dim = 256
+    else:
+      latent_dim = 32
     model = BetaHyperVAE(
-        encoder=HyperResNetCifarEncoder(hyper_cfg),
-        decoder=HyperResNetCifarDecoder(hyper_cfg),
+        encoder=HyperCifarConvEncoder(latent_dim, hyper_cfg) if args.arch_name == "conv" else HyperCifarResNetEncoder(latent_dim, hyper_cfg),
+        decoder=HyperCifarConvDecoder(latent_dim, hyper_cfg) if args.arch_name == "conv" else HyperCifarResNetDecoder(latent_dim, hyper_cfg),
         hyper_cfg=hyper_cfg)
   else:
     model = BetaHyperVAE(
-        encoder=HyperResNetCelebEncoder(hyper_cfg),
-        decoder=HyperResNetCelebDecoder(hyper_cfg),
+        encoder=HyperCelebConvEncoder(hyper_cfg) if args.arch_name == "conv" else HyperCelebResNetEncoder(hyper_cfg),
+        decoder=HyperCelebConvDecoder(hyper_cfg) if args.arch_name == "conv" else HyperCelebResNetDecoder(hyper_cfg),
         hyper_cfg=hyper_cfg)
   return model.to(device)
 
@@ -139,26 +146,37 @@ def main():
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
-  scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-      optimizer, factor=0.5, patience=10, verbose=True)
+  scheduler1 = torch.optim.lr_scheduler.LinearLR(
+      optimizer,
+      start_factor=1e-10,
+      end_factor=1.,
+      total_iters=cfg.warmup_epochs)
+  cosine_epochs = max(
+      cfg.total_epochs - cfg.warmup_epochs, 1)
+  scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
+      optimizer, T_max=cosine_epochs)
+  scheduler = torch.optim.lr_scheduler.SequentialLR(
+      optimizer,
+      schedulers=[scheduler1, scheduler2],
+      milestones=[cfg.warmup_epochs])
 
   train_loader = load_data(
       args.data_name,
       "train",
       cfg.batch_size,
-      workers=4,
+      workers=0,
       data_path="../../logs/data")
-  valid_loader = load_data(
-      args.data_name,
-      "valid",
-      cfg.batch_size,
-      workers=2,
-      data_path="../../logs/data")
+  # valid_loader = load_data(
+  #     args.data_name,
+  #     "valid",
+  #     cfg.batch_size,
+  #     workers=2,
+  #     data_path="../../logs/data")
   test_loader = load_data(
       args.data_name,
       "test",
       cfg.batch_size,
-      workers=2,
+      workers=0,
       data_path="../../logs/data")
 
   hyper_train(model,
@@ -169,7 +187,8 @@ def main():
               scheduler,
               DEVICE,
               cfg,
-              valid_loader)
+              # valid_loader
+              )
   hyper_evaluate(model,
                  train_loader,
                  criterion,
