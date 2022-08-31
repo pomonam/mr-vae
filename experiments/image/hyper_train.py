@@ -29,12 +29,13 @@ parser.add_argument(
 parser.add_argument("--arch_name", type=str, default="resnet")
 parser.add_argument("--data_name", type=str, default="cifar")
 
-parser.add_argument("--preprocess_beta", type=int, default=0)
 parser.add_argument("--block_type", type=str, default="mlp")
+parser.add_argument("--preprocess_beta", type=int, default=0)
 parser.add_argument("--include_sigmoid_activation", type=int, default=0)
 parser.add_argument("--include_layer_norm", type=int, default=0)
 parser.add_argument("--include_shift", type=int, default=1)
 parser.add_argument("--include_residual_connection", type=int, default=1)
+parser.add_argument("--include_output_stem", type=int, default=0)
 
 parser.add_argument("--total_epochs", type=int, default=10)
 parser.add_argument("--warmup_epochs", type=int, default=10)
