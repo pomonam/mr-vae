@@ -28,10 +28,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
   "--experiment_name", type=str, default="hypervae-text-train")
 
-parser.add_argument("--decoder_name", type=str, default="lstm")
-parser.add_argument("--data_name", type=str, default="ptb")
+parser.add_argument("--decoder_name", type=str, default="trans")
+parser.add_argument("--data_name", type=str, default="yahoo")
 
-parser.add_argument("--total_epochs", type=int, default=3)
+parser.add_argument("--total_epochs", type=int, default=10)
 parser.add_argument("--lr", type=float, default=0.001)
 parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--beta", type=float, default=1.)
@@ -105,6 +105,7 @@ def build_criterion(device):
 
 def build_model(vocab_size, data_name, decoder_name, device):
   v1 = data_name == "yahoo"
+  v1 = False
   model = BetaVAE(
     encoder=LstmEncoder(vocab_size, v1=v1),
     decoder=LstmDecoder(vocab_size, v1=v1) if decoder_name == "lstm" else TransformerDecoder(vocab_size, v1=v1),
@@ -318,7 +319,7 @@ def main():
   evaluate(model, iterator, criterion, cfg.total_epochs, "test", DEVICE, start_tokens,
            end_token)
 
-  if args.save_final_checkpoint is not None:
+  if args.save_final_checkpoint:
     save_checkpoint = \
       os.path.join("checkpoints", "base_{}_{}_{}_{}.pth".format(args.data_name, args.decoder_name,
                                                                 args.beta, args.schedule))
