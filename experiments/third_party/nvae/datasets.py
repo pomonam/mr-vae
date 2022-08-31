@@ -186,18 +186,15 @@ def get_loaders_eval(dataset, args):
       resize = 64
       num_classes = 40
       train_transform, valid_transform = _data_transforms_celeba64(resize)
-      train_data = LMDBDataset(
-          root=args.data,
-          name='celeba64',
-          train=True,
-          transform=train_transform,
-          is_encoded=True)
-      valid_data = LMDBDataset(
-          root=args.data,
-          name='celeba64',
-          train=False,
-          transform=valid_transform,
-          is_encoded=True)
+      train_data = dset.CelebA(
+          "/scratch/ssd002/datasets/celeba_pytorch",
+          split="train",
+          transform=train_transform)
+      valid_data = dset.CelebA(
+          "/scratch/ssd002/datasets/celeba_pytorch",
+          split="test",
+          transform=valid_transform
+      )
     elif dataset in {'celeba_256'}:
       num_classes = 1
       resize = int(dataset.split('_')[1])
