@@ -1,0 +1,171 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.13.2
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.7.13
+    start_time: 1661931959.764055
+    t:
+      1:
+      - 1
+      - 41
+      - 51
+      - 55
+      2:
+      - 1
+      - 41
+      - 51
+      - 55
+      3:
+      - 5
+      - 16
+      - 23
+      4: 3.7.13
+      5: 0.13.2
+      8:
+      - 5
+ada_groups:
+  desc: null
+  value: true
+arch_instance:
+  desc: null
+  value: res_mbconv
+batch_size:
+  desc: null
+  value: 64
+cont_training:
+  desc: null
+  value: false
+data:
+  desc: null
+  value: ../../../logs/data
+dataset:
+  desc: null
+  value: cifar10
+distributed:
+  desc: null
+  value: false
+epochs:
+  desc: null
+  value: 400
+experiment_name:
+  desc: null
+  value: nvae_binary_train_baseline
+fast_adamax:
+  desc: null
+  value: true
+global_rank:
+  desc: null
+  value: 0
+kl_anneal_portion:
+  desc: null
+  value: 0.25
+kl_const_coeff:
+  desc: null
+  value: 0.001
+kl_const_portion:
+  desc: null
+  value: 0.0001
+kl_fixed:
+  desc: null
+  value: 1.0
+learning_rate:
+  desc: null
+  value: 0.01
+learning_rate_min:
+  desc: null
+  value: 0.0001
+local_rank:
+  desc: null
+  value: 0
+master_address:
+  desc: null
+  value: 127.0.0.1
+min_groups_per_scale:
+  desc: null
+  value: 1
+node_rank:
+  desc: null
+  value: 0
+num_cell_per_cond_dec:
+  desc: null
+  value: 2
+num_cell_per_cond_enc:
+  desc: null
+  value: 2
+num_channels_dec:
+  desc: null
+  value: 64
+num_channels_enc:
+  desc: null
+  value: 64
+num_groups_per_scale:
+  desc: null
+  value: 10
+num_latent_per_group:
+  desc: null
+  value: 20
+num_latent_scales:
+  desc: null
+  value: 2
+num_mixture_dec:
+  desc: null
+  value: 10
+num_nf:
+  desc: null
+  value: 0
+num_postprocess_blocks:
+  desc: null
+  value: 2
+num_postprocess_cells:
+  desc: null
+  value: 3
+num_preprocess_blocks:
+  desc: null
+  value: 2
+num_preprocess_cells:
+  desc: null
+  value: 3
+num_proc_node:
+  desc: null
+  value: 1
+num_process_per_node:
+  desc: null
+  value: 1
+num_x_bits:
+  desc: null
+  value: 8
+res_dist:
+  desc: null
+  value: true
+root:
+  desc: null
+  value: checkpoints/a
+save:
+  desc: null
+  value: checkpoints/a/eval-expa
+seed:
+  desc: null
+  value: 1
+use_se:
+  desc: null
+  value: true
+warmup_epochs:
+  desc: null
+  value: 5
+weight_decay:
+  desc: null
+  value: 0.0003
+weight_decay_norm:
+  desc: null
+  value: 0.01
+weight_decay_norm_anneal:
+  desc: null
+  value: false
+weight_decay_norm_init:
+  desc: null
+  value: 10.0
