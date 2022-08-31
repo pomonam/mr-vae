@@ -83,18 +83,6 @@ def hyper_evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
         f"{name}/rd_curve":
             wandb.plot.line(table, "rate", "distortion", title="RD Curve")
     })
-
-    rate_lst = np.array(rate_lst)
-    dist_lst = np.array(dist_lst)
-    auc_dict = {
-        f"{name}/max_rate": np.max(rate_lst),
-        f"{name}/min_rate": np.min(rate_lst),
-        f"{name}/abs_rate": np.max(rate_lst) - np.min(rate_lst),
-        f"{name}/max_dist": np.max(dist_lst),
-        f"{name}/min_dist": np.min(dist_lst),
-        f"{name}/abs_dist": np.max(dist_lst) - np.min(dist_lst),
-    }
-    wandb.log(auc_dict)
   return mid_loss
 
 
