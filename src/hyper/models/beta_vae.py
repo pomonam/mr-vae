@@ -14,7 +14,6 @@ class BetaHyperVAE(HyperVAE):
                encoder: BaseHyperEncoder = None,
                decoder: BaseHyperDecoder = None,
                hyper_cfg: HyperConfig = None):
-    # super().__init__()
     HyperVAE.__init__(
         self, encoder=encoder, decoder=decoder, hyper_cfg=hyper_cfg)
     self.encoder = encoder
