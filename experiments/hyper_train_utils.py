@@ -131,7 +131,7 @@ def hyper_train(model,
         os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
     model.load_state_dict(slurm_checkpoint["state_dict"])
     optimizer.load_state_dict(slurm_checkpoint["optimizer"])
-    scheduler.load_state_Dict(slurm_checkpoint["scheduler"])
+    scheduler.load_state_dict(slurm_checkpoint["scheduler"])
     epoch = slurm_checkpoint["epoch"]
   else:
     epoch = 0
