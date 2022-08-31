@@ -10,7 +10,7 @@
 #SBATCH --output=temp/array-%A_%a.out
 #SBATCH -c 4
 
-. $HOME/envs/vae_env
+. $HOME/envs/hvae_env
 export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH
 
 IFS=$'\n' read -d '' -r -a lines < hyper_sweep

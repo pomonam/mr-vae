@@ -26,30 +26,31 @@ from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_binary_image_debug")
+    "--experiment_name", type=str, default="hv_binary_image_debug")
 
 parser.add_argument("--data_name", type=str, default="mnist")
 parser.add_argument("--encoder_name", type=str, default="conv")
 parser.add_argument("--decoder_name", type=str, default="conv")
 
-parser.add_argument("--preprocess_beta", type=int, default=0)
 parser.add_argument("--block_type", type=str, default="mlp")
+parser.add_argument("--preprocess_beta", type=int, default=0)
 parser.add_argument("--include_sigmoid_activation", type=int, default=0)
 parser.add_argument("--include_layer_norm", type=int, default=0)
 parser.add_argument("--include_shift", type=int, default=1)
 parser.add_argument("--include_residual_connection", type=int, default=1)
 parser.add_argument("--include_output_stem", type=int, default=0)
 
-parser.add_argument("--total_epochs", type=int, default=5)
+parser.add_argument("--total_epochs", type=int, default=10)
+parser.add_argument("--warmup_epochs", type=int, default=10)
+
 parser.add_argument("--lr", type=float, default=1e-4)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--beta", type=float, default=1.)
-parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
 parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=500)
+parser.add_argument("--save_freq", type=int, default=50)
 # Never evaluate during training.
 parser.add_argument("--eval_freq", type=int, default=2000)
 args = parser.parse_args()
@@ -151,8 +152,19 @@ def main():
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
-  scheduler = torch.optim.lr_scheduler.MultiStepLR(
-      optimizer, milestones=[200, 350, 500, 750], gamma=10**(-1 / 5))
+
+  scheduler1 = torch.optim.lr_scheduler.LinearLR(
+      optimizer,
+      start_factor=1e-10,
+      end_factor=1.,
+      total_iters=cfg.warmup_epochs)
+  cosine_epochs = max(cfg.total_epochs - cfg.warmup_epochs, 1)
+  scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
+      optimizer, T_max=cosine_epochs)
+  scheduler = torch.optim.lr_scheduler.SequentialLR(
+      optimizer,
+      schedulers=[scheduler1, scheduler2],
+      milestones=[cfg.warmup_epochs])
 
   if args.data_name == "mnist":
     train_loader = load_mnist_data(
@@ -161,9 +173,9 @@ def main():
         "test", cfg.batch_size, workers=2, data_path="../../logs/data")
   elif args.data_name == "omniglot":
     train_loader = load_omniglot_data(
-        "train", cfg.batch_size, workers=2, data_path="../../logs/")
+        "train", cfg.batch_size, workers=2, data_path="../../logs/data")
     test_loader = load_omniglot_data(
-        "test", cfg.batch_size, workers=2, data_path="../../logs/")
+        "test", cfg.batch_size, workers=2, data_path="../../logs/data")
   else:
     raise NotImplementedError
 
@@ -213,9 +225,9 @@ def main():
     val_table = wandb.Table(data=data_to_log, columns=column_names)
     wandb.log({"image_at_{}".format(sample): val_table})
 
-  if args.save_final_checkpoint is not None:
+  if args.save_final_checkpoint:
     save_checkpoint = \
-      os.path.join("checkpoints", "base_{}.pth".format(args.data_name))
+      os.path.join("checkpoints", "hyper_{}_{}_{}.pth".format(args.data_name, args.encoder_name, args.decoder_name))
     log_info = {
         "state_dict": model.state_dict(),
     }

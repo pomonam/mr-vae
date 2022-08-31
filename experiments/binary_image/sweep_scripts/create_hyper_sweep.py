@@ -6,17 +6,16 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hv_b_image_hyper_sweep")
+    "--experiment_name", type=str, default="hvae_b_image_hyper_sweep")
 
 args = parser.parse_args()
 
 CONV_CONFIG = {
-    "lr": [1e-4],
-    "total_epochs": [1000],
+    "lr": [0.0003],
+    "total_epochs": [200],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["conv"],
     "decoder_name": ["conv"],
-    "schedule": ["monotonic"],
     "include_shift": [0, 1],
     "include_residual_connection": [0, 1],
     "include_sigmoid_activation": [0, 1],
@@ -26,12 +25,11 @@ CONV_CONFIG = {
 }
 
 RENSET_CONFIG = {
-    "lr": [1e-4],
-    "total_epochs": [1000],
+    "lr": [0.0003],
+    "total_epochs": [200],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
-    "schedule": ["monotonic"],
     "include_shift": [0, 1],
     "include_residual_connection": [0, 1],
     "include_sigmoid_activation": [0, 1],
