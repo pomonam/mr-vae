@@ -16,7 +16,7 @@ CONFIG = {
 }
 
 if __name__ == "__main__":
-  base_str = "python new_train.py --data ../../../logs/data --root checkpoints/ --batch_size 32 " \
+  base_str = "python new_train.py --data ../../../logs/data --root /codes/hyper-vae/experiments/third_party/nvae/checkpoints/ --batch_size 32 " \
              "--epochs 200 --num_latent_scales 2 --num_groups_per_scale 10 --num_postprocess_cells 3 --num_preprocess_cells 3 " \
              "--num_cell_per_cond_enc 2 --num_cell_per_cond_dec 2 --num_latent_per_group 20 --num_preprocess_blocks 2 " \
              "--num_postprocess_blocks 2 --weight_decay_norm 1e-2 --num_channels_enc 64 --num_channels_dec 64 --num_nf 0 " \
