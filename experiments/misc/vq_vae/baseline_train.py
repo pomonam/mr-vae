@@ -11,13 +11,13 @@ import wandb
 from experiments.misc.vq_vae.input_pipeline import load_mnist_data
 from experiments.image.input_pipeline import load_data
 from experiments.misc.vq_vae.mnist_models import VQMNISTResNetEncoder, VQMNISTResNetDecoder
+from experiments.misc.vq_vae.celeb_models import VQCelebResNetEncoder, VQCelebResNetDecoder
 from experiments.misc.vq_vae.train_utils import evaluate
 from experiments.misc.vq_vae.train_utils import predict
 from experiments.misc.vq_vae.train_utils import train
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
 from src.models.vq_vae import VQVAE
-from src.models.beta_vae import log_sum_exp
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
@@ -32,7 +32,6 @@ parser.add_argument("--warmup_epochs", type=int, default=10)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--lamb", type=float, default=1.)
-parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
@@ -72,8 +71,8 @@ def build_model(data_name, device):
     }
     model = VQVAE(
       model_config,
-      encoder=VQMNISTResNetEncoder(),
-      decoder=VQMNISTResNetDecoder(),
+      encoder=VQCelebResNetEncoder(),
+      decoder=VQCelebResNetDecoder(),
       lamb=args.lamb
     )
 
@@ -169,10 +168,9 @@ def main():
 
   wandb.log({"image": val_table})
 
-  if args.save_final_checkpoint is not None:
+  if args.save_final_checkpoint:
     save_checkpoint = \
-      os.path.join("checkpoints", "base_{}_{}_{}_{}.pth".format(args.data_name, args.arch_name,
-                                                                args.lamb, args.schedule))
+      os.path.join("checkpoints", "base_{}_{}.pth".format(args.data_name, args.lamb))
     log_info = {
       "state_dict": model.state_dict(),
     }

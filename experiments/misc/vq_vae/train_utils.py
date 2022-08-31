@@ -57,7 +57,7 @@ def train(model,
         os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
     model.load_state_dict(slurm_checkpoint["state_dict"])
     optimizer.load_state_dict(slurm_checkpoint["optimizer"])
-    scheduler.load_state_Dict(slurm_checkpoint["scheduler"])
+    scheduler.load_state_dict(slurm_checkpoint["scheduler"])
     epoch = slurm_checkpoint["epoch"]
   else:
     epoch = 0
@@ -123,5 +123,5 @@ def predict(model, loader, device):
   reconstructions = model_out["recon_x"].cpu().detach()
   z_enc = model_out["z"]
   z = torch.randn_like(z_enc)
-  normal_generation = model.decoder(z)["recon_x"].detach().cpu()
+  normal_generation = model.decoder(z)["reconstruction"].detach().cpu()
   return batch["data"], reconstructions, normal_generation
