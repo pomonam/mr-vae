@@ -24,8 +24,10 @@ args = parser.parse_args()
 RENSET_CONFIG = {
     "lr": [1e-3, 3e-4],
     "total_epochs": [200],
-    "data_name": ["cifar", "svhn", "celeba"],
-    "arch_name": ["resnet"],
+    # "data_name": ["cifar", "svhn", "celeba"],
+    "data_name": ["svhn", "celeba"],
+
+  "arch_name": ["resnet"],
     "include_shift": [0, 1],
     "include_residual_connection": [0, 1],
     "include_sigmoid_activation": [0, 1],
