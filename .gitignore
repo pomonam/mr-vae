@@ -35,6 +35,5 @@ experiments/image/checkpoints/*.pth
 
 experiments/text/wandb
 
-experiments/image/checkpoints
-
-experiments/omniglot/checkpoints
+experiments/misc/vq_vae/wandb
+experiments/misc/vq_vae/checkpoints/*.pth

@@ -8,7 +8,7 @@ parser.add_argument("--file_name", type=str, default="baseline_sweep")
 parser.add_argument(
     "--experiment_name",
     type=str,
-    default="hvae_text_sweep")
+    default="hvae_text_sweep_v2")
 
 args = parser.parse_args()
 

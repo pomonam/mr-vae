@@ -104,7 +104,7 @@ def build_criterion(device):
 
 
 def build_model(vocab_size, data_name, decoder_name, device):
-  v1 = data_name == "yahoo"
+  # v1 = data_name == "yahoo"
   v1 = False
   model = BetaVAE(
     encoder=LstmEncoder(vocab_size, v1=v1),
@@ -187,7 +187,7 @@ def train(model,
       os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
     model.load_state_dict(slurm_checkpoint["state_dict"])
     optimizer.load_state_dict(slurm_checkpoint["optimizer"])
-    scheduler.load_state_Dict(slurm_checkpoint["scheduler"])
+    scheduler.load_state_dict(slurm_checkpoint["scheduler"])
     epoch = slurm_checkpoint["epoch"]
   else:
     epoch = 0
