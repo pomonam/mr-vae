@@ -27,7 +27,12 @@ _site
 .env
 
 experiments/binary_image/wandb
+experiments/binary_image/checkpoints/*.pth
+
 experiments/image/wandb
+experiments/image/checkpoints/*.pth
+
+
 experiments/text/wandb
 
 experiments/image/checkpoints

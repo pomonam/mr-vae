@@ -1,6 +1,0 @@
-0it [00:00, ?it/s]
-Traceback (most recent call last):
-  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/vq_vae/train_utils.py", line 37, in evaluate
-    metric_dict = update_metric(metric_dict, loss_dict, batch["data"].size(0))
-  File "/Users/juhanbae/codes/hyper-vae/src/evaluate.py", line 314, in update_metric
-    metric_dict[m].update(log_dict[m].item(), n)
