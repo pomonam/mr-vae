@@ -18,7 +18,7 @@ SVHN_CONFIG1 = {
     "data_name": ["svhn"],
     "arch_name": ["conv"],
     "schedule": ["constant", "monotonic"],
-    "beta": np.logspace(-3, 1, num=20) + [1],
+    "beta": list(np.logspace(-3, 1, num=20)) + [1],
     "save_final_checkpoint": [1]
 }
 
@@ -28,7 +28,7 @@ SVHN_CONFIG2 = {
     "data_name": ["svhn"],
     "arch_name": ["resnet"],
     "schedule": ["constant", "monotonic"],
-    "beta": np.logspace(-3, 1, num=20) + [1],
+    "beta": list(np.logspace(-3, 1, num=20)) + [1],
     "save_final_checkpoint": [1]
 }
 
@@ -39,7 +39,7 @@ CIFAR_CONFIG1 = {
     "data_name": ["cifar"],
     "arch_name": ["conv"],
     "schedule": ["constant", "monotonic"],
-    "beta": np.logspace(-3, 1, num=20) + [1],
+    "beta": list(np.logspace(-3, 1, num=20)) + [1],
     "save_final_checkpoint": [1]
 }
 
@@ -49,7 +49,7 @@ CIFAR_CONFIG2 = {
     "data_name": ["cifar"],
     "arch_name": ["resnet"],
     "schedule": ["constant", "monotonic"],
-    "beta": np.logspace(-3, 1, num=20) + [1],
+    "beta": list(np.logspace(-3, 1, num=20)) + [1],
     "save_final_checkpoint": [1]
 }
 
@@ -59,7 +59,7 @@ CELEB_CONFIG1 = {
     "data_name": ["celeba"],
     "arch_name": ["conv"],
     "schedule": ["constant", "monotonic"],
-    "beta": np.logspace(-3, 1, num=20) + [1],
+    "beta": list(np.logspace(-3, 1, num=20)) + [1],
     "save_final_checkpoint": [1]
 }
 
@@ -69,7 +69,7 @@ CELEB_CONFIG2 = {
     "data_name": ["celeba"],
     "arch_name": ["resnet"],
     "schedule": ["constant", "monotonic"],
-    "beta": np.logspace(-3, 1, num=20) + [1],
+    "beta": list(np.logspace(-3, 1, num=20)) + [1],
     "save_final_checkpoint": [1]
 }
 
