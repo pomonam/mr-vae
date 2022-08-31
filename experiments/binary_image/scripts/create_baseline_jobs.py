@@ -7,7 +7,7 @@ from experiments.array_utils import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="baseline_jobs")
-parser.add_argument("--experiment_name", type=str, default="hvae_b_image_jobs")
+parser.add_argument("--experiment_name", type=str, default="hvae_b_image_jobs_v2")
 
 
 args = parser.parse_args()
@@ -19,7 +19,7 @@ CONV_CONFIG1 = {
     "encoder_name": ["conv"],
     "decoder_name": ["conv"],
     "schedule": ["constant", "monotonic"],
-    "beta": np.logspace(-3, 1, num=20) + [1],
+    "beta": list(np.logspace(-3, 1, num=20)) + [1],
     "save_final_checkpoint": [1]
 }
 
@@ -30,7 +30,7 @@ CONV_CONFIG2 = {
     "encoder_name": ["conv"],
     "decoder_name": ["conv"],
     "schedule": ["constant", "monotonic"],
-    "beta": np.logspace(-3, 1, num=20) + [1],
+    "beta": list(np.logspace(-3, 1, num=20)) + [1],
     "save_final_checkpoint": [1]
 }
 
@@ -41,7 +41,7 @@ RENSET_CONFIG1 = {
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
     "schedule": ["constant", "monotonic"],
-    "beta": np.logspace(-3, 1, num=20) + [1],
+    "beta": list(np.logspace(-3, 1, num=20)) + [1],
     "save_final_checkpoint": [1]
 }
 
@@ -52,7 +52,7 @@ RENSET_CONFIG2 = {
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
     "schedule": ["constant", "monotonic"],
-    "beta": np.logspace(-3, 1, num=20) + [1],
+    "beta": list(np.logspace(-3, 1, num=20)) + [1],
     "save_final_checkpoint": [1]
 }
 
