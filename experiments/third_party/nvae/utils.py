@@ -13,7 +13,7 @@ import sys
 import time
 
 import numpy as np
-from tensorboardX import SummaryWriter
+# from tensorboardX import SummaryWriter
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -125,37 +125,37 @@ class Logger(object):
         logging.info(elapsed_time)
       logging.info(string, *args)
 
-
-class Writer(object):
-
-  def __init__(self, rank, save):
-    self.rank = rank
-    if self.rank == 0:
-      self.writer = SummaryWriter(log_dir=save, flush_secs=20)
-
-  def add_scalar(self, *args, **kwargs):
-    if self.rank == 0:
-      self.writer.add_scalar(*args, **kwargs)
-
-  def add_figure(self, *args, **kwargs):
-    if self.rank == 0:
-      self.writer.add_figure(*args, **kwargs)
-
-  def add_image(self, *args, **kwargs):
-    if self.rank == 0:
-      self.writer.add_image(*args, **kwargs)
-
-  def add_histogram(self, *args, **kwargs):
-    if self.rank == 0:
-      self.writer.add_histogram(*args, **kwargs)
-
-  def add_histogram_if(self, write, *args, **kwargs):
-    if write and False:  # Used for debugging.
-      self.add_histogram(*args, **kwargs)
-
-  def close(self, *args, **kwargs):
-    if self.rank == 0:
-      self.writer.close()
+#
+# class Writer(object):
+#
+#   def __init__(self, rank, save):
+#     self.rank = rank
+#     if self.rank == 0:
+#       self.writer = SummaryWriter(log_dir=save, flush_secs=20)
+#
+#   def add_scalar(self, *args, **kwargs):
+#     if self.rank == 0:
+#       self.writer.add_scalar(*args, **kwargs)
+#
+#   def add_figure(self, *args, **kwargs):
+#     if self.rank == 0:
+#       self.writer.add_figure(*args, **kwargs)
+#
+#   def add_image(self, *args, **kwargs):
+#     if self.rank == 0:
+#       self.writer.add_image(*args, **kwargs)
+#
+#   def add_histogram(self, *args, **kwargs):
+#     if self.rank == 0:
+#       self.writer.add_histogram(*args, **kwargs)
+#
+#   def add_histogram_if(self, write, *args, **kwargs):
+#     if write and False:  # Used for debugging.
+#       self.add_histogram(*args, **kwargs)
+#
+#   def close(self, *args, **kwargs):
+#     if self.rank == 0:
+#       self.writer.close()
 
 
 def reduce_tensor(tensor, world_size):
