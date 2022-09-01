@@ -66,8 +66,6 @@ RENSET_CONFIG = {
     "param_type": ["pre_bn", "post_bn", "post_act"],
 }
 
-
-
 if __name__ == "__main__":
   jobs = generate_job_strings(
       RENSET_CONFIG,

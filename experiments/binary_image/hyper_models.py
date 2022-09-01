@@ -371,6 +371,7 @@ class HyperResNetDecoder(BaseHyperDecoder):
     self.input_dim = (1, 28, 28)
     self.latent_dim = 32
     self.n_channels = 1
+    self.hyper_cfg = hyper_cfg
 
     layers = nn.ModuleList()
 
