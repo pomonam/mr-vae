@@ -9,9 +9,9 @@ from tueplots.constants.color import rgb
 from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
-BASELINE_NAME = "hv_binary_image_save_jobs"
-HYPER_NAME = "hypervae_binary_image_hyper_baseline"
-ID = "rwgs4wm2"
+BASELINE_NAME = "hvae_b_image_jobs_v2"
+HYPER_NAME = "hvae_b_image_hyper_sweep_v3"
+ID = "1ghsdvc7"
 
 
 def get_summary(summary, test=True):
@@ -93,7 +93,7 @@ def main():
   api = init_api()
   runs = api.runs(ENTITY + "/" + HYPER_NAME)
 
-  rate, dist = get_baseline_rd(BASELINE_NAME, schedule="cyclic", test=True)
+  rate, dist = get_baseline_rd(BASELINE_NAME, schedule="monotonic", test=True)
   plt.plot([0], [0])
   plt.scatter(
       rate,
