@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from src.hyper.layer import HyperLayer
+from src.hyper.layers import HyperLayer
 
 
 class BaseHyperEncoder(nn.Module):

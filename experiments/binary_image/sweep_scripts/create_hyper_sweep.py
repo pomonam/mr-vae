@@ -6,37 +6,66 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_b_image_hyper_sweep_v2")
+    "--experiment_name", type=str, default="hvae_b_image_hyper_sweep_v3")
 
 args = parser.parse_args()
 
+# CONV_CONFIG = {
+#     "lr": [0.0003],
+#     "total_epochs": [200],
+#     "data_name": ["mnist", "omniglot"],
+#     "encoder_name": ["conv"],
+#     "decoder_name": ["conv"],
+#     "include_shift": [0, 1],
+#     "include_residual_connection": [0, 1],
+#     "include_sigmoid_activation": [0, 1],
+#     "preprocess_beta": [0, 1],
+#     "include_layer_norm": [0, 1],
+#     "include_output_stem": [0, 1],
+# }
+#
+# RENSET_CONFIG = {
+#     "lr": [0.0003],
+#     "total_epochs": [200],
+#     "data_name": ["mnist", "omniglot"],
+#     "encoder_name": ["resnet"],
+#     "decoder_name": ["resnet"],
+#     "include_shift": [0, 1],
+#     "include_residual_connection": [0, 1],
+#     "include_sigmoid_activation": [0, 1],
+#     "preprocess_beta": [0, 1],
+#     "include_layer_norm": [0, 1],
+#     "include_output_stem": [0, 1],
+# }
+
+
 CONV_CONFIG = {
-    "lr": [0.0003],
+    "lr": [1e-3, 3e-4, 1e-4],
     "total_epochs": [200],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["conv"],
     "decoder_name": ["conv"],
-    "include_shift": [0, 1],
-    "include_residual_connection": [0, 1],
-    "include_sigmoid_activation": [0, 1],
-    "preprocess_beta": [0, 1],
-    "include_layer_norm": [0, 1],
+    "block_type": ["mlp1", "mlp2"],
+    "param_type": ["sig_gate", "tanh_gate"],
+    "preprocess_beta": [1],
+    "include_latent_stem": [0, 1],
     "include_output_stem": [0, 1],
 }
 
 RENSET_CONFIG = {
-    "lr": [0.0003],
+    "lr": [1e-3, 3e-4, 1e-4],
     "total_epochs": [200],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
-    "include_shift": [0, 1],
-    "include_residual_connection": [0, 1],
-    "include_sigmoid_activation": [0, 1],
-    "preprocess_beta": [0, 1],
-    "include_layer_norm": [0, 1],
+    "block_type": ["mlp1", "mlp2"],
+    "param_type": ["sig_gate", "tanh_gate"],
+    "preprocess_beta": [1],
+    "include_latent_stem": [0, 1],
     "include_output_stem": [0, 1],
 }
+
+
 
 if __name__ == "__main__":
   jobs = generate_job_strings(

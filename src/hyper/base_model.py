@@ -2,11 +2,9 @@ import math
 
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 
-from src.base_architecture import BaseDecoder
-from src.base_architecture import BaseEncoder
+from src.hyper.base_architecture import BaseHyperDecoder
+from src.hyper.base_architecture import BaseHyperEncoder
 from src.base_model import VAE
 from src.config import HyperConfig
 from src.hyper.blocks import get_block
@@ -22,8 +20,8 @@ class HyperVAE(VAE):
 
   def __init__(self,
                hyper_cfg: HyperConfig,
-               encoder: BaseEncoder = None,
-               decoder: BaseDecoder = None,
+               encoder: BaseHyperEncoder = None,
+               decoder: BaseHyperDecoder = None,
                reconstruction_loss: str = "mse"):
     VAE.__init__(
         self,
@@ -42,7 +40,10 @@ class HyperVAE(VAE):
     if self.hyper_cfg.preprocess_beta:
       value = self.preprocess_block(value)
     self.encoder.set_net_inputs(value)
-    self.decoder.set_net_inputs(value)
+    try:
+      self.decoder.set_net_inputs(value)
+    except:
+      pass
 
   def forward(self, x, **kwargs):
     pass

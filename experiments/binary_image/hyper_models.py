@@ -1,11 +1,11 @@
 from collections import OrderedDict
-
+from src.hyper.layers import get_hyper_layer
 import torch
 import torch.nn as nn
 
 from src.hyper.base_architecture import BaseHyperDecoder
 from src.hyper.base_architecture import BaseHyperEncoder
-from src.hyper.layer import HyperLayer
+# from src.hyper.layer import HyperLayer
 from src.models.resblock import HyperResBlock
 
 
@@ -23,38 +23,37 @@ class HyperConvEncoder(BaseHyperEncoder):
     layers.append(
         nn.Sequential(
             nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
-            HyperLayer(128, hyper_cfg),
+            get_hyper_layer(128, hyper_cfg),
             nn.BatchNorm2d(128),
             nn.ReLU(),
         ))
     layers.append(
         nn.Sequential(
             nn.Conv2d(128, 256, 4, 2, padding=1),
-            HyperLayer(256, hyper_cfg),
+            get_hyper_layer(256, hyper_cfg),
             nn.BatchNorm2d(256),
             nn.ReLU()))
     layers.append(
         nn.Sequential(
             nn.Conv2d(256, 512, 4, 2, padding=1),
-            HyperLayer(512, hyper_cfg),
+            get_hyper_layer(512, hyper_cfg),
             nn.BatchNorm2d(512),
             nn.ReLU()))
     layers.append(
         nn.Sequential(
             nn.Conv2d(512, 1024, 4, 2, padding=1),
-            HyperLayer(1024, hyper_cfg),
+            get_hyper_layer(1024, hyper_cfg),
             nn.BatchNorm2d(1024),
             nn.ReLU()))
     self.layers = layers
     self.depth = len(layers)
 
     self.embedding = nn.Linear(1024, self.latent_dim)
-    self.hyper_embedding = HyperLayer(
-        self.latent_dim, hyper_cfg, use_group=False)
+    self.hyper_embedding = get_hyper_layer(self.latent_dim, hyper_cfg)
     self.embedding_proj = nn.Linear(self.latent_dim, self.latent_dim)
 
     self.log_var = nn.Linear(1024, self.latent_dim)
-    self.hyper_log_var = HyperLayer(self.latent_dim, hyper_cfg, use_group=False)
+    self.hyper_log_var = get_hyper_layer(self.latent_dim, hyper_cfg)
     self.log_var_proj = nn.Linear(self.latent_dim, self.latent_dim)
 
   def forward(self, x: torch.Tensor):
@@ -66,7 +65,7 @@ class HyperConvEncoder(BaseHyperEncoder):
       out = self.layers[i](out)
 
       if i + 1 == self.depth:
-        if self.hyper_cfg.include_output_stem:
+        if self.hyper_cfg.include_latent_stem:
           emb = self.embedding(out.reshape(x.shape[0], -1))
           emb = self.hyper_embedding(emb)
           emb = self.embedding_proj(emb)
@@ -96,12 +95,12 @@ class HyperConvDecoder(BaseHyperDecoder):
     layers = nn.ModuleList()
 
     layers.append(nn.Linear(self.latent_dim, 1024 * 4 * 4))
-    layers.append(HyperLayer(1024 * 4 * 4, hyper_cfg, use_group=False))
+    layers.append(get_hyper_layer(1024 * 4 * 4, hyper_cfg))
 
     layers.append(
         nn.Sequential(
             nn.ConvTranspose2d(1024, 512, 3, 2, padding=1),
-            HyperLayer(512, hyper_cfg),
+            get_hyper_layer(512, hyper_cfg),
             nn.BatchNorm2d(512),
             nn.ReLU(),
         ))
@@ -109,15 +108,24 @@ class HyperConvDecoder(BaseHyperDecoder):
     layers.append(
         nn.Sequential(
             nn.ConvTranspose2d(512, 256, 3, 2, padding=1, output_padding=1),
-            HyperLayer(256, hyper_cfg),
+            get_hyper_layer(256, hyper_cfg),
             nn.BatchNorm2d(256),
             nn.ReLU(),
         ))
-    layers.append(
+    if hyper_cfg.include_output_stem:
+      layers.append(
+          nn.Sequential(
+              nn.ConvTranspose2d(
+                  256, self.n_channels, 3, 2, padding=1, output_padding=1),
+              get_hyper_layer(self.n_channels, hyper_cfg),
+              nn.Sigmoid(),
+          ))
+    else:
+      layers.append(
         nn.Sequential(
-            nn.ConvTranspose2d(
-                256, self.n_channels, 3, 2, padding=1, output_padding=1),
-            nn.Sigmoid(),
+          nn.ConvTranspose2d(
+            256, self.n_channels, 3, 2, padding=1, output_padding=1),
+          nn.Sigmoid(),
         ))
 
     self.layers = layers
@@ -157,7 +165,7 @@ class HyperResNetEncoder(BaseHyperEncoder):
     layers.append(
         nn.Sequential(
             nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
-            HyperLayer(64, hyper_cfg),
+            get_hyper_layer(64, hyper_cfg),
             nn.BatchNorm2d(64),
             nn.ReLU(),
         ))
@@ -165,7 +173,7 @@ class HyperResNetEncoder(BaseHyperEncoder):
     layers.append(
         nn.Sequential(
             nn.Conv2d(64, 128, 4, 2, padding=1),
-            HyperLayer(128, hyper_cfg),
+            get_hyper_layer(128, hyper_cfg),
             nn.BatchNorm2d(128),
             nn.ReLU(),
         ))
@@ -173,7 +181,7 @@ class HyperResNetEncoder(BaseHyperEncoder):
     layers.append(
         nn.Sequential(
             nn.Conv2d(128, 128, 3, 2, padding=1),
-            HyperLayer(128, hyper_cfg),
+            get_hyper_layer(128, hyper_cfg),
             nn.BatchNorm2d(128),
             nn.ReLU(),
         ))
@@ -190,12 +198,11 @@ class HyperResNetEncoder(BaseHyperEncoder):
     self.depth = len(layers)
 
     self.embedding = nn.Linear(128 * 4 * 4, self.latent_dim)
-    self.hyper_embedding = HyperLayer(
-        self.latent_dim, hyper_cfg, use_group=False)
+    self.hyper_embedding = get_hyper_layer(self.latent_dim, hyper_cfg)
     self.embedding_proj = nn.Linear(self.latent_dim, self.latent_dim)
 
     self.log_var = nn.Linear(128 * 4 * 4, self.latent_dim)
-    self.hyper_log_var = HyperLayer(self.latent_dim, hyper_cfg, use_group=False)
+    self.hyper_log_var = get_hyper_layer(self.latent_dim, hyper_cfg)
     self.log_var_proj = nn.Linear(self.latent_dim, self.latent_dim)
 
   def forward(self, x: torch.Tensor):
@@ -207,7 +214,7 @@ class HyperResNetEncoder(BaseHyperEncoder):
       out = self.layers[i](out)
 
       if i + 1 == self.depth:
-        if self.hyper_cfg.include_output_stem:
+        if self.hyper_cfg.include_latent_stem:
           emb = self.embedding(out.reshape(x.shape[0], -1))
           emb = self.hyper_embedding(emb)
           emb = self.embedding_proj(emb)
@@ -236,12 +243,12 @@ class HyperResNetDecoder(BaseHyperDecoder):
     layers = nn.ModuleList()
 
     layers.append(nn.Linear(self.latent_dim, 128 * 4 * 4))
-    layers.append(HyperLayer(128 * 4 * 4, hyper_cfg, use_group=False))
+    layers.append(get_hyper_layer(128 * 4 * 4, hyper_cfg))
 
     layers.append(
         nn.Sequential(
             nn.ConvTranspose2d(128, 128, 3, 2, padding=1),
-            HyperLayer(128, hyper_cfg),
+            get_hyper_layer(128, hyper_cfg),
             nn.BatchNorm2d(128),
             nn.ReLU(),
         ))
@@ -256,16 +263,24 @@ class HyperResNetDecoder(BaseHyperDecoder):
     layers.append(
         nn.Sequential(
             nn.ConvTranspose2d(128, 64, 3, 2, padding=1, output_padding=1),
-            HyperLayer(64, hyper_cfg),
+            get_hyper_layer(64, hyper_cfg),
             nn.BatchNorm2d(64),
             nn.ReLU(),
         ))
 
-    layers.append(
+    if hyper_cfg.include_output_stem:
+      layers.append(
         nn.Sequential(
             nn.ConvTranspose2d(
                 64, self.n_channels, 3, 2, padding=1, output_padding=1),
+            get_hyper_layer(self.n_channels, hyper_cfg),
             nn.Sigmoid()))
+    else:
+      layers.append(
+          nn.Sequential(
+              nn.ConvTranspose2d(
+                  64, self.n_channels, 3, 2, padding=1, output_padding=1),
+              nn.Sigmoid()))
 
     self.layers = layers
     self.depth = len(layers)

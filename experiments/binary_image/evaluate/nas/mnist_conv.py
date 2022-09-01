@@ -34,14 +34,14 @@ def get_summary(summary, test=True):
 
 def get_baseline_summary(config_lst,
                          summary_lst,
-                         ln="0",
+                         # ln="0",
                          test=False):
   beta_to_rate = {}
   beta_to_dist = {}
   beta_to_elbo = {}
 
   for i, c in enumerate(config_lst):
-    if c["data_name"] == "mnist" and c["encoder_name"] == "conv" and c["include_layer_norm"] == ln:
+    if c["data_name"] == "mnist" and c["encoder_name"] == "conv" and c["include_layer_norm"] == 1:
       if test:
         beta_to_rate[c["beta"]] = summary_lst[i]["test/rate"]
         beta_to_dist[c["beta"]] = summary_lst[i]["test/distortion"]
@@ -126,8 +126,8 @@ def main():
   # dist = np.array([c[1] for c in combined_dict.values()])
   # plt.plot(rate, dist, "o-", label="Hypernetwork", linewidth=2)
 
-  # plt.xlim(0, 140)
-  # plt.ylim(30, 140)
+  plt.xlim(0, 140)
+  plt.ylim(25, 140)
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")

@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from src.hyper.layer import HyperLayer
+from src.hyper.layers import get_hyper_layer
 
 
 class ResBlock(nn.Module):
@@ -27,10 +27,11 @@ class HyperResBlock(nn.Module):
 
     self.conv_block = nn.Sequential(
         nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
+        get_hyper_layer(channels, hyper_cfg),
         nn.BatchNorm2d(channels),
         nn.ReLU(),
         nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-        HyperLayer(channels, hyper_cfg),
+        get_hyper_layer(channels, hyper_cfg),
         nn.BatchNorm2d(channels),
     )
 
