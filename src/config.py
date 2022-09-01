@@ -39,13 +39,10 @@ class HyperConfig:
   preprocess_dim = 64
 
   def __init__(self, args):
+    self.param_type = get_ns(args, "param_type")
+
     self.block_type = get_ns(args, "block_type")
     self.preprocess_beta = get_ns(args, "preprocess_beta")
 
-    self.include_sigmoid_activation = get_ns(args, "include_sigmoid_activation")
-    self.include_layer_norm = get_ns(args, "include_layer_norm")
-    self.include_shift = get_ns(args, "include_shift")
     self.include_output_stem = get_ns(args, "include_output_stem")
-
-    self.include_residual_connection = get_ns(args,
-                                              "include_residual_connection")
+    self.include_latent_stem = get_ns(args, "include_latent_stem")

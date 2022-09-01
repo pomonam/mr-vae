@@ -8,8 +8,9 @@ import torch.nn.functional as F
 def get_block(name: str):
   _BLOCK_DICT = {
       "linear": LinearBlock,
-      "mlp": MlpBlock,
-      "residual": ResidualBlock,
+      "mlp1": MlpBlock1,
+      "mlp2": MlpBlock2,
+     "residual": ResidualBlock,
       "bn_residual": BatchNormResidualBlock,
       "transformer": TransformerBlock
   }
@@ -43,7 +44,7 @@ class LinearBlock(BaseBlock):
     return out
 
 
-class MlpBlock(BaseBlock):
+class MlpBlock1(BaseBlock):
 
   def _construct_layers(self) -> None:
     self.layers = nn.Sequential(
@@ -57,6 +58,30 @@ class MlpBlock(BaseBlock):
   def forward(self, beta: torch.Tensor) -> torch.Tensor:
     out = self.layers(beta)
     return out
+
+
+class MlpBlock2(BaseBlock):
+
+  def _construct_layers(self) -> None:
+    self.temp_layer = nn.Sequential(
+        nn.Linear(self.input_dim, self.width, bias=True))
+    self.layers1 = nn.Sequential(
+        nn.Linear(self.input_dim, self.width),
+        nn.ReLU(),
+        nn.Linear(self.width, self.width),
+    )
+    self.layers2 = nn.Sequential(
+        nn.Linear(self.width, self.width),
+        nn.ReLU(),
+        nn.Linear(self.width, self.width),
+    )
+
+  def forward(self, beta: torch.Tensor) -> torch.Tensor:
+    x = self.temp_layer(beta)
+    y = x + self.layers1(x)
+    y = torch.relu(y)
+    z = y + self.layers2(y)
+    return z
 
 
 class ResidualBlock(BaseBlock):

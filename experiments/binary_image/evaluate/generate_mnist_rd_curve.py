@@ -9,9 +9,9 @@ from tueplots.constants.color import rgb
 from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
-BASELINE_NAME = "hv_binary_image_save_jobs"
-HYPER_NAME = "hypervae_binary_image_hyper_baseline"
-ID = "2t118j70"
+BASELINE_NAME = "hvae_b_image_jobs_v2"
+HYPER_NAME = "hvae_b_image_hyper_sweep_v2"
+ID = "fq4xn459"
 
 
 def get_summary(summary, test=True):
@@ -34,14 +34,14 @@ def get_summary(summary, test=True):
 
 def get_baseline_summary(config_lst,
                          summary_lst,
-                         schedule="cyclic",
+                         schedule="monotonic",
                          test=False):
   beta_to_rate = {}
   beta_to_dist = {}
   beta_to_elbo = {}
 
   for i, c in enumerate(config_lst):
-    if c["schedule"] == schedule and c["data_name"] == "mnist":
+    if c["schedule"] == schedule and c["data_name"] == "mnist" and c["encoder_name"] == "resnet":
       if test:
         beta_to_rate[c["beta"]] = summary_lst[i]["test/rate"]
         beta_to_dist[c["beta"]] = summary_lst[i]["test/distortion"]
@@ -93,7 +93,7 @@ def main():
   api = init_api()
   runs = api.runs(ENTITY + "/" + HYPER_NAME)
 
-  rate, dist = get_baseline_rd(BASELINE_NAME, schedule="cyclic", test=True)
+  rate, dist = get_baseline_rd(BASELINE_NAME, schedule="constant", test=True)
   plt.plot([0], [0])
   plt.scatter(
       rate,
