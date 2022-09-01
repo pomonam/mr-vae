@@ -66,7 +66,7 @@ class MlpBlock2(BaseBlock):
     self.temp_layer = nn.Sequential(
         nn.Linear(self.input_dim, self.width, bias=True))
     self.layers1 = nn.Sequential(
-        nn.Linear(self.input_dim, self.width),
+        nn.Linear(self.width, self.width),
         nn.ReLU(),
         nn.Linear(self.width, self.width),
     )
