@@ -9,8 +9,8 @@ modify the `.env` file by providing the `WANDB_API_KEY`.
 ### Local
 If you would like to run the code on a local machine, follow these steps:
 ```shell
-conda create -n vae python=3.7
-conda activate vae
+conda create -n hvae python=3.9
+conda activate hvae
 pip install -e .
 ```
 
@@ -19,21 +19,21 @@ If you would like to run the code on a Vector cluster. Follow
 ```shell
 mkdir $HOME/condaenvs
 export PATH=/pkgs/anaconda3/bin:$PATH
-conda create -p $HOME/condaenvs/vae python=3.7
-export PYTHONPATH=$HOME/condaenvs/vae$PYTHONPATH
+conda create -p $HOME/condaenvs/hvae python=3.9
+export PYTHONPATH=$HOME/condaenvs/hvae$PYTHONPATH
 ```
 
-Then create environment file `envs/vae_env`
+Then create environment file `envs/hvae_env`
 ```shell
 export PATH=/pkgs/anaconda3/bin:$PATH
-source activate $HOME/condaenvs/vae
-export PYTHONPATH=$HOME/condaenvs/vae:$PYTHONPATH
+source activate $HOME/condaenvs/hvae
+export PYTHONPATH=$HOME/condaenvs/hvae:$PYTHONPATH
 export LD_LIBRARY_PATH=/pkgs/cuda-10.2/lib64:/pkgs/cudnn-10.2-v7.6.5.32/lib64:$LD_LIBRARY_PATH
 ```
 Then
 ```shell
 . envs/vae_env
-pip install torch==1.12.0 torchvision==0.13.0 --extra-index-url https://download.pytorch.org/whl/cu102
+pip install torch==1.12.1 torchvision==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu102
 mkdir codes
 cd codes
 git clone https://github.com/pomonam/hyper-vae

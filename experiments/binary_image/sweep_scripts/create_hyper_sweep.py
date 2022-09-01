@@ -6,7 +6,7 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_b_image_hyper_sweep_v3")
+    "--experiment_name", type=str, default="hvae_b_image_hyper_sweep_v4")
 
 args = parser.parse_args()
 
@@ -53,30 +53,31 @@ CONV_CONFIG = {
 }
 
 RENSET_CONFIG = {
-    "lr": [1e-3, 3e-4, 1e-4],
+    "lr": [3e-4, 1e-4],
     "total_epochs": [200],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
-    "block_type": ["mlp2"],
-    "param_type": ["sig_gate", "tanh_gate"],
+    "block_type": ["mlp1"],
+    "layer_type": ["sig_gate", "tanh_gate", "scale_shift"],
     "preprocess_beta": [1],
     "include_latent_stem": [0, 1],
     "include_output_stem": [0, 1],
+    "param_type": ["pre_bn", "post_bn", "post_act"],
 }
 
 
 
 if __name__ == "__main__":
   jobs = generate_job_strings(
-      CONV_CONFIG,
-      command_template="python hyper_train.py --experiment_name {} ".format(
-          args.experiment_name))
-  jobs += ["\n"]
-  jobs += generate_job_strings(
       RENSET_CONFIG,
       command_template="python hyper_train.py --experiment_name {} ".format(
           args.experiment_name))
+  # jobs += ["\n"]
+  # jobs += generate_job_strings(
+  #     RENSET_CONFIG,
+  #     command_template="python hyper_train.py --experiment_name {} ".format(
+  #         args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
   generate_sh_file(args.file_name, len(jobs))

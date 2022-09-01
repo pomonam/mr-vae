@@ -8,9 +8,10 @@ from src.hyper.blocks import get_block
 def get_hyper_layer(features, hyper_cfg):
   _dict = {
     "sig_gate": HyperSigmoidLayer(features, hyper_cfg),
-    "tanh_gate": HyperTanhLayer(features, hyper_cfg)
+    "tanh_gate": HyperTanhLayer(features, hyper_cfg),
+    "scale_shift": HyperScaleShiftLayer(features, hyper_cfg)
   }
-  return _dict[hyper_cfg.param_type]
+  return _dict[hyper_cfg.layer_type]
 
 
 class HyperLayer(nn.Module):
@@ -71,3 +72,32 @@ class HyperTanhLayer(HyperLayer):
       scale = scale.unsqueeze(-1).unsqueeze(-1)
 
     return inputs + scale * inputs
+
+
+class HyperScaleShiftLayer(HyperLayer):
+
+  def __init__(self, features: int, hyper_cfg: HyperConfig):
+    super().__init__()
+
+    self._net_inputs = None
+    self.features = features
+    self.hyper_cfg = hyper_cfg
+
+    if hyper_cfg.preprocess_beta:
+      self.hyper_block_scale = get_block("linear")(hyper_cfg.preprocess_dim, self.features)
+      self.hyper_block_shift = get_block("linear")(hyper_cfg.preprocess_dim, self.features)
+    else:
+      self.hyper_block_scale = get_block(self.hyper_cfg.block_type)(
+        in_features=1, width=self.features)
+      self.hyper_block_shift = get_block(self.hyper_cfg.block_type)(
+        in_features=1, width=self.features)
+
+  def forward(self, inputs):
+    scale = self.hyper_block_scale(self._net_inputs)
+    shift = self.hyper_block_shift(self._net_inputs)
+
+    if len(inputs.shape) == 4:
+      scale = scale.unsqueeze(-1).unsqueeze(-1)
+      shift = shift.unsqueeze(-1).unsqueeze(-1)
+
+    return scale * inputs + shift

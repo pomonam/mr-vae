@@ -40,7 +40,7 @@ class HyperConfig:
 
   def __init__(self, args):
     self.param_type = get_ns(args, "param_type")
-
+    self.layer_type = get_ns(args, "layer_type")
     self.block_type = get_ns(args, "block_type")
     self.preprocess_beta = get_ns(args, "preprocess_beta")
 
