@@ -5,11 +5,9 @@ import numpy as np
 import torch
 import tqdm
 import wandb
-os.environ['WANDB_API_KEY'] = "65a71cb86f66a117460fb632080693d4cc9ab979"
 
-#from experiments.b_mnist.input_pipeline import build_input_queue
 from input_pipeline import build_input_queue
-from experiments.init_wandb import init_wandb
+from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
 from src.evaluate import initialize_metric
 from src.evaluate import generate_metric_str
