@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/td_vae/baseline_train.py", line 206, in <module>
+    main()
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/td_vae/baseline_train.py", line 134, in main
+    "train", cfg.batch_size, workers=2, data_path="../../../logs/data")
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/td_vae/input_pipeline.py", line 67, in load_data
+    sampler=train_sampler if split in ["train", "train_eval"] else val_sampler)
+  File "/Users/juhanbae/opt/anaconda3/envs/vae/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 324, in __init__
+    raise ValueError('sampler option is mutually exclusive with '
+ValueError: sampler option is mutually exclusive with shuffle

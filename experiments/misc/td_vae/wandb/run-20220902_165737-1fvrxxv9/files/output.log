@@ -1,0 +1,27 @@
+0it [00:00, ?it/s]
+Traceback (most recent call last):
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/td_vae/baseline_train.py", line 206, in <module>
+    main()
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/td_vae/baseline_train.py", line 145, in main
+    cfg)
+  File "/Users/juhanbae/codes/hyper-vae/experiments/train_utils.py", line 85, in train
+    evaluate(model, train_loader, criterion, epoch, "train_eval", device)
+  File "/Users/juhanbae/codes/hyper-vae/experiments/train_utils.py", line 32, in evaluate
+    output_dict = model(batch)
+  File "/Users/juhanbae/opt/anaconda3/envs/vae/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/juhanbae/codes/hyper-vae/src/models/beta_vae.py", line 43, in forward
+    recon_x = self.decoder(z)["reconstruction"]
+  File "/Users/juhanbae/opt/anaconda3/envs/vae/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/td_vae/model.py", line 51, in forward
+    h = self.net(h)
+  File "/Users/juhanbae/opt/anaconda3/envs/vae/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/juhanbae/opt/anaconda3/envs/vae/lib/python3.7/site-packages/torch/nn/modules/container.py", line 139, in forward
+    input = module(input)
+  File "/Users/juhanbae/opt/anaconda3/envs/vae/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/juhanbae/opt/anaconda3/envs/vae/lib/python3.7/site-packages/torch/nn/modules/linear.py", line 114, in forward
+    return F.linear(input, self.weight, self.bias)
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (128x10 and 4096x1200)
