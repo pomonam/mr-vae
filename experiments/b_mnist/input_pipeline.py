@@ -64,7 +64,7 @@ def load_data(split, batch_size, workers=0, data_path="../../logs/data"):
 
     train_data, valid_data, test_data = load_binary_mnist(file_name)
 
-    if split == "train" or split == "train_eval":
+    if split == "train" or split == "train_eval" or split == "analytical":
         dataset = train_data
 
     elif split == "valid":

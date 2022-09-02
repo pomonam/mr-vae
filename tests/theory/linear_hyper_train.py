@@ -3,6 +3,7 @@ from math import pi
 import os
 
 from linear_utils import analytic_rate_and_distortion
+from input_pipeline import build_input_queue
 from linear_vae import LinearDecoder
 from linear_vae import LinearEncoder
 from linear_vae import LinearHyperVae
@@ -13,7 +14,7 @@ from torch import nn
 import tqdm
 import wandb
 
-from experiments.b_mnist.input_pipeline import build_input_queue
+#from experiments.b_mnist.input_pipeline import build_input_queue
 from experiments.b_mnist.model_pipeline import build_criterion
 from experiments.b_mnist.results.rd_curve import get_rd
 from experiments.init_wandb import init_api

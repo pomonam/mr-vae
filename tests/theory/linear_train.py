@@ -5,30 +5,32 @@ import numpy as np
 import torch
 import tqdm
 import wandb
+os.environ['WANDB_API_KEY'] = "65a71cb86f66a117460fb632080693d4cc9ab979"
 
-from experiments.b_mnist.input_pipeline import build_input_queue
-from experiments.b_mnist.model_pipeline import build_criterion
+#from experiments.b_mnist.input_pipeline import build_input_queue
+from input_pipeline import build_input_queue
 from experiments.init_wandb import init_wandb
 from src.config import TrainConfig
-from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
+from src.evaluate import generate_metric_str
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
 from src.utils import seed_everything
 
-from linear_vae import LinearVae
-from linear_vae import LinearDecoder
-from linear_vae import LinearEncoder
+from linear_utils import analytic_rate_and_distortion
+from linear_beta_vae import LinearVae
+from linear_beta_vae import LinearDecoder
+from linear_beta_vae import LinearEncoder
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--experiment_name", type=str, default="linear_vae-b_mnist_baseline")
+    "--experiment_name", type=str, default="linear_beta_vae-mnist_baseline")
 
-parser.add_argument("--bottleneck_size", type=int, default=128)
-parser.add_argument("--total_epochs", type=int, default=100)
+parser.add_argument("--bottleneck_size", type=int, default=100)
+parser.add_argument("--total_epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--beta", type=float, default=-1) # WE SET THIS LATER IN THE MAIN LOOP
+parser.add_argument("--beta", type=float, default=-1)
 parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
@@ -41,41 +43,44 @@ cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
 
-def evaluate(model, biq, criterion, epoch, name, delta=0.01):
+def evaluate(model, biq, epoch, name, delta=0.01):
     model.eval()
 
     with torch.no_grad():
         loader = biq(name, args.batch_size, DEVICE)
         p_bar = tqdm.tqdm(loader)
-        metric_dict = initialize_metric(criterion.get_metric_lst())
+        metric_dict = initialize_metric(["loss", "rate", "distortion"])
         means = []
 
-        for batch in p_bar:
-            inputs = batch["inputs"]
-            elbo, output_dict = model(inputs)
-            means.append(output_dict["mean"])
-            _, loss_dict = criterion.eval_forward(output_dict)
+        if name == "analytical":
+            rate, dist = analytic_rate_and_distortion(model, loader, 1/args.beta)
+            wandb.log({name + "/" + "rate": rate, name + "/" + "dist": dist})
+        else:
+            for batch in p_bar:
+                inputs = batch["inputs"]
+                elbo, output_dict, loss_dict = model(inputs)
+                means.append(output_dict["mean"])
 
-            metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
-            summ_dict = summarize_metric(metric_dict)
-            summ_str = generate_metric_str(name, epoch, summ_dict)
-            p_bar.set_description(summ_str)
+                metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
+                summ_dict = summarize_metric(metric_dict)
+                summ_str = generate_metric_str(name, epoch, summ_dict)
+                p_bar.set_description(summ_str)
 
-    means = torch.cat(means, dim=0)
-    au_mean = means.mean(0, keepdim=True)
+            means = torch.cat(means, dim=0)
+            au_mean = means.mean(0, keepdim=True)
 
-    au_var = means - au_mean
-    ns = au_var.size(0)
-    au_var = (au_var**2).sum(dim=0) / (ns - 1)
+            au_var = means - au_mean
+            ns = au_var.size(0)
+            au_var = (au_var**2).sum(dim=0) / (ns - 1)
 
-    summ_dict = summarize_metric(metric_dict, name=name + "/")
+            summ_dict = summarize_metric(metric_dict, name=name + "/")
 
-    summ_dict[name + "/" + "au"] = (au_var >= delta).sum().cpu().item()
-    summ_dict[name + "/" + "au_var"] = au_var.cpu()
-    wandb.log(summ_dict)
+            summ_dict[name + "/" + "au"] = (au_var >= delta).sum().cpu().item()
+            summ_dict[name + "/" + "au_var"] = au_var.cpu()
+            wandb.log(summ_dict)
 
 
-def train(model, biq, criterion, optimizer, cfg):
+def train(model, biq, optimizer, scheduler, cfg):
     do_checkpoint = cfg.checkpoint_dir is not None
     if do_checkpoint and os.path.exists(
             os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
@@ -92,8 +97,8 @@ def train(model, biq, criterion, optimizer, cfg):
         do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
         if do_evaluate:
-            evaluate(model, biq, criterion, epoch, "train_eval")
-            evaluate(model, biq, criterion, epoch, "test")
+            evaluate(model, biq, epoch, "train_eval")
+            evaluate(model, biq, epoch, "test")
 
         if do_checkpoint and do_save:
             slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")
@@ -108,13 +113,13 @@ def train(model, biq, criterion, optimizer, cfg):
         model.train()
         loader = biq("train", cfg.batch_size, DEVICE)
         p_bar = tqdm.tqdm(loader)
-        metric_dict = initialize_metric(criterion.get_metric_lst())
+        metric_dict = initialize_metric(["loss", "rate", "distortion"])
 
         for batch in p_bar:
             optimizer.zero_grad()
             inputs = batch["inputs"]
-            elbo, output_dict = model(inputs)
-            loss, loss_dict = criterion(output_dict, cfg.get_beta(epoch))
+            elbo, output_dict, loss_dict = model(inputs, beta=cfg.get_beta(epoch))
+            loss = -elbo
             loss.backward()
             optimizer.step()
 
@@ -123,6 +128,7 @@ def train(model, biq, criterion, optimizer, cfg):
             summ_str = generate_metric_str("train", epoch, summ_dict)
             p_bar.set_description(summ_str)
 
+        scheduler.step()
         summ_dict = summarize_metric(metric_dict, name="train_step/")
         summ_dict["beta"] = cfg.get_beta(epoch)
         wandb.log(summ_dict)
@@ -148,15 +154,12 @@ def main():
     model = LinearVae(encoder, decoder).to(DEVICE)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
-    criterion = build_criterion(DEVICE)
+    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.total_epochs)
 
-    train(model, build_input_queue, criterion, optimizer, cfg)
-    evaluate(model,
-            build_input_queue,
-            criterion,
-            cfg.total_epochs,
-            "train_eval")
-    evaluate(model, build_input_queue, criterion, cfg.total_epochs, "test")
+    train(model, build_input_queue, optimizer, lr_scheduler, cfg)
+    evaluate(model, build_input_queue, cfg.total_epochs, "train_eval")
+    evaluate(model, build_input_queue, cfg.total_epochs, "test")
+    evaluate(model, build_input_queue, cfg.total_epochs, "analytical")
 
     '''
     # Visualizing the reconstruction

@@ -41,8 +41,10 @@ def binary_cross_entropy(x, logits):
     x = torch.reshape(x, (x.shape[0], -1))
     logits = torch.reshape(logits, (logits.shape[0], -1))
 
-    bce_loss = F.binary_cross_entropy_with_logits(logits, x, reduction="none")
-    return torch.sum(bce_loss, dim=-1)
+    #bce_loss = F.binary_cross_entropy_with_logits(logits, x, reduction="none")
+    #return torch.sum(bce_loss, dim=-1)
+    mse_loss = F.mse_loss(logits, x, reduction="none")
+    return torch.sum(mse_loss, dim=-1)
 
 
 def kl_gaussian(mean, var):
