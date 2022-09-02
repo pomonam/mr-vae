@@ -53,8 +53,8 @@ CONV_CONFIG = {
 }
 
 RENSET_CONFIG = {
-    "lr": [1e-3],
-    "total_epochs": [200],
+    "lr": [3e-3, 1e-3],
+    "total_epochs": [500],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
