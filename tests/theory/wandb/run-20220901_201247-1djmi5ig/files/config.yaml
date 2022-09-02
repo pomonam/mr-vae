@@ -1,0 +1,43 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.10.11
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.8.12
+batch_size:
+  desc: null
+  value: 128
+beta:
+  desc: null
+  value: 0.002637
+bottleneck_size:
+  desc: null
+  value: 100
+checkpoint_dir:
+  desc: null
+  value: null
+eval_freq:
+  desc: null
+  value: 50
+experiment_name:
+  desc: null
+  value: linear_beta_vae-mnist_baseline
+lr:
+  desc: null
+  value: 0.001
+save_freq:
+  desc: null
+  value: 100
+schedule:
+  desc: null
+  value: constant
+seed:
+  desc: null
+  value: 0
+total_epochs:
+  desc: null
+  value: 200

@@ -6,6 +6,8 @@ import torch
 import tqdm
 import wandb
 
+os.environ["WANDB_API_KEY"] = "65a71cb86f66a117460fb632080693d4cc9ab979"
+
 from input_pipeline import build_input_queue
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
@@ -28,7 +30,8 @@ parser.add_argument("--bottleneck_size", type=int, default=100)
 parser.add_argument("--total_epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--beta", type=float, default=-1)
+#parser.add_argument("--beta", type=float, default=-1)
+parser.add_argument("--beta", type=float, default=2)
 parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
