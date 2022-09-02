@@ -1,15 +1,0 @@
-0it [00:00, ?it/s]C:\Users\Michael Ruan\anaconda3\lib\site-packages\torchvision\datasets\mnist.py:498: UserWarning: The given NumPy array is not writeable, and PyTorch does not support non-writeable tensors. This means you can write to the underlying (supposedly non-writeable) NumPy array using the tensor. You may want to copy the array to protect its data or make it writeable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at  ..\torch\csrc\utils\tensor_numpy.cpp:180.)
-  return torch.from_numpy(parsed.astype(m[2], copy=False)).view(*s)
-0it [00:02, ?it/s]
-Traceback (most recent call last):
-  File "linear_train.py", line 185, in <module>
-    main()
-  File "linear_train.py", line 157, in main
-    train(model, build_input_queue, optimizer, lr_scheduler, cfg)
-  File "linear_train.py", line 98, in train
-    evaluate(model, biq, epoch, "train_eval")
-  File "linear_train.py", line 62, in evaluate
-    metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
-  File "c:\users\michael ruan\documents\github\hyper-vae\src\evaluate.py", line 314, in update_metric
-    metric_dict[m].update(log_dict[m].item(), n)
-AttributeError: 'float' object has no attribute 'item'
