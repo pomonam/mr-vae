@@ -26,7 +26,7 @@ parser.add_argument(
 parser.add_argument("--total_epochs", type=int, default=10)
 
 parser.add_argument("--lr", type=float, default=1e-3)
-parser.add_argument("--batch_size", type=int, default=128)
+parser.add_argument("--batch_size", type=int, default=2048)
 parser.add_argument("--beta", type=float, default=1.)
 parser.add_argument("--schedule", type=str, default="monotonic")
 
@@ -113,6 +113,7 @@ class Criterion(nn.Module):
     TC_loss = log_q_z - log_prod_q_z
     dimension_wise_KL = log_prod_q_z - log_prior
 
+    # TODO(JB): Need to find the correct alpha, gamma configuration ...
     alpha = 1
     gamma = 1
     loss_dict = {
@@ -232,21 +233,6 @@ def main():
     ])
   val_table = wandb.Table(data=data_to_log, columns=column_names)
   wandb.log({"image": val_table})
-
-  # Uncomment ot compute NLL.
-  # TODO(JB): This function gives negative NLL.
-  # test_loader = load_mnist_data(
-  #   "test", 10000, workers=0, data_path="../../logs/data")
-  # test_data = next(iter(test_loader))
-  # test_data = test_data[0]
-  # test_data = test_data.to(DEVICE).type(torch.float)
-  # with torch.no_grad():
-  #   nll = []
-  #   for i in range(5):
-  #     nll_i = model.get_nll(test_data, n_samples=500, batch_size=500)
-  #     print(f"Round {i + 1} nll: {nll_i}")
-  #     nll.append(nll_i)
-  # wandb.log({"nll_mean": np.mean(nll), "nll_std": np.std(nll)})
 
   if args.save_final_checkpoint:
     save_checkpoint = \
