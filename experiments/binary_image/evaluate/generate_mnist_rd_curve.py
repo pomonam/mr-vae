@@ -10,8 +10,8 @@ from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_b_image_jobs_v2"
-HYPER_NAME = "hvae_b_image_hyper_sweep_v3"
-ID = "16sjdzip"
+HYPER_NAME = "hvae_b_image_hyper_sweep_v4"
+ID = "20n77hxg"
 
 
 def get_summary(summary, test=True):
@@ -35,7 +35,7 @@ def get_summary(summary, test=True):
 def get_baseline_summary(config_lst,
                          summary_lst,
                          schedule="monotonic",
-                         test=False):
+                         test=True):
   beta_to_rate = {}
   beta_to_dist = {}
   beta_to_elbo = {}
@@ -59,7 +59,7 @@ def get_baseline_summary(config_lst,
   return sorted_beta_to_rate, sorted_beta_to_dist, sorted_beta_to_elbo
 
 
-def get_baseline_rd(experiment_name, schedule="cyclic", test=False):
+def get_baseline_rd(experiment_name, schedule="cyclic", test=True):
   api = init_api()
   runs = api.runs(ENTITY + "/" + experiment_name)
 
@@ -93,7 +93,7 @@ def main():
   api = init_api()
   runs = api.runs(ENTITY + "/" + HYPER_NAME)
 
-  rate, dist = get_baseline_rd(BASELINE_NAME, schedule="constant", test=True)
+  rate, dist = get_baseline_rd(BASELINE_NAME, schedule="monotonic", test=True)
   plt.plot([0], [0])
   plt.scatter(
       rate,
