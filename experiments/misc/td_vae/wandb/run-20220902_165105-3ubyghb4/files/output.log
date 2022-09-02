@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/td_vae/baseline_train.py", line 207, in <module>
+    main()
+  File "/Users/juhanbae/codes/hyper-vae/experiments/misc/td_vae/baseline_train.py", line 125, in main
+    model = build_model(args.encoder_name, args.decoder_name, DEVICE)
+AttributeError: 'Namespace' object has no attribute 'encoder_name'
