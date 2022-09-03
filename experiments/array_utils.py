@@ -18,6 +18,9 @@ def chunks(lst: list, n: int) -> Any:
 
 def generate_job_strings(config: dict,
                          command_template: str = "python train.py ") -> list:
+  if config == {}:
+    return []
+
   jobs = []
   for setting in ConfigIterator(config):
     command = command_template
