@@ -7,7 +7,7 @@ from experiments.array_utils import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="baseline_jobs")
-parser.add_argument("--experiment_name", type=str, default="hvae_b_image_jobs_v2")
+parser.add_argument("--experiment_name", type=str, default="hvae_b_image_jobs_v3")
 
 
 args = parser.parse_args()
@@ -46,7 +46,7 @@ RENSET_CONFIG1 = {
 }
 
 RENSET_CONFIG2 = {
-    "lr": [0.001],
+    "lr": [0.0003],
     "total_epochs": [200],
     "data_name": ["omniglot"],
     "encoder_name": ["resnet"],
@@ -67,7 +67,7 @@ if __name__ == "__main__":
       command_template="python baseline_train.py --experiment_name {} ".format(
           args.experiment_name))
   jobs += ["\n"]
-  jobs = generate_job_strings(
+  jobs += generate_job_strings(
       RENSET_CONFIG1,
       command_template="python baseline_train.py --experiment_name {} ".format(
           args.experiment_name))
