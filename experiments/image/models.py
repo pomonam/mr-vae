@@ -136,21 +136,21 @@ class CifarResNetEncoder(BaseEncoder):
     layers.append(
       nn.Sequential(
         nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
-        nn.BatchNorm2d(64),
+        # nn.BatchNorm2d(64),
         nn.ReLU(),
       ))
 
     layers.append(
       nn.Sequential(
         nn.Conv2d(64, 128, 4, 2, padding=1),
-        nn.BatchNorm2d(128),
+        # nn.BatchNorm2d(128),
         nn.ReLU(),
       ))
 
     layers.append(
       nn.Sequential(
         nn.Conv2d(128, 128, 3, 1, padding=1),
-        nn.BatchNorm2d(128),
+        # nn.BatchNorm2d(128),
         nn.ReLU(),
       ))
 
@@ -207,7 +207,7 @@ class CifarResNetDecoder(BaseDecoder):
     layers.append(
       nn.Sequential(
         nn.ConvTranspose2d(128, 64, 4, 2, padding=1),
-        nn.BatchNorm2d(64),
+        # nn.BatchNorm2d(64),
         nn.ReLU(),
       ))
 
@@ -369,28 +369,28 @@ class CelebResNetEncoder(BaseEncoder):
     layers.append(
       nn.Sequential(
         nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
-        nn.BatchNorm2d(64),
+        # nn.BatchNorm2d(64),
         nn.ReLU(),
       )
     )
     layers.append(
       nn.Sequential(
         nn.Conv2d(64, 128, 4, 2, padding=1),
-        nn.BatchNorm2d(128),
+        # nn.BatchNorm2d(128),
         nn.ReLU(),
       )
     )
     layers.append(
       nn.Sequential(
         nn.Conv2d(128, 128, 3, 2, padding=1),
-        nn.BatchNorm2d(128),
+        # nn.BatchNorm2d(128),
         nn.ReLU(),
       )
     )
     layers.append(
       nn.Sequential(
         nn.Conv2d(128, 128, 3, 2, padding=1),
-        nn.BatchNorm2d(128),
+        # nn.BatchNorm2d(128),
         nn.ReLU(),
       )
     )
@@ -441,7 +441,7 @@ class CelebResNetDecoder(BaseDecoder):
     layers.append(
       nn.Sequential(
         nn.ConvTranspose2d(128, 128, 3, 2, padding=1),
-        nn.BatchNorm2d(128),
+        # nn.BatchNorm2d(128),
         nn.ReLU(),
       )
     )
@@ -456,14 +456,14 @@ class CelebResNetDecoder(BaseDecoder):
     layers.append(
       nn.Sequential(
         nn.ConvTranspose2d(128, 128, 5, 2, padding=1, ),
-        nn.BatchNorm2d(128),
+        # nn.BatchNorm2d(128),
         nn.Sigmoid(),
       )
     )
     layers.append(
       nn.Sequential(
         nn.ConvTranspose2d(128, 64, 5, 2, padding=1, output_padding=1),
-        nn.BatchNorm2d(64),
+        # nn.BatchNorm2d(64),
         nn.ReLU(),
       )
     )
