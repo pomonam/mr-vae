@@ -32,7 +32,7 @@ parser.add_argument("--data_name", type=str, default="mnist")
 parser.add_argument("--encoder_name", type=str, default="conv")
 parser.add_argument("--decoder_name", type=str, default="conv")
 
-parser.add_argument("--block_type", type=str, default="mlp2")
+parser.add_argument("--block_type", type=str, default="mlp1")
 parser.add_argument("--layer_type", type=str, default="tanh_gate")
 parser.add_argument("--param_type", type=str, default="pre_bn")
 parser.add_argument("--preprocess_beta", type=int, default=1)
