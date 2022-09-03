@@ -6,7 +6,7 @@ import torchvision.datasets as datasets
 import torch
 
 
-def load_mnist_data(split, batch_size, workers=4, data_path="../../logs/data"):
+def load_mnist_data(split, batch_size, workers=1, data_path="../../logs/data"):
   if split == "train" or split == "analytical" or split == "train_eval":
     dataset = datasets.MNIST(data_path, train=True, download=True,
                                transform=transforms.ToTensor())
@@ -37,3 +37,4 @@ def build_input_queue(split, batch_size, device, data_path="../../logs/data"):
 
   for batch in loader:
     yield {"inputs": batch[0].to(device, non_blocking=True)}
+

@@ -13,8 +13,9 @@ def init_wandb(checkpoint_dir: str,
                run_name: str = None,
                config: dict = None) -> None:
   # Put your wandb API key here
-  os.environ["WANDB_API_KEY"] = "56048bb80728a171e201df652b4687a74f23c3e7"
-
+  #os.environ["WANDB_API_KEY"] = "56048bb80728a171e201df652b4687a74f23c3e7"
+  os.environ["WANDB_API_KEY"] = "65a71cb86f66a117460fb632080693d4cc9ab979"
+  
   if checkpoint_dir is None:
     wandb.init(project=project_name, name=run_name, config=config)
   else:
