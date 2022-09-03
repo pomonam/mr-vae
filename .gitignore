@@ -32,8 +32,10 @@ experiments/binary_image/checkpoints/*.pth
 experiments/image/wandb
 experiments/image/checkpoints/*.pth
 
-
 experiments/text/wandb
 
 experiments/misc/vq_vae/wandb
 experiments/misc/vq_vae/checkpoints/*.pth
+
+experiments/misc/tc_vae/wandb
+experiments/misc/tc_vae/checkpoints/*.pth
