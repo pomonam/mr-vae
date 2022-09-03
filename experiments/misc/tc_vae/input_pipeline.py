@@ -18,17 +18,15 @@ from torch.utils.data.sampler import SubsetRandomSampler
 class DisentangledSpritesDataset(Dataset):
   def __init__(self, root_dir, transform=None):
     self.root_dir = root_dir
-    self.filename = 'dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz'
-    self.filepath = f'{self.root_dir}/{self.filename}'
-    dataset_zip = np.load(self.filepath, allow_pickle=True, encoding='bytes')
+    self.filename = "dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz"
+    self.filepath = f"{self.root_dir}/{self.filename}"
+    dataset_zip = np.load(self.filepath, allow_pickle=True, encoding="bytes")
 
-    # print('Keys in the dataset:', dataset_zip.keys())
-    self.imgs = dataset_zip['imgs']
-    self.latents_values = dataset_zip['latents_values']
-    self.latents_classes = dataset_zip['latents_classes']
-    self.metadata = dataset_zip['metadata'][()]
+    self.imgs = dataset_zip["imgs"]
+    self.latents_values = dataset_zip["latents_values"]
+    self.latents_classes = dataset_zip["latents_classes"]
+    self.metadata = dataset_zip["metadata"][()]
 
-    # print('Metadata: \n', self.metadata)
     self.transform = transform
 
   def __len__(self):

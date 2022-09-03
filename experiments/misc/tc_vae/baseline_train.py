@@ -1,5 +1,4 @@
 import argparse
-import math
 import os
 
 import numpy as np
@@ -8,26 +7,26 @@ import torch.nn as nn
 import torch.nn.functional as F
 import wandb
 
-from experiments.misc.td_vae.input_pipeline import load_data
-from experiments.misc.td_vae.model import Encoder, Decoder
+from experiments.misc.tc_vae.input_pipeline import load_data
+from experiments.misc.tc_vae.model import Encoder, Decoder
 from experiments.train_utils import evaluate
 from experiments.train_utils import predict
 from experiments.train_utils import train
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
 from src.models.beta_tc_vae import BetaTCVAE
-from src.models.beta_vae import log_sum_exp
 from src.utils import seed_everything
+from experiments.misc.tc_vae.metrics import mutual_info_metric_shapes
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--experiment_name", type=str, default="hv_binary_image_debug")
 
-parser.add_argument("--total_epochs", type=int, default=10)
+parser.add_argument("--total_epochs", type=int, default=50)
 
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=2048)
-parser.add_argument("--beta", type=float, default=1.)
+parser.add_argument("--beta", type=float, default=5.)
 parser.add_argument("--schedule", type=str, default="monotonic")
 
 parser.add_argument("--seed", type=int, default=0)
@@ -72,11 +71,11 @@ class Criterion(nn.Module):
 
   @staticmethod
   def get_eval_metric_lst():
-    return Criterion.get_metric_lst() + ["mi"]
+    return Criterion.get_metric_lst()
 
   @staticmethod
   def forward(recon_x, x, mu, log_var, z, beta):
-    dataset_size = 400
+    dataset_size = 737280
     recon_loss = F.mse_loss(
       recon_x.reshape(x.shape[0], -1),
       x.reshape(x.shape[0], -1),
@@ -114,7 +113,7 @@ class Criterion(nn.Module):
     dimension_wise_KL = log_prod_q_z - log_prior
 
     # TODO(JB): Need to find the correct alpha, gamma configuration ...
-    alpha = 1
+    alpha = 0
     gamma = 1
     loss_dict = {
         "loss": (recon_loss
@@ -130,33 +129,7 @@ class Criterion(nn.Module):
 
   @staticmethod
   def eval_forward(recon_x, x, mu, log_var, z, beta):
-    recon_loss = F.binary_cross_entropy(
-        recon_x.reshape(x.shape[0], -1),
-        x.reshape(x.shape[0], -1),
-        reduction="none",
-    ).sum(dim=-1)
-
-    kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
-
-    # Compute MI as well for eval_forward.
-    batch_size, nz = mu.size()
-    neg_entropy = (-0.5 * nz * math.log(2 * math.pi) - 0.5 *
-                   (1 + log_var).sum(-1)).mean()
-    z, mu, log_var = z.unsqueeze(1), mu.unsqueeze(1), log_var.unsqueeze(1)
-    var = log_var.exp()
-    dev = z - mu
-    log_density = -0.5 * ((dev ** 2) / var).sum(dim=-1) - \
-                  0.5 * (nz * math.log(2 * math.pi) + log_var.sum(-1))
-    log_qz = log_sum_exp(log_density, dim=1) - math.log(batch_size)
-    mi = neg_entropy - log_qz.mean(-1)
-
-    loss_dict = {
-        "loss": (recon_loss + beta * kld).mean(dim=0),
-        "distortion": recon_loss.mean(dim=0),
-        "rate": kld.mean(dim=0),
-        "mi": mi
-    }
-    return loss_dict
+    return Criterion.forward(recon_x, x, mu, log_var, z, beta)
 
 
 def build_criterion(device):
@@ -172,7 +145,7 @@ def build_model(device):
       encoder=encoder,
       decoder=decoder,
   )
-  model.reconstruction_loss = "bce"
+  model.reconstruction_loss = "mse"
   return model.to(device)
 
 
@@ -211,6 +184,9 @@ def main():
            DEVICE)
   evaluate(model, test_loader, criterion, cfg.total_epochs, "test", DEVICE)
 
+  metric, marginal_entropies, cond_entropies = mutual_info_metric_shapes(model, train_loader)
+  wandb.log({"metric": metric})
+
   true_data, reconstructions, generations = predict(model, test_loader, DEVICE)
   column_names = ["images_id", "truth", "reconstruction", "normal_generation"]
   data_to_log = []
@@ -243,6 +219,7 @@ def main():
         "state_dict": model.state_dict(),
     }
     torch.save(log_info, save_checkpoint)
+
 
   wandb.finish()
 
