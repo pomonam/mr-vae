@@ -6,7 +6,7 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_b_image_hyper_sweep_v5")
+    "--experiment_name", type=str, default="hvae_b_image_hyper_sweep_v6")
 
 args = parser.parse_args()
 
@@ -53,7 +53,7 @@ CONV_CONFIG = {
 }
 
 RENSET_CONFIG = {
-    "lr": [3e-3, 1e-3],
+    "lr": [3e-3, 1e-3, 3e-4],
     "total_epochs": [500],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["resnet"],
@@ -63,7 +63,7 @@ RENSET_CONFIG = {
     "preprocess_beta": [1],
     "include_latent_stem": [0, 1],
     "include_output_stem": [0, 1],
-    "param_type": ["pre_bn", "post_bn", "post_act"],
+    "param_type": ["pre_bn", "post_act"],
 }
 
 if __name__ == "__main__":
