@@ -143,6 +143,7 @@ def main():
 
   seed_everything(cfg.seed)
   model = build_model(args.encoder_name, args.decoder_name, DEVICE)
+  print(model)
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
