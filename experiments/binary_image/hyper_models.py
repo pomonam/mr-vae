@@ -7,6 +7,7 @@ from src.hyper.base_architecture import BaseHyperDecoder
 from src.hyper.base_architecture import BaseHyperEncoder
 # from src.hyper.layer import HyperLayer
 from src.models.resblock import HyperResBlock
+from src.hyper.layers import get_hyper_bn_layer
 
 
 class HyperConvEncoder(BaseHyperEncoder):
@@ -25,65 +26,65 @@ class HyperConvEncoder(BaseHyperEncoder):
           nn.Sequential(
               nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
               get_hyper_layer(128, hyper_cfg),
-              nn.BatchNorm2d(128),
+              get_hyper_bn_layer(128, hyper_cfg),
               nn.ReLU(),
           ))
       layers.append(
           nn.Sequential(
               nn.Conv2d(128, 256, 4, 2, padding=1),
               get_hyper_layer(256, hyper_cfg),
-              nn.BatchNorm2d(256),
+              get_hyper_bn_layer(256, hyper_cfg),
               nn.ReLU()))
       layers.append(
           nn.Sequential(
               nn.Conv2d(256, 512, 4, 2, padding=1),
               get_hyper_layer(512, hyper_cfg),
-              nn.BatchNorm2d(512),
+              get_hyper_bn_layer(512, hyper_cfg),
               nn.ReLU()))
       layers.append(
           nn.Sequential(
               nn.Conv2d(512, 1024, 4, 2, padding=1),
               get_hyper_layer(1024, hyper_cfg),
-              nn.BatchNorm2d(1024),
+              get_hyper_bn_layer(1024, hyper_cfg),
               nn.ReLU()))
     elif self.hyper_cfg.param_type == "post_bn":
       layers.append(
           nn.Sequential(
               nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
-              nn.BatchNorm2d(128),
+              get_hyper_bn_layer(128, hyper_cfg),
             get_hyper_layer(128, hyper_cfg),
             nn.ReLU(),
           ))
       layers.append(
           nn.Sequential(
               nn.Conv2d(128, 256, 4, 2, padding=1),
-              nn.BatchNorm2d(256),
+              get_hyper_bn_layer(256, hyper_cfg),
             get_hyper_layer(256, hyper_cfg),
             nn.ReLU()))
       layers.append(
           nn.Sequential(
               nn.Conv2d(256, 512, 4, 2, padding=1),
-              nn.BatchNorm2d(512),
+              get_hyper_bn_layer(512, hyper_cfg),
             get_hyper_layer(512, hyper_cfg),
             nn.ReLU()))
       layers.append(
           nn.Sequential(
               nn.Conv2d(512, 1024, 4, 2, padding=1),
-              nn.BatchNorm2d(1024),
+              get_hyper_bn_layer(1024, hyper_cfg),
             get_hyper_layer(1024, hyper_cfg),
             nn.ReLU()))
     else:
       layers.append(
           nn.Sequential(
               nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
-              nn.BatchNorm2d(128),
+              get_hyper_bn_layer(128, hyper_cfg),
             nn.ReLU(),
             get_hyper_layer(128, hyper_cfg),
           ))
       layers.append(
           nn.Sequential(
               nn.Conv2d(128, 256, 4, 2, padding=1),
-              nn.BatchNorm2d(256),
+              get_hyper_bn_layer(256, hyper_cfg),
             nn.ReLU(),
             get_hyper_layer(256, hyper_cfg),
           )
@@ -91,7 +92,7 @@ class HyperConvEncoder(BaseHyperEncoder):
       layers.append(
           nn.Sequential(
               nn.Conv2d(256, 512, 4, 2, padding=1),
-              nn.BatchNorm2d(512),
+              get_hyper_bn_layer(512, hyper_cfg),
             nn.ReLU(),
       get_hyper_layer(512, hyper_cfg),
 
@@ -100,7 +101,7 @@ class HyperConvEncoder(BaseHyperEncoder):
       layers.append(
           nn.Sequential(
               nn.Conv2d(512, 1024, 4, 2, padding=1),
-              nn.BatchNorm2d(1024),
+              get_hyper_bn_layer(1024, hyper_cfg),
             get_hyper_layer(1024, hyper_cfg),
             nn.ReLU(),
             get_hyper_layer(1024, hyper_cfg),
@@ -162,7 +163,7 @@ class HyperConvDecoder(BaseHyperDecoder):
         nn.Sequential(
             nn.ConvTranspose2d(1024, 512, 3, 2, padding=1),
             get_hyper_layer(512, hyper_cfg),
-            nn.BatchNorm2d(512),
+            get_hyper_bn_layer(512, hyper_cfg),
             nn.ReLU(),
         ))
 
@@ -170,7 +171,7 @@ class HyperConvDecoder(BaseHyperDecoder):
         nn.Sequential(
             nn.ConvTranspose2d(512, 256, 3, 2, padding=1, output_padding=1),
             get_hyper_layer(256, hyper_cfg),
-            nn.BatchNorm2d(256),
+            get_hyper_bn_layer(256, hyper_cfg),
             nn.ReLU(),
         ))
     if hyper_cfg.include_output_stem:
@@ -228,7 +229,6 @@ class HyperResNetEncoder(BaseHyperEncoder):
           nn.Sequential(
               nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
               get_hyper_layer(64, hyper_cfg),
-              nn.BatchNorm2d(64),
               nn.ReLU(),
           ))
 
@@ -236,7 +236,6 @@ class HyperResNetEncoder(BaseHyperEncoder):
           nn.Sequential(
               nn.Conv2d(64, 128, 4, 2, padding=1),
               get_hyper_layer(128, hyper_cfg),
-              nn.BatchNorm2d(128),
               nn.ReLU(),
           ))
 
@@ -244,7 +243,6 @@ class HyperResNetEncoder(BaseHyperEncoder):
           nn.Sequential(
               nn.Conv2d(128, 128, 3, 2, padding=1),
               get_hyper_layer(128, hyper_cfg),
-              nn.BatchNorm2d(128),
               nn.ReLU(),
           ))
 
@@ -260,7 +258,6 @@ class HyperResNetEncoder(BaseHyperEncoder):
       layers.append(
         nn.Sequential(
           nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
-          nn.BatchNorm2d(64),
           get_hyper_layer(64, hyper_cfg),
           nn.ReLU(),
         ))
@@ -268,7 +265,6 @@ class HyperResNetEncoder(BaseHyperEncoder):
       layers.append(
         nn.Sequential(
           nn.Conv2d(64, 128, 4, 2, padding=1),
-          nn.BatchNorm2d(128),
           get_hyper_layer(128, hyper_cfg),
           nn.ReLU(),
         ))
@@ -276,7 +272,6 @@ class HyperResNetEncoder(BaseHyperEncoder):
       layers.append(
         nn.Sequential(
           nn.Conv2d(128, 128, 3, 2, padding=1),
-          nn.BatchNorm2d(128),
           get_hyper_layer(128, hyper_cfg),
           nn.ReLU(),
         ))
@@ -292,7 +287,6 @@ class HyperResNetEncoder(BaseHyperEncoder):
       layers.append(
         nn.Sequential(
           nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
-          nn.BatchNorm2d(64),
           nn.ReLU(),
           get_hyper_layer(64, hyper_cfg),
         ))
@@ -300,7 +294,6 @@ class HyperResNetEncoder(BaseHyperEncoder):
       layers.append(
         nn.Sequential(
           nn.Conv2d(64, 128, 4, 2, padding=1),
-          nn.BatchNorm2d(128),
           nn.ReLU(),
           get_hyper_layer(128, hyper_cfg),
         ))
@@ -308,7 +301,6 @@ class HyperResNetEncoder(BaseHyperEncoder):
       layers.append(
         nn.Sequential(
           nn.Conv2d(128, 128, 3, 2, padding=1),
-          nn.BatchNorm2d(128),
           nn.ReLU(),
           get_hyper_layer(128, hyper_cfg),
         ))
@@ -383,7 +375,6 @@ class HyperResNetDecoder(BaseHyperDecoder):
           nn.Sequential(
               nn.ConvTranspose2d(128, 128, 3, 2, padding=1),
               get_hyper_layer(128, hyper_cfg),
-              nn.BatchNorm2d(128),
               nn.ReLU(),
           ))
       layers.append(
@@ -398,7 +389,6 @@ class HyperResNetDecoder(BaseHyperDecoder):
           nn.Sequential(
               nn.ConvTranspose2d(128, 64, 3, 2, padding=1, output_padding=1),
               get_hyper_layer(64, hyper_cfg),
-              nn.BatchNorm2d(64),
               nn.ReLU(),
           ))
 
@@ -419,7 +409,6 @@ class HyperResNetDecoder(BaseHyperDecoder):
       layers.append(
         nn.Sequential(
           nn.ConvTranspose2d(128, 128, 3, 2, padding=1),
-          nn.BatchNorm2d(128),
           get_hyper_layer(128, hyper_cfg),
           nn.ReLU(),
         ))
@@ -434,7 +423,6 @@ class HyperResNetDecoder(BaseHyperDecoder):
       layers.append(
         nn.Sequential(
           nn.ConvTranspose2d(128, 64, 3, 2, padding=1, output_padding=1),
-          nn.BatchNorm2d(64),
           get_hyper_layer(64, hyper_cfg),
           nn.ReLU(),
         ))
@@ -457,7 +445,6 @@ class HyperResNetDecoder(BaseHyperDecoder):
       layers.append(
         nn.Sequential(
           nn.ConvTranspose2d(128, 128, 3, 2, padding=1),
-          nn.BatchNorm2d(128),
           nn.ReLU(),
           get_hyper_layer(128, hyper_cfg),
         ))
@@ -474,7 +461,7 @@ class HyperResNetDecoder(BaseHyperDecoder):
       layers.append(
         nn.Sequential(
           nn.ConvTranspose2d(128, 64, 3, 2, padding=1, output_padding=1),
-          nn.BatchNorm2d(64),
+          get_hyper_bn_layer(64),
           nn.ReLU(),
           get_hyper_layer(64, hyper_cfg),
         ))
