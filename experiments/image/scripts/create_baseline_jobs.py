@@ -6,24 +6,24 @@ from experiments.array_utils import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="baseline_jobs")
-parser.add_argument("--experiment_name", type=str, default="hvae_image_jobs_v2")
+parser.add_argument("--experiment_name", type=str, default="hvae_image_jobs_v3")
 
 
 args = parser.parse_args()
 
 
 SVHN_CONFIG1 = {
-    "lr": [0.0003],
-    "total_epochs": [200],
-    "data_name": ["svhn"],
-    "arch_name": ["conv"],
-    "schedule": ["constant", "monotonic"],
-    "beta": list(np.logspace(-3, 1, num=20)) + [1],
-    "save_final_checkpoint": [1]
+    # "lr": [0.0003],
+    # "total_epochs": [200],
+    # "data_name": ["svhn"],
+    # "arch_name": ["conv"],
+    # "schedule": ["constant", "monotonic"],
+    # "beta": list(np.logspace(-3, 1, num=20)) + [1],
+    # "save_final_checkpoint": [1]
 }
 
 SVHN_CONFIG2 = {
-    "lr": [0.003],
+    "lr": [0.0001],
     "total_epochs": [200],
     "data_name": ["svhn"],
     "arch_name": ["resnet"],
@@ -34,17 +34,17 @@ SVHN_CONFIG2 = {
 
 
 CIFAR_CONFIG1 = {
-    "lr": [0.001],
-    "total_epochs": [200],
-    "data_name": ["cifar"],
-    "arch_name": ["conv"],
-    "schedule": ["constant", "monotonic"],
-    "beta": list(np.logspace(-3, 1, num=20)) + [1],
-    "save_final_checkpoint": [1]
+    # "lr": [0.001],
+    # "total_epochs": [200],
+    # "data_name": ["cifar"],
+    # "arch_name": ["conv"],
+    # "schedule": ["constant", "monotonic"],
+    # "beta": list(np.logspace(-3, 1, num=20)) + [1],
+    # "save_final_checkpoint": [1]
 }
 
 CIFAR_CONFIG2 = {
-    "lr": [0.001],
+    "lr": [0.0003],
     "total_epochs": [200],
     "data_name": ["cifar"],
     "arch_name": ["resnet"],
@@ -54,17 +54,17 @@ CIFAR_CONFIG2 = {
 }
 
 CELEB_CONFIG1 = {
-    "lr": [0.001],
-    "total_epochs": [200],
-    "data_name": ["celeba"],
-    "arch_name": ["conv"],
-    "schedule": ["constant", "monotonic"],
-    "beta": list(np.logspace(-3, 1, num=20)) + [1],
-    "save_final_checkpoint": [1]
+    # "lr": [0.001],
+    # "total_epochs": [200],
+    # "data_name": ["celeba"],
+    # "arch_name": ["conv"],
+    # "schedule": ["constant", "monotonic"],
+    # "beta": list(np.logspace(-3, 1, num=20)) + [1],
+    # "save_final_checkpoint": [1]
 }
 
 CELEB_CONFIG2 = {
-    "lr": [0.001],
+    "lr": [0.0003],
     "total_epochs": [200],
     "data_name": ["celeba"],
     "arch_name": ["resnet"],
