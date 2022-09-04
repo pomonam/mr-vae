@@ -6,7 +6,7 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_b_image_hyper_sweep_v6")
+    "--experiment_name", type=str, default="hvae_b_image_hyper_sweep_v7")
 
 args = parser.parse_args()
 
@@ -40,35 +40,37 @@ args = parser.parse_args()
 
 
 CONV_CONFIG = {
-    "lr": [1e-3, 3e-4, 1e-4],
+    "lr": [3e-3, 1e-3, 3e-4],
     "total_epochs": [200],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["conv"],
     "decoder_name": ["conv"],
-    "block_type": ["mlp2"],
-    "param_type": ["sig_gate", "tanh_gate"],
-    "preprocess_beta": [1],
-    "include_latent_stem": [0, 1],
-    "include_output_stem": [0, 1],
-}
-
-RENSET_CONFIG = {
-    "lr": [3e-3, 1e-3, 3e-4],
-    "total_epochs": [500],
-    "data_name": ["mnist", "omniglot"],
-    "encoder_name": ["resnet"],
-    "decoder_name": ["resnet"],
     "block_type": ["mlp1"],
+    "param_type": ["pre_bn", "post_act"],
     "layer_type": ["sig_gate", "tanh_gate", "scale_shift"],
     "preprocess_beta": [1],
-    "include_latent_stem": [0, 1],
-    "include_output_stem": [0, 1],
-    "param_type": ["pre_bn", "post_act"],
+    "include_latent_stem": [0],
+    "include_output_stem": [0],
+    "include_hyper_bn": [0, 1],
 }
+
+# RENSET_CONFIG = {
+#     "lr": [3e-3, 1e-3, 3e-4],
+#     "total_epochs": [500],
+#     "data_name": ["mnist", "omniglot"],
+#     "encoder_name": ["resnet"],
+#     "decoder_name": ["resnet"],
+#     "block_type": ["mlp1"],
+#     "layer_type": ["sig_gate", "tanh_gate", "scale_shift"],
+#     "preprocess_beta": [1],
+#     "include_latent_stem": [0, 1],
+#     "include_output_stem": [0, 1],
+#     "param_type": ["pre_bn", "post_act"],
+# }
 
 if __name__ == "__main__":
   jobs = generate_job_strings(
-      RENSET_CONFIG,
+      CONV_CONFIG,
       command_template="python hyper_train.py --experiment_name {} ".format(
           args.experiment_name))
   # jobs += ["\n"]

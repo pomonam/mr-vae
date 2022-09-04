@@ -43,7 +43,6 @@ class HyperConfig:
     self.layer_type = get_ns(args, "layer_type")
     self.block_type = get_ns(args, "block_type")
     self.preprocess_beta = get_ns(args, "preprocess_beta")
-    self.batch_size = get_ns(args, "batch_size")
-
+    self.include_hyper_bn = get_ns(args, "include_hyper_bn")
     self.include_output_stem = get_ns(args, "include_output_stem")
     self.include_latent_stem = get_ns(args, "include_latent_stem")

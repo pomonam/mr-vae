@@ -23,89 +23,89 @@ class HyperConvEncoder(BaseHyperEncoder):
     layers = nn.ModuleList()
     if self.hyper_cfg.param_type == "pre_bn":
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
-              get_hyper_layer(128, hyper_cfg),
-              get_hyper_bn_layer(128, hyper_cfg),
-              nn.ReLU(),
-          ))
+        nn.Sequential(
+          nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
+          get_hyper_layer(128, hyper_cfg),
+          get_hyper_bn_layer(128, hyper_cfg),
+          nn.ReLU(),
+        ))
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(128, 256, 4, 2, padding=1),
-              get_hyper_layer(256, hyper_cfg),
-              get_hyper_bn_layer(256, hyper_cfg),
-              nn.ReLU()))
+        nn.Sequential(
+          nn.Conv2d(128, 256, 4, 2, padding=1),
+          get_hyper_layer(256, hyper_cfg),
+          get_hyper_bn_layer(256, hyper_cfg),
+          nn.ReLU()))
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(256, 512, 4, 2, padding=1),
-              get_hyper_layer(512, hyper_cfg),
-              get_hyper_bn_layer(512, hyper_cfg),
-              nn.ReLU()))
+        nn.Sequential(
+          nn.Conv2d(256, 512, 4, 2, padding=1),
+          get_hyper_layer(512, hyper_cfg),
+          get_hyper_bn_layer(512, hyper_cfg),
+          nn.ReLU()))
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(512, 1024, 4, 2, padding=1),
-              get_hyper_layer(1024, hyper_cfg),
-              get_hyper_bn_layer(1024, hyper_cfg),
-              nn.ReLU()))
+        nn.Sequential(
+          nn.Conv2d(512, 1024, 4, 2, padding=1),
+          get_hyper_layer(1024, hyper_cfg),
+          get_hyper_bn_layer(1024, hyper_cfg),
+          nn.ReLU()))
     elif self.hyper_cfg.param_type == "post_bn":
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
-              get_hyper_bn_layer(128, hyper_cfg),
-            get_hyper_layer(128, hyper_cfg),
-            nn.ReLU(),
-          ))
+        nn.Sequential(
+          nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
+          get_hyper_bn_layer(128, hyper_cfg),
+          get_hyper_layer(128, hyper_cfg),
+          nn.ReLU(),
+        ))
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(128, 256, 4, 2, padding=1),
-              get_hyper_bn_layer(256, hyper_cfg),
-            get_hyper_layer(256, hyper_cfg),
-            nn.ReLU()))
+        nn.Sequential(
+          nn.Conv2d(128, 256, 4, 2, padding=1),
+          get_hyper_bn_layer(256, hyper_cfg),
+          get_hyper_layer(256, hyper_cfg),
+          nn.ReLU()))
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(256, 512, 4, 2, padding=1),
-              get_hyper_bn_layer(512, hyper_cfg),
-            get_hyper_layer(512, hyper_cfg),
-            nn.ReLU()))
+        nn.Sequential(
+          nn.Conv2d(256, 512, 4, 2, padding=1),
+          get_hyper_bn_layer(512, hyper_cfg),
+          get_hyper_layer(512, hyper_cfg),
+          nn.ReLU()))
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(512, 1024, 4, 2, padding=1),
-              get_hyper_bn_layer(1024, hyper_cfg),
-            get_hyper_layer(1024, hyper_cfg),
-            nn.ReLU()))
+        nn.Sequential(
+          nn.Conv2d(512, 1024, 4, 2, padding=1),
+          get_hyper_bn_layer(1024, hyper_cfg),
+          get_hyper_layer(1024, hyper_cfg),
+          nn.ReLU()))
     else:
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
-              get_hyper_bn_layer(128, hyper_cfg),
-            nn.ReLU(),
-            get_hyper_layer(128, hyper_cfg),
-          ))
+        nn.Sequential(
+          nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
+          get_hyper_bn_layer(128, hyper_cfg),
+          nn.ReLU(),
+          get_hyper_layer(128, hyper_cfg),
+        ))
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(128, 256, 4, 2, padding=1),
-              get_hyper_bn_layer(256, hyper_cfg),
-            nn.ReLU(),
-            get_hyper_layer(256, hyper_cfg),
-          )
+        nn.Sequential(
+          nn.Conv2d(128, 256, 4, 2, padding=1),
+          get_hyper_bn_layer(256, hyper_cfg),
+          nn.ReLU(),
+          get_hyper_layer(256, hyper_cfg),
+        )
       )
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(256, 512, 4, 2, padding=1),
-              get_hyper_bn_layer(512, hyper_cfg),
-            nn.ReLU(),
-      get_hyper_layer(512, hyper_cfg),
+        nn.Sequential(
+          nn.Conv2d(256, 512, 4, 2, padding=1),
+          get_hyper_bn_layer(512, hyper_cfg),
+          nn.ReLU(),
+          get_hyper_layer(512, hyper_cfg),
 
-      ),
+        ),
       )
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(512, 1024, 4, 2, padding=1),
-              get_hyper_bn_layer(1024, hyper_cfg),
-            get_hyper_layer(1024, hyper_cfg),
-            nn.ReLU(),
-            get_hyper_layer(1024, hyper_cfg),
-          ))
+        nn.Sequential(
+          nn.Conv2d(512, 1024, 4, 2, padding=1),
+          get_hyper_bn_layer(1024, hyper_cfg),
+          get_hyper_layer(1024, hyper_cfg),
+          nn.ReLU(),
+          get_hyper_layer(1024, hyper_cfg),
+        ))
 
     self.layers = layers
     self.depth = len(layers)
@@ -153,43 +153,106 @@ class HyperConvDecoder(BaseHyperDecoder):
     self.input_dim = (1, 28, 28)
     self.latent_dim = 32
     self.n_channels = 1
+    self.hyper_cfg = hyper_cfg
 
     layers = nn.ModuleList()
 
     layers.append(nn.Linear(self.latent_dim, 1024 * 4 * 4))
     layers.append(get_hyper_layer(1024 * 4 * 4, hyper_cfg))
 
-    layers.append(
+    if self.hyper_cfg.param_type == "pre_bn":
+      layers.append(
         nn.Sequential(
-            nn.ConvTranspose2d(1024, 512, 3, 2, padding=1),
-            get_hyper_layer(512, hyper_cfg),
-            get_hyper_bn_layer(512, hyper_cfg),
-            nn.ReLU(),
+          nn.ConvTranspose2d(1024, 512, 3, 2, padding=1),
+          get_hyper_layer(512, hyper_cfg),
+          get_hyper_bn_layer(512, hyper_cfg),
+          nn.ReLU(),
         ))
 
-    layers.append(
-        nn.Sequential(
-            nn.ConvTranspose2d(512, 256, 3, 2, padding=1, output_padding=1),
-            get_hyper_layer(256, hyper_cfg),
-            get_hyper_bn_layer(256, hyper_cfg),
-            nn.ReLU(),
-        ))
-    if hyper_cfg.include_output_stem:
       layers.append(
+        nn.Sequential(
+          nn.ConvTranspose2d(512, 256, 3, 2, padding=1, output_padding=1),
+          get_hyper_layer(256, hyper_cfg),
+          get_hyper_bn_layer(256, hyper_cfg),
+          nn.ReLU(),
+        ))
+      if hyper_cfg.include_output_stem:
+        layers.append(
           nn.Sequential(
-              nn.ConvTranspose2d(
-                  256, self.n_channels, 3, 2, padding=1, output_padding=1),
-              get_hyper_layer(self.n_channels, hyper_cfg),
-              nn.Sigmoid(),
+            nn.ConvTranspose2d(
+              256, self.n_channels, 3, 2, padding=1, output_padding=1),
+            get_hyper_layer(self.n_channels, hyper_cfg),
+            nn.Sigmoid(),
+          ))
+      else:
+        layers.append(
+          nn.Sequential(
+            nn.ConvTranspose2d(
+              256, self.n_channels, 3, 2, padding=1, output_padding=1),
+            nn.Sigmoid(),
+          ))
+    elif self.hyper_cfg.param_type == "post_bn":
+      layers.append(
+        nn.Sequential(
+          nn.ConvTranspose2d(1024, 512, 3, 2, padding=1),
+          get_hyper_bn_layer(512, hyper_cfg),
+          get_hyper_layer(512, hyper_cfg),
+          nn.ReLU(),
+        ))
+
+      layers.append(
+        nn.Sequential(
+          nn.ConvTranspose2d(512, 256, 3, 2, padding=1, output_padding=1),
+          get_hyper_bn_layer(256, hyper_cfg),
+          get_hyper_layer(256, hyper_cfg),
+          nn.ReLU(),
+        ))
+      if hyper_cfg.include_output_stem:
+        layers.append(
+          nn.Sequential(
+            nn.ConvTranspose2d(
+              256, self.n_channels, 3, 2, padding=1, output_padding=1),
+            get_hyper_layer(self.n_channels, hyper_cfg),
+            nn.Sigmoid(),
+          ))
+      else:
+        layers.append(
+          nn.Sequential(
+            nn.ConvTranspose2d(
+              256, self.n_channels, 3, 2, padding=1, output_padding=1),
+            nn.Sigmoid(),
           ))
     else:
       layers.append(
         nn.Sequential(
-          nn.ConvTranspose2d(
-            256, self.n_channels, 3, 2, padding=1, output_padding=1),
-          nn.Sigmoid(),
+          nn.ConvTranspose2d(1024, 512, 3, 2, padding=1),
+          get_hyper_bn_layer(512, hyper_cfg),
+          nn.ReLU(),
+          get_hyper_layer(512, hyper_cfg),
         ))
 
+      layers.append(
+        nn.Sequential(
+          nn.ConvTranspose2d(512, 256, 3, 2, padding=1, output_padding=1),
+          get_hyper_bn_layer(256, hyper_cfg),
+          nn.ReLU(),
+          get_hyper_layer(256, hyper_cfg),
+        ))
+      if hyper_cfg.include_output_stem:
+        layers.append(
+          nn.Sequential(
+            nn.ConvTranspose2d(
+              256, self.n_channels, 3, 2, padding=1, output_padding=1),
+            nn.Sigmoid(),
+            get_hyper_layer(self.n_channels, hyper_cfg),
+          ))
+      else:
+        layers.append(
+          nn.Sequential(
+            nn.ConvTranspose2d(
+              256, self.n_channels, 3, 2, padding=1, output_padding=1),
+            nn.Sigmoid(),
+          ))
     self.layers = layers
     self.depth = len(layers)
 
@@ -226,33 +289,33 @@ class HyperResNetEncoder(BaseHyperEncoder):
 
     if self.hyper_cfg.param_type in ["pre_bn", "post_bn"]:
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
-              get_hyper_layer(64, hyper_cfg),
-              nn.ReLU(),
-          ))
+        nn.Sequential(
+          nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
+          get_hyper_layer(64, hyper_cfg),
+          nn.ReLU(),
+        ))
 
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(64, 128, 4, 2, padding=1),
-              get_hyper_layer(128, hyper_cfg),
-              nn.ReLU(),
-          ))
+        nn.Sequential(
+          nn.Conv2d(64, 128, 4, 2, padding=1),
+          get_hyper_layer(128, hyper_cfg),
+          nn.ReLU(),
+        ))
 
       layers.append(
-          nn.Sequential(
-              nn.Conv2d(128, 128, 3, 2, padding=1),
-              get_hyper_layer(128, hyper_cfg),
-              nn.ReLU(),
-          ))
+        nn.Sequential(
+          nn.Conv2d(128, 128, 3, 2, padding=1),
+          get_hyper_layer(128, hyper_cfg),
+          nn.ReLU(),
+        ))
 
       layers.append(
-          nn.Sequential(
-              HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
-              nn.ReLU(),
-              HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
-              nn.ReLU(),
-          ))
+        nn.Sequential(
+          HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
+          nn.ReLU(),
+          HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
+          nn.ReLU(),
+        ))
 
     elif self.hyper_cfg.param_type == "post_act":
       layers.append(
@@ -343,39 +406,39 @@ class HyperResNetDecoder(BaseHyperDecoder):
 
     if self.hyper_cfg.param_type in ["pre_bn", "post_bn"]:
       layers.append(
-          nn.Sequential(
-              nn.ConvTranspose2d(128, 128, 3, 2, padding=1),
-              get_hyper_layer(128, hyper_cfg),
-              nn.ReLU(),
-          ))
+        nn.Sequential(
+          nn.ConvTranspose2d(128, 128, 3, 2, padding=1),
+          get_hyper_layer(128, hyper_cfg),
+          nn.ReLU(),
+        ))
       layers.append(
-          nn.Sequential(
-              HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
-              nn.ReLU(),
-              HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
-              nn.ReLU(),
-          ))
+        nn.Sequential(
+          HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
+          nn.ReLU(),
+          HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
+          nn.ReLU(),
+        ))
 
       layers.append(
-          nn.Sequential(
-              nn.ConvTranspose2d(128, 64, 3, 2, padding=1, output_padding=1),
-              get_hyper_layer(64, hyper_cfg),
-              nn.ReLU(),
-          ))
+        nn.Sequential(
+          nn.ConvTranspose2d(128, 64, 3, 2, padding=1, output_padding=1),
+          get_hyper_layer(64, hyper_cfg),
+          nn.ReLU(),
+        ))
 
       if hyper_cfg.include_output_stem:
         layers.append(
           nn.Sequential(
-              nn.ConvTranspose2d(
-                  64, self.n_channels, 3, 2, padding=1, output_padding=1),
-              get_hyper_layer(self.n_channels, hyper_cfg),
-              nn.Sigmoid()))
+            nn.ConvTranspose2d(
+              64, self.n_channels, 3, 2, padding=1, output_padding=1),
+            get_hyper_layer(self.n_channels, hyper_cfg),
+            nn.Sigmoid()))
       else:
         layers.append(
-            nn.Sequential(
-                nn.ConvTranspose2d(
-                    64, self.n_channels, 3, 2, padding=1, output_padding=1),
-                nn.Sigmoid()))
+          nn.Sequential(
+            nn.ConvTranspose2d(
+              64, self.n_channels, 3, 2, padding=1, output_padding=1),
+            nn.Sigmoid()))
 
     elif self.hyper_cfg.param_type == "post_act":
       layers.append(

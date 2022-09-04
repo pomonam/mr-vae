@@ -38,6 +38,7 @@ parser.add_argument("--param_type", type=str, default="pre_bn")
 parser.add_argument("--preprocess_beta", type=int, default=1)
 parser.add_argument("--include_latent_stem", type=int, default=0)
 parser.add_argument("--include_output_stem", type=int, default=0)
+parser.add_argument("--include_hyper_bn", type=int, default=1)
 
 parser.add_argument("--total_epochs", type=int, default=10)
 parser.add_argument("--warmup_epochs", type=int, default=10)
