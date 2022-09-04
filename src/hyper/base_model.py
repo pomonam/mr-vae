@@ -25,8 +25,7 @@ class HyperVAE(VAE):
                encoder: BaseHyperEncoder,
                decoder: BaseHyperDecoder,
                reconstruction_loss: str = "mse") -> None:
-    VAE.__init__(
-        self,
+    super().__init__(
         encoder=encoder,
         decoder=decoder,
         reconstruction_loss=reconstruction_loss)
@@ -47,7 +46,7 @@ class HyperVAE(VAE):
     self.encoder.set_net_inputs(value)
     self.decoder.set_net_inputs(value)
 
-  def forward(self, x, **kwargs):
+  def forward(self, inputs: torch.Tensor, **kwargs):
     raise NotImplementedError
 
   # noinspection PyMethodMayBeStatic
@@ -59,7 +58,7 @@ class HyperVAE(VAE):
       # This is for text models.
       batch_size = x.batch_size
       device = x._batch["text_ids"].device
-    sample_dict = dict()
+    sample_dict = {}
     sample_dict["net"] = \
       torch.FloatTensor(batch_size, 1).uniform_(-_SQRT3, _SQRT3).to(device)
     beta = sample_dict["net"] * (_SQRT3 / 3)
@@ -75,7 +74,7 @@ class HyperVAE(VAE):
       # This is for text models.
       batch_size = x.batch_size
     device = x.device
-    sample_dict = dict()
+    sample_dict = {}
     ones = torch.ones(batch_size, 1).to(device)
     beta = value * ones
     sample_dict["beta"] = torch.ones(batch_size, 1).to(device) * beta

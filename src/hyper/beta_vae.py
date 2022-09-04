@@ -1,5 +1,3 @@
-import math
-
 import torch
 
 from src.config import HyperConfig
@@ -31,7 +29,7 @@ class HyperBetaVAE(HyperVAE):
     encoder_output = self.encoder(x)
     mu, log_var = encoder_output["embedding"], encoder_output["log_covariance"]
     std = torch.exp(0.5 * log_var)
-    z, eps = self._sample_gauss(mu, std)
+    z, _ = self._sample_gauss(mu, std)
     try:
       recon_x = self.decoder(z)["reconstruction"]
     except LookupError:
@@ -56,7 +54,7 @@ class HyperBetaVAE(HyperVAE):
     encoder_output = self.encoder(x)
     mu, log_var = encoder_output["embedding"], encoder_output["log_covariance"]
     std = torch.exp(0.5 * log_var)
-    z, eps = self._sample_gauss(mu, std)
+    z, _ = self._sample_gauss(mu, std)
     try:
       recon_x = self.decoder(z)["reconstruction"]
     except LookupError:
