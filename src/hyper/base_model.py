@@ -49,8 +49,13 @@ class HyperVAE(VAE):
     pass
 
   def sample(self, x: torch.Tensor):
-    batch_size = x.shape[0]
-    device = x.device
+    try:
+      batch_size = x.shape[0]
+      device = x.device
+    except AttributeError:
+      # This is for text models.
+      batch_size = x.batch_size
+      device = x._batch["text_ids"].device
     sample_dict = dict()
     sample_dict["net"] = \
       torch.FloatTensor(batch_size, 1).uniform_(-_SQRT3, _SQRT3).to(device)
@@ -60,7 +65,11 @@ class HyperVAE(VAE):
     return sample_dict
 
   def sample_inverse(self, x: torch.Tensor, value: float):
-    batch_size = x.shape[0]
+    try:
+      batch_size = x.shape[0]
+    except AttributeError:
+      # This is for text models.
+      batch_size = x.batch_size
     device = x.device
     sample_dict = dict()
     ones = torch.ones(batch_size, 1).to(device)

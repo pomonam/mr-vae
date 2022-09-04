@@ -8,12 +8,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import tqdm
 import wandb
-
+from src.config import HyperConfig
+from src.hyper.models.beta_vae import BetaHyperVAE
 from experiments.text.input_pipeline import load_data
-from experiments.text.models import LstmDecoder, TransformerDecoder
-from experiments.text.models import LstmEncoder
-from experiments.train_utils import evaluate
-from experiments.train_utils import train
+# from experiments.text.models import LstmDecoder, TransformerDecoder
+from experiments.text.hyper_models import HyperLstmEncoder, HyperTransformerDecoder, HyperLstmDecoder
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
 from src.evaluate import generate_metric_str
@@ -29,7 +28,15 @@ parser.add_argument(
   "--experiment_name", type=str, default="hypervae-text-train")
 
 parser.add_argument("--decoder_name", type=str, default="trans")
-parser.add_argument("--data_name", type=str, default="yahoo")
+parser.add_argument("--data_name", type=str, default="ptb")
+
+parser.add_argument("--block_type", type=str, default="mlp1")
+parser.add_argument("--layer_type", type=str, default="tanh_gate")
+parser.add_argument("--param_type", type=str, default="pre_bn")
+parser.add_argument("--preprocess_beta", type=int, default=1)
+parser.add_argument("--include_latent_stem", type=int, default=0)
+parser.add_argument("--include_output_stem", type=int, default=0)
+parser.add_argument("--include_hyper_bn", type=int, default=1)
 
 parser.add_argument("--total_epochs", type=int, default=10)
 parser.add_argument("--lr", type=float, default=0.001)
@@ -48,7 +55,7 @@ cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
 
-class TextCriterion(nn.Module):
+class HyperTextCriterion(nn.Module):
 
   @staticmethod
   def get_metric_lst():
@@ -56,7 +63,7 @@ class TextCriterion(nn.Module):
 
   @staticmethod
   def get_eval_metric_lst():
-    return TextCriterion.get_metric_lst() + ["mi"]
+    return HyperTextCriterion.get_metric_lst() + ["mi"]
 
   @staticmethod
   def forward(recon_x, x, mu, log_var, z, beta):
@@ -65,7 +72,7 @@ class TextCriterion(nn.Module):
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
     loss_dict = {
-      "loss": (recon_loss + beta * kld).mean(dim=0),
+      "loss": (recon_loss + beta.squeeze(-1) * kld).mean(dim=0),
       "distortion": recon_loss.mean(dim=0),
       "rate": kld.mean(dim=0)
     }
@@ -99,16 +106,18 @@ class TextCriterion(nn.Module):
 
 
 def build_criterion(device):
-  loss_fnc = TextCriterion()
+  loss_fnc = HyperTextCriterion()
   return loss_fnc.to(device)
 
 
-def build_model(vocab_size, data_name, decoder_name, device):
+def build_model(vocab_size, data_name, decoder_name, hyper_cfg, device):
   # v1 = data_name == "yahoo"
   v1 = False
-  model = BetaVAE(
-    encoder=LstmEncoder(vocab_size, v1=v1),
-    decoder=LstmDecoder(vocab_size, v1=v1) if decoder_name == "lstm" else TransformerDecoder(vocab_size, v1=v1),
+  model = BetaHyperVAE(
+    encoder=HyperLstmEncoder(vocab_size, hyper_cfg, v1=v1),
+    decoder=HyperLstmDecoder(vocab_size, hyper_cfg, v1=v1) if decoder_name == "lstm"
+      else HyperTransformerDecoder(vocab_size, hyper_cfg, v1=v1),
+    hyper_cfg=hyper_cfg
   )
   return model.to(device)
 
@@ -121,7 +130,7 @@ def build_input_queue(loader, device):
       yield {"data": batch.to(device, non_blocking=True)}
 
 
-def evaluate(model, iterator, criterion, epoch, name, device, start_token, end_token, delta=0.01, ):
+def hyper_evaluate(model, iterator, criterion, epoch, name, device, start_token, end_token, delta=0.01, ):
   model.eval()
 
   with torch.no_grad():
@@ -169,7 +178,36 @@ def evaluate(model, iterator, criterion, epoch, name, device, start_token, end_t
   return metric_dict["loss"].avg
 
 
-def train(model,
+def hyper_single_evaluate(model, iterator, criterion, epoch, name, device, start_token, end_token, delta=0.01, ):
+  model.eval()
+
+  with torch.no_grad():
+    sample_lst = model.get_test_samples(20)
+    mid_point = sample_lst[len(sample_lst) // 2]
+
+    queue = build_input_queue(loader, device)
+    p_bar = tqdm.tqdm(queue)
+    metric_dict = initialize_metric(criterion.get_eval_metric_lst())
+
+    for batch in p_bar:
+      output_dict = model.fixed_forward(batch, mid_point)
+
+      loss_dict = criterion.eval_forward(
+          recon_x=output_dict["reconstruction"],
+          x=output_dict["data"],
+          mu=output_dict["mu"],
+          log_var=output_dict["log_var"],
+          z=output_dict["z"],
+          beta=1.)
+      metric_dict = update_metric(metric_dict, loss_dict, batch["data"].size(0))
+      summ_dict = summarize_metric(metric_dict)
+      summ_str = generate_metric_str(name, epoch, summ_dict)
+      p_bar.set_description(summ_str)
+
+  return loss_dict["loss"]
+
+
+def hyper_train(model,
           iterator,
           # test_loader,
           criterion,
@@ -193,11 +231,11 @@ def train(model,
     epoch = 0
 
   while epoch < cfg.total_epochs:
-    do_evaluate = epoch % cfg.eval_freq == 0
+    do_evaluate = epoch % cfg.eval_freq == 0 and epoch != 0
     do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
     if do_evaluate:
-      evaluate(model,
+      hyper_evaluate(model,
                iterator,
                criterion,
                epoch,
@@ -206,7 +244,7 @@ def train(model,
                start_token,
                end_token
                )
-      evaluate(model,
+      hyper_evaluate(model,
                iterator,
                criterion,
                epoch,
@@ -234,7 +272,7 @@ def train(model,
 
     for batch in p_bar:
       batch = {"data": batch, "start_tokens": start_token, "end_token": end_token}
-      output_dict = model(batch)
+      output_dict = model.sample_forward(batch)
       loss_dict = criterion(
         recon_x=output_dict["reconstruction"],
         x=output_dict["data"],
@@ -246,6 +284,7 @@ def train(model,
       loss_dict["loss"].backward()
       torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
       optimizer.step()
+
       metric_dict = update_metric(metric_dict, loss_dict, batch["data"]["text_ids"].size(0))
       summ_dict = summarize_metric(metric_dict)
       summ_str = generate_metric_str("train", epoch, summ_dict)
@@ -258,7 +297,7 @@ def train(model,
     epoch = epoch + 1
 
     if "ReduceLROnPlateau" in str(scheduler.__class__):
-      val_loss = evaluate(model,
+      val_loss = hyper_single_evaluate(model,
                           iterator,
                           criterion,
                           epoch,
@@ -280,12 +319,12 @@ def main():
   init_wandb(
     args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
+  hyper_cfg = HyperConfig(args)
 
   seed_everything(cfg.seed)
-
   train_data, iterator, vocab = load_data(args.data_name, "train", cfg.batch_size,
                                           data_path="../../logs/text_data", device=DEVICE)
-  model = build_model(train_data.vocab.size, args.data_name, args.decoder_name, DEVICE)
+  model = build_model(train_data.vocab.size, args.data_name, args.decoder_name, hyper_cfg, DEVICE)
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
   scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
@@ -297,7 +336,7 @@ def main():
     dtype=torch.long).to(DEVICE)
   end_token = vocab.eos_token_id
 
-  train(model,
+  hyper_train(model,
         iterator,
         criterion,
         optimizer,
@@ -307,7 +346,7 @@ def main():
         start_tokens,
         end_token
         )
-  evaluate(model,
+  hyper_evaluate(model,
            iterator,
            criterion,
            cfg.total_epochs,
@@ -316,7 +355,7 @@ def main():
            start_tokens,
            end_token
            )
-  evaluate(model, iterator, criterion, cfg.total_epochs, "test", DEVICE, start_tokens,
+  hyper_evaluate(model, iterator, criterion, cfg.total_epochs, "test", DEVICE, start_tokens,
            end_token)
 
   if args.save_final_checkpoint:

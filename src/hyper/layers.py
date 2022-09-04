@@ -146,6 +146,9 @@ class HyperTanhLayer(HyperLayer):
     if len(inputs.shape) == 4:
       scale = scale.unsqueeze(-1).unsqueeze(-1)
 
+    if len(inputs.shape) == 3:
+      scale = scale.unsqueeze(1)
+
     return inputs + scale * inputs
 
 

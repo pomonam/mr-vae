@@ -34,8 +34,8 @@ class BetaHyperVAE(HyperVAE):
     z, eps = self._sample_gauss(mu, std)
     try:
       recon_x = self.decoder(z)["reconstruction"]
-    except LookupError:
-      recon_x = self.decoder.ar_forward(x, z)
+    except:
+      recon_x = self.decoder.ar_forward(x, z, inputs)
 
     output = {
         "reconstruction": recon_x,

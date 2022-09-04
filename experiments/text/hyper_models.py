@@ -6,9 +6,6 @@ import texar.torch as tx
 
 from src.hyper.base_architecture import BaseHyperDecoder
 from src.hyper.base_architecture import BaseHyperEncoder
-# from src.hyper.layer import HyperLayer
-from src.models.resblock import HyperResBlock
-from src.hyper.layers import get_hyper_bn_layer
 from experiments.text.hyper_modules.transformer import TransformerDecoder
 
 
@@ -76,6 +73,7 @@ class HyperLstmDecoder(BaseHyperDecoder):
 
   def __init__(self, vocab_size, hyper_cfg, v1=True):
     BaseHyperDecoder.__init__(self)
+    self.hyper_cfg = hyper_cfg
 
     embed_dim = 512 if v1 else 256
     dec_emb_hparams = {
@@ -174,6 +172,7 @@ class HyperTransformerDecoder(BaseHyperDecoder):
 
     embd_dim = 512 if v1 else 256
     hidden_size = 512 if v1 else 256
+    self.hidden_size = hidden_size
     dec_emb_hparams = {
       'name': 'lookup_table',
       "dim": embd_dim,
@@ -266,8 +265,8 @@ class HyperTransformerDecoder(BaseHyperDecoder):
       token_pos_embedder=self._embed_fn_transformer,
       hparams=trans_hparams)
 
-    self.mlp_linear_layer = nn.Linear(32, hidden_size * 2)
-    self.hyper_mlp_linear_layer = get_hyper_layer(hidden_size * 2, hyper_cfg)
+    self.mlp_linear_layer = nn.Linear(32, hidden_size, bias=True)
+    self.hyper_mlp_linear_layer = get_hyper_layer(hidden_size, hyper_cfg)
 
   def _embed_fn_transformer(self,
                             tokens: torch.LongTensor,
@@ -279,12 +278,16 @@ class HyperTransformerDecoder(BaseHyperDecoder):
     output_embed = output_w_embed + output_p_embed
     return output_embed
 
+  def forward(self, z: torch.Tensor):
+    raise LookupError
+
   def decode(self,
              helper,
              latent_z,
              text_ids,
              seq_lengths,
              max_decoding_length=None):
+    self._latent_z = latent_z
     fc_output = self.mlp_linear_layer(latent_z)
     fc_output = self.hyper_mlp_linear_layer(fc_output)
 
