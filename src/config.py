@@ -1,9 +1,10 @@
+from argparse import Namespace
 from typing import Optional
 
 from src.schedules import build_betas_schedule
 
 
-def get_ns(args: dict, name: str) -> Optional:
+def get_ns(args: Namespace, name: str) -> Optional:
   if name in args:
     return getattr(args, name)
   return None
@@ -11,7 +12,7 @@ def get_ns(args: dict, name: str) -> Optional:
 
 class TrainConfig:
 
-  def __init__(self, args: dict) -> None:
+  def __init__(self, args: Namespace) -> None:
     self.total_epochs = get_ns(args, "total_epochs")
     self.warmup_epochs = get_ns(args, "warmup_epochs")
 
@@ -41,7 +42,7 @@ class HyperConfig:
   non_shared_emd_dim = 16 * 4
   shared_preprocess_dim = 64
 
-  def __init__(self, args: dict) -> None:
+  def __init__(self, args: Namespace) -> None:
     self.shared_preprocess = get_ns(args, "shared_preprocess")
 
     self.apply_zero_init = get_ns(args, "apply_zero_init")
