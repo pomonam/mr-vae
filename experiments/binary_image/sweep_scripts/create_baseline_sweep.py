@@ -21,7 +21,12 @@ CONV_CONFIG = {
 }
 
 RENSET_CONFIG = {
-    "lr": [1e-3, 3e-4, 1e-4, 3e-5,],
+    "lr": [
+        1e-3,
+        3e-4,
+        1e-4,
+        3e-5,
+    ],
     "total_epochs": [200],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["resnet"],

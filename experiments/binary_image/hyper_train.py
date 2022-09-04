@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
 import wandb
 
@@ -21,7 +21,7 @@ from experiments.wandb_utils import init_wandb
 from src.config import HyperConfig
 from src.config import TrainConfig
 from src.hyper.beta_vae import HyperBetaVAE
-from src.models.beta_vae import log_sum_exp
+from src.utils import log_sum_exp
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
