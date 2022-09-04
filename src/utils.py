@@ -1,15 +1,32 @@
 import os
 import random
+from typing import Optional
 
 import numpy as np
 import torch
 
 
-def _select_seed_randomly(min_seed_value=0, max_seed_value=255):
+def log_sum_exp(value: torch.Tensor,
+                dim: Optional[int] = None,
+                keepdim: bool = False) -> torch.Tensor:
+  if dim is not None:
+    m, _ = torch.max(value, dim=dim, keepdim=True)
+    value0 = value - m
+    if keepdim is False:
+      m = m.squeeze(dim)
+    return m + torch.log(torch.sum(torch.exp(value0), dim=dim, keepdim=keepdim))
+  else:
+    m = torch.max(value)
+    sum_exp = torch.sum(torch.exp(value - m))
+    return m + torch.log(sum_exp)
+
+
+def _select_seed_randomly(min_seed_value: int = 0,
+                          max_seed_value: int = 255) -> int:
   return random.randint(min_seed_value, max_seed_value)
 
 
-def seed_everything(seed):
+def seed_everything(seed: int) -> int:
   max_seed_value = np.iinfo(np.uint32).max
   min_seed_value = np.iinfo(np.uint32).min
 

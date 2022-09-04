@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def build_betas_schedule(name, beta, epochs):
+def build_betas_schedule(name: str, beta: float, epochs: int) -> np.ndarray:
   if name == "constant":
     beta_schedule = np.ones(epochs) * beta
   elif name == "monotonic":
@@ -13,7 +13,11 @@ def build_betas_schedule(name, beta, epochs):
   return beta_schedule
 
 
-def frange_cycle_linear(start, stop, n_epoch, n_cycle=4, ratio=0.5):
+def frange_cycle_linear(start: float,
+                        stop: float,
+                        n_epoch: int,
+                        n_cycle: int = 4,
+                        ratio: float = 0.5) -> np.ndarray:
   total_beta = np.ones(n_epoch) * stop
   period = n_epoch / n_cycle
   step = (stop - start) / (period * ratio)

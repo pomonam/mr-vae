@@ -1,6 +1,8 @@
+from typing import Tuple
+
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
 
 from src.base_architecture import BaseDecoder
@@ -12,7 +14,7 @@ class BaseAE(nn.Module):
   def __init__(self,
                encoder: BaseEncoder,
                decoder: BaseDecoder,
-               reconstruction_loss: str = "mse"):
+               reconstruction_loss: str = "mse") -> None:
 
     super().__init__()
 
@@ -24,7 +26,7 @@ class BaseAE(nn.Module):
   def forward(self, inputs: torch.Tensor, **kwargs):
     raise NotImplementedError()
 
-  def reconstruct(self, inputs: torch.Tensor):
+  def reconstruct(self, inputs: torch.Tensor) -> torch.Tensor:
     return self({"data": inputs, "data_bis": inputs}).recon_x
 
   def interpolate(
@@ -32,7 +34,7 @@ class BaseAE(nn.Module):
       starting_inputs: torch.Tensor,
       ending_inputs: torch.Tensor,
       granularity: int = 10,
-  ):
+  ) -> torch.Tensor:
     assert starting_inputs.shape[0] == ending_inputs.shape[0], (
         "The number of starting_inputs should equal the number of ending_inputs. Got "
         f"{starting_inputs.shape[0]} sampler for starting_inputs and {ending_inputs.shape[0]} "
@@ -62,7 +64,7 @@ class VAE(BaseAE):
   def __init__(self,
                encoder: BaseEncoder,
                decoder: BaseDecoder,
-               reconstruction_loss: str = "mse"):
+               reconstruction_loss: str = "mse") -> None:
 
     super().__init__(
         encoder=encoder,
@@ -71,12 +73,19 @@ class VAE(BaseAE):
 
     self.model_name = "VAE"
 
-  def _sample_gauss(self, mu, std):
+  def forward(self, inputs: torch.Tensor, **kwargs):
+    raise NotImplementedError()
+
+  def _sample_gauss(self, mu: torch.Tensor,
+                    std: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     # Reparametrization trick.
     eps = torch.randn_like(std)
     return mu + eps * std, eps
 
-  def get_nll(self, data, n_samples=1, batch_size=100):
+  def get_nll(self,
+              data: torch.Tensor,
+              n_samples: int = 1,
+              batch_size: int = 100) -> torch.Tensor:
 
     if n_samples <= batch_size:
       n_full_batch = 1
@@ -91,7 +100,7 @@ class VAE(BaseAE):
 
       log_p_x = []
 
-      for j in range(n_full_batch):
+      for _ in range(n_full_batch):
 
         x_rep = torch.cat(batch_size * [x])
 

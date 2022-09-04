@@ -15,7 +15,7 @@ class BaseBlock(nn.Module):
     self.out_features = out_features
     self.emd_features = out_features if emd_features is None else emd_features
 
-    self.layers = None
+    self.layers = nn.Identity()
     self._construct_layers()
 
   def _construct_layers(self) -> None:
@@ -27,12 +27,12 @@ class BaseBlock(nn.Module):
 
 
 def get_block(name: str) -> BaseBlock:
-  _BLOCK_DICT = {
+  block_dict = {
       "linear": LinearBlock,
       "mlp": MlpBlock,
       "large_mlp": LargeMlpBlock,
   }
-  return _BLOCK_DICT[name]
+  return block_dict[name]
 
 
 class LinearBlock(BaseBlock):

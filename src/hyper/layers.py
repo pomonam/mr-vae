@@ -1,8 +1,7 @@
 from typing import Optional
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+from torch import nn
 
 from src.config import HyperConfig
 from src.hyper.blocks import get_block
@@ -19,12 +18,12 @@ class HyperLayer(nn.Module):
 
 
 def get_hyper_layer(features: int, hyper_cfg: HyperConfig) -> HyperLayer:
-  _dict = {
+  hyper_dict = {
       "sig_gate": HyperSigmoidLayer(features, hyper_cfg),
       "tanh_gate": HyperTanhLayer(features, hyper_cfg),
       "scale_shift": HyperScaleShiftLayer(features, hyper_cfg)
   }
-  return _dict[hyper_cfg.layer_type]
+  return hyper_dict[hyper_cfg.layer_type]
 
 
 def initialize_hyper_blocks(features: int, hyper_cfg: HyperConfig) -> nn.Module:

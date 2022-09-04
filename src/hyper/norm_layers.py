@@ -1,21 +1,10 @@
-from typing import Optional
-
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+from torch import nn
 
 from src.config import HyperConfig
 from src.hyper.blocks import get_block
+from src.hyper.layers import HyperLayer
 
-
-class HyperLayer(nn.Module):
-  _net_inputs = None
-
-  def set_net_inputs(self, value: torch.Tensor) -> None:
-    self._net_inputs = value
-
-  def reset_net_inputs(self) -> None:
-    self._net_inputs = None
 
 def get_hyper_bn_layer(features, hyper_cfg):
   if hyper_cfg.include_hyper_bn:
