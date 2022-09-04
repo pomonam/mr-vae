@@ -10,18 +10,18 @@ from src.base_architecture import BaseEncoder
 class BaseAE(nn.Module):
 
   def __init__(self,
-               encoder: BaseEncoder = None,
-               decoder: BaseDecoder = None,
+               encoder: BaseEncoder,
+               decoder: BaseDecoder,
                reconstruction_loss: str = "mse"):
 
-    nn.Module.__init__(self)
+    super().__init__()
 
     self.model_name = "BaseAE"
     self.encoder = encoder
     self.decoder = decoder
     self.reconstruction_loss = reconstruction_loss
 
-  def forward(self, inputs, **kwargs):
+  def forward(self, inputs: torch.Tensor, **kwargs):
     raise NotImplementedError()
 
   def reconstruct(self, inputs: torch.Tensor):
@@ -60,12 +60,11 @@ class BaseAE(nn.Module):
 class VAE(BaseAE):
 
   def __init__(self,
-               encoder: BaseEncoder = None,
-               decoder: BaseDecoder = None,
+               encoder: BaseEncoder,
+               decoder: BaseDecoder,
                reconstruction_loss: str = "mse"):
 
-    BaseAE.__init__(
-        self,
+    super().__init__(
         encoder=encoder,
         decoder=decoder,
         reconstruction_loss=reconstruction_loss)
@@ -73,8 +72,7 @@ class VAE(BaseAE):
     self.model_name = "VAE"
 
   def _sample_gauss(self, mu, std):
-    # Reparametrization trick
-    # Sample N(0, I)
+    # Reparametrization trick.
     eps = torch.randn_like(std)
     return mu + eps * std, eps
 

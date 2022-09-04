@@ -7,7 +7,7 @@ from src.hyper.base_architecture import BaseHyperDecoder
 from src.hyper.base_architecture import BaseHyperEncoder
 # from src.hyper.layer import HyperLayer
 from src.models.resblock import HyperResBlock
-from src.hyper.layers import get_hyper_bn_layer
+from src.hyper.norm_layers import get_hyper_bn_layer
 
 
 class HyperConvEncoder(BaseHyperEncoder):

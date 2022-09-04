@@ -1,36 +1,15 @@
+from typing import Optional
+
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from src.config import HyperConfig
 from src.hyper.blocks import get_block
-import torch.nn.functional as F
-
-
-def get_hyper_layer(features, hyper_cfg):
-  _dict = {
-    "sig_gate": HyperSigmoidLayer(features, hyper_cfg),
-    "tanh_gate": HyperTanhLayer(features, hyper_cfg),
-    "scale_shift": HyperScaleShiftLayer(features, hyper_cfg)
-  }
-  return _dict[hyper_cfg.layer_type]
-
-
-def get_hyper_bn_layer(features, hyper_cfg):
-  if hyper_cfg.include_hyper_bn:
-    return nn.BatchNorm2d(features)
-  else:
-    return HyperBatchNormLayer(features, hyper_cfg)
-
-
-def get_hyper_ln_layer(features, hyper_cfg):
-  if hyper_cfg.include_hyper_bn:
-    return nn.LayerNorm(features, eps=1e-12)
-  else:
-    return HyperLayerNormLayer(features, hyper_cfg)
 
 
 class HyperLayer(nn.Module):
-  # _net_inputs = None
+  _net_inputs: Optional[torch.Tensor] = None
 
   def set_net_inputs(self, value: torch.Tensor) -> None:
     self._net_inputs = value
@@ -39,107 +18,66 @@ class HyperLayer(nn.Module):
     self._net_inputs = None
 
 
-class HyperBatchNormLayer(HyperLayer):
-
-  def __init__(self, features, hyper_cfg):
-    super().__init__()
-
-    self._net_inputs = None
-    self.features = features
-    self.hyper_cfg = hyper_cfg
-
-    self.bn = nn.BatchNorm2d(features, affine=False, track_running_stats=False)
-
-    if hyper_cfg.preprocess_beta:
-      self.hyper_block_scale = get_block("linear")(hyper_cfg.preprocess_dim, self.features)
-      self.hyper_block_shift = get_block("linear")(hyper_cfg.preprocess_dim, self.features)
-    else:
-      self.hyper_block_scale = get_block(self.hyper_cfg.block_type)(
-        in_features=1, width=self.features)
-      self.hyper_block_shift = get_block(self.hyper_cfg.block_type)(
-        in_features=1, width=self.features)
-
-  def forward(self, inputs):
-    inputs = self.bn(inputs)
-
-    scale = self.hyper_block_scale(self._net_inputs)
-    shift = self.hyper_block_shift(self._net_inputs)
-
-    scale = scale.unsqueeze(-1).unsqueeze(-1)
-    shift = shift.unsqueeze(-1).unsqueeze(-1)
-    return scale * inputs + shift
+def get_hyper_layer(features: int, hyper_cfg: HyperConfig) -> HyperLayer:
+  _dict = {
+      "sig_gate": HyperSigmoidLayer(features, hyper_cfg),
+      "tanh_gate": HyperTanhLayer(features, hyper_cfg),
+      "scale_shift": HyperScaleShiftLayer(features, hyper_cfg)
+  }
+  return _dict[hyper_cfg.layer_type]
 
 
-class HyperLayerNormLayer(HyperLayer):
-
-  def __init__(self, features, hyper_cfg):
-    super().__init__()
-
-    self._net_inputs = None
-    self.features = features
-    self.hyper_cfg = hyper_cfg
-
-    self.ln = nn.LayerNorm(features, elementwise_affine=False, eps=1e-12)
-
-    if hyper_cfg.preprocess_beta:
-      self.hyper_block_scale = get_block("linear")(hyper_cfg.preprocess_dim, self.features)
-      self.hyper_block_shift = get_block("linear")(hyper_cfg.preprocess_dim, self.features)
-    else:
-      self.hyper_block_scale = get_block(self.hyper_cfg.block_type)(
-        in_features=1, width=self.features)
-      self.hyper_block_shift = get_block(self.hyper_cfg.block_type)(
-        in_features=1, width=self.features)
-
-  def forward(self, inputs):
-    inputs = self.ln(inputs)
-
-    scale = self.hyper_block_scale(self._net_inputs)
-    shift = self.hyper_block_shift(self._net_inputs)
-
-    return scale * inputs + shift
+def initialize_hyper_blocks(features: int, hyper_cfg: HyperConfig) -> nn.Module:
+  if hyper_cfg.shared_preprocess:
+    block = nn.Linear(hyper_cfg.shared_preprocess_dim, features, bias=True)
+    if hyper_cfg.apply_zero_init:
+      block.weight.data.fill_(0)
+      block.bias.data.fill_(0)
+  else:
+    block = get_block(hyper_cfg.block_type)(
+        in_features=1,
+        out_features=features,
+        emd_features=hyper_cfg.non_shared_emd_dim)
+    if hyper_cfg.apply_zero_init:
+      block.layers[-1].weight.data.fill_(0)
+      block.layers[-1].bias.data.fill_(0)
+  return block
 
 
 class HyperSigmoidLayer(HyperLayer):
 
-  def __init__(self, features: int, hyper_cfg: HyperConfig):
+  def __init__(self, features: int, hyper_cfg: HyperConfig) -> None:
     super().__init__()
 
-    self._net_inputs = None
     self.features = features
     self.hyper_cfg = hyper_cfg
+    self.hyper_block_scale = initialize_hyper_blocks(self.features,
+                                                     self.hyper_cfg)
 
-    if hyper_cfg.preprocess_beta:
-      self.hyper_block_scale = get_block("linear")(hyper_cfg.preprocess_dim, self.features)
-    else:
-      self.hyper_block_scale = get_block(self.hyper_cfg.block_type)(
-        in_features=1, width=self.hyper_cfg.preprocess_dim)
-
-  def forward(self, inputs):
+  def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     scale = self.hyper_block_scale(self._net_inputs)
     scale = torch.sigmoid(scale)
 
     if len(inputs.shape) == 4:
       scale = scale.unsqueeze(-1).unsqueeze(-1)
 
-    return scale * inputs
+    if self.hyper_cfg.shared_preprocess:
+      return 2 * scale * inputs
+    else:
+      return scale * inputs
 
 
 class HyperTanhLayer(HyperLayer):
 
-  def __init__(self, features: int, hyper_cfg: HyperConfig):
+  def __init__(self, features: int, hyper_cfg: HyperConfig) -> None:
     super().__init__()
 
-    self._net_inputs = None
     self.features = features
     self.hyper_cfg = hyper_cfg
+    self.hyper_block_scale = initialize_hyper_blocks(self.features,
+                                                     self.hyper_cfg)
 
-    if hyper_cfg.preprocess_beta:
-      self.hyper_block_scale = get_block("linear")(hyper_cfg.preprocess_dim, self.features)
-    else:
-      self.hyper_block_scale = get_block(self.hyper_cfg.block_type)(
-        in_features=1, width=self.features)
-
-  def forward(self, inputs):
+  def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     scale = self.hyper_block_scale(self._net_inputs)
     scale = torch.tanh(scale)
 
@@ -154,23 +92,17 @@ class HyperTanhLayer(HyperLayer):
 
 class HyperScaleShiftLayer(HyperLayer):
 
-  def __init__(self, features: int, hyper_cfg: HyperConfig):
+  def __init__(self, features: int, hyper_cfg: HyperConfig) -> None:
     super().__init__()
 
-    self._net_inputs = None
     self.features = features
     self.hyper_cfg = hyper_cfg
+    self.hyper_block_scale = initialize_hyper_blocks(self.features,
+                                                     self.hyper_cfg)
+    self.hyper_block_shift = initialize_hyper_blocks(self.features,
+                                                     self.hyper_cfg)
 
-    if hyper_cfg.preprocess_beta:
-      self.hyper_block_scale = get_block("linear")(hyper_cfg.preprocess_dim, self.features)
-      self.hyper_block_shift = get_block("linear")(hyper_cfg.preprocess_dim, self.features)
-    else:
-      self.hyper_block_scale = get_block(self.hyper_cfg.block_type)(
-        in_features=1, width=self.features)
-      self.hyper_block_shift = get_block(self.hyper_cfg.block_type)(
-        in_features=1, width=self.features)
-
-  def forward(self, inputs):
+  def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     scale = self.hyper_block_scale(self._net_inputs)
     shift = self.hyper_block_shift(self._net_inputs)
 
@@ -178,4 +110,7 @@ class HyperScaleShiftLayer(HyperLayer):
       scale = scale.unsqueeze(-1).unsqueeze(-1)
       shift = shift.unsqueeze(-1).unsqueeze(-1)
 
-    return scale * inputs + shift
+    if self.hyper_cfg.apply_zero_init:
+      return (scale + 1) * inputs + shift
+    else:
+      return scale * inputs + shift

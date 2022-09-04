@@ -16,7 +16,7 @@ def hyper_evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
   model.eval()
 
   with torch.no_grad():
-    sample_lst = model.get_test_samples(20)
+    sample_lst = model.get_log_uniform_samples(20)
     mid_point = sample_lst[len(sample_lst) // 2]
     mid_loss = 0
 
