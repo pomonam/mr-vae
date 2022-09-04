@@ -38,7 +38,6 @@ args = parser.parse_args()
 #     "include_output_stem": [0, 1],
 # }
 
-
 CONV_CONFIG = {
     "lr": [3e-3, 1e-3, 3e-4],
     "total_epochs": [200],

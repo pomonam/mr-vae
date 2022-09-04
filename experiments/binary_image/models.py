@@ -1,3 +1,6 @@
+# Models adapted from:
+# https://github.com/clementchadebec/benchmark_VAE/tree/main/src/pythae/models/nn/benchmarks/mnist
+
 from collections import OrderedDict
 
 import torch
@@ -11,7 +14,7 @@ from src.models.resblock import ResBlock
 class ConvEncoder(BaseEncoder):
 
   def __init__(self):
-    BaseEncoder.__init__(self)
+    super().__init__()
 
     self.input_dim = (1, 28, 28)
     self.latent_dim = 32
@@ -45,9 +48,9 @@ class ConvEncoder(BaseEncoder):
     self.embedding = nn.Linear(1024, self.latent_dim)
     self.log_var = nn.Linear(1024, self.latent_dim)
 
-  def forward(self, x: torch.Tensor):
+  def forward(self, inputs: torch.Tensor):
     max_depth = self.depth
-    out = x
+    out = inputs
 
     output = {}
     for i in range(max_depth):
@@ -63,7 +66,7 @@ class ConvEncoder(BaseEncoder):
 class ConvDecoder(BaseDecoder):
 
   def __init__(self):
-    BaseDecoder.__init__(self)
+    super().__init__()
 
     self.input_dim = (1, 28, 28)
     self.latent_dim = 32
@@ -94,18 +97,18 @@ class ConvDecoder(BaseDecoder):
     self.layers = layers
     self.depth = len(layers)
 
-  def forward(self, z: torch.Tensor):
+  def forward(self, inputs: torch.Tensor):
     output = OrderedDict()
 
     max_depth = self.depth
 
-    out = z
+    out = inputs
 
     for i in range(max_depth):
       out = self.layers[i](out)
 
       if i == 0:
-        out = out.reshape(z.shape[0], 1024, 4, 4)
+        out = out.reshape(inputs.shape[0], 1024, 4, 4)
 
       if i + 1 == self.depth:
         output["reconstruction"] = out
@@ -116,7 +119,7 @@ class ConvDecoder(BaseDecoder):
 class ResNetEncoder(BaseEncoder):
 
   def __init__(self):
-    BaseEncoder.__init__(self)
+    super().__init__()
 
     self.input_dim = (1, 28, 28)
     self.latent_dim = 32
@@ -170,7 +173,7 @@ class ResNetEncoder(BaseEncoder):
 class ResNetDecoder(BaseDecoder):
 
   def __init__(self):
-    BaseDecoder.__init__(self)
+    super().__init__()
 
     self.input_dim = (1, 28, 28)
     self.latent_dim = 32

@@ -20,31 +20,8 @@ from experiments.train_utils import train
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
 from src.models.beta_vae import BetaVAE
-from src.models.beta_vae import log_sum_exp
+from src.utils import log_sum_exp
 from src.utils import seed_everything
-
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--experiment_name", type=str, default="hv_binary_image_debug")
-
-parser.add_argument("--data_name", type=str, default="mnist")
-parser.add_argument("--encoder_name", type=str, default="resnet")
-parser.add_argument("--decoder_name", type=str, default="resnet")
-
-parser.add_argument("--total_epochs", type=int, default=10)
-parser.add_argument("--warmup_epochs", type=int, default=10)
-
-parser.add_argument("--lr", type=float, default=1e-3)
-parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--beta", type=float, default=1.)
-parser.add_argument("--schedule", type=str, default="monotonic")
-
-parser.add_argument("--seed", type=int, default=0)
-parser.add_argument("--checkpoint_dir", type=str, default=None)
-parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=50)
-parser.add_argument("--eval_freq", type=int, default=10)
-args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
@@ -137,6 +114,29 @@ def build_model(encoder_name, decoder_name, device):
 
 
 def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+      "--experiment_name", type=str, default="hv_binary_image_debug")
+
+  parser.add_argument("--data_name", type=str, default="mnist")
+  parser.add_argument("--encoder_name", type=str, default="resnet")
+  parser.add_argument("--decoder_name", type=str, default="resnet")
+
+  parser.add_argument("--total_epochs", type=int, default=10)
+  parser.add_argument("--warmup_epochs", type=int, default=10)
+
+  parser.add_argument("--lr", type=float, default=1e-3)
+  parser.add_argument("--batch_size", type=int, default=128)
+  parser.add_argument("--beta", type=float, default=1.)
+  parser.add_argument("--schedule", type=str, default="monotonic")
+
+  parser.add_argument("--seed", type=int, default=0)
+  parser.add_argument("--checkpoint_dir", type=str, default=None)
+  parser.add_argument("--save_final_checkpoint", type=int, default=0)
+  parser.add_argument("--save_freq", type=int, default=50)
+  parser.add_argument("--eval_freq", type=int, default=10)
+  args = parser.parse_args()
+
   init_wandb(
       args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
@@ -214,7 +214,7 @@ def main():
   wandb.log({"image": val_table})
 
   # Uncomment ot compute NLL.
-  # TODO(JB): This function gives negative NLL.
+  # TODO(JB): This function gives negative NLL?
   # test_loader = load_mnist_data(
   #   "test", 10000, workers=0, data_path="../../logs/data")
   # test_data = next(iter(test_loader))

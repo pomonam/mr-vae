@@ -30,7 +30,6 @@ MLP_CONFIG = {
     "block_type": ["mlp", "large_mlp"],
 }
 
-
 if __name__ == "__main__":
   jobs = generate_job_strings(
       MLP_CONFIG,

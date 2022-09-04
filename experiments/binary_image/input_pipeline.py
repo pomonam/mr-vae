@@ -9,8 +9,8 @@ import torch.utils.data
 from torch.utils.data import Dataset
 import torch.utils.data.dataset
 import torch.utils.data.distributed
-from torchvision.datasets import MNIST
 from torchvision import transforms
+from torchvision.datasets import MNIST
 
 
 class Binarize(object):
@@ -38,6 +38,7 @@ class Omniglot(Dataset):
 
 
 def load_mnist_data(split, batch_size, workers=0, data_path="logs/data"):
+  assert split in ["train", "train_eval", "test"]
   train_transform = transforms.Compose([
       transforms.ToTensor(),
       Binarize(),
@@ -45,12 +46,13 @@ def load_mnist_data(split, batch_size, workers=0, data_path="logs/data"):
   test_transform = transforms.Compose([
       transforms.ToTensor(),
   ])
+  is_train = split == "train"
 
   train_data = MNIST(
       root=data_path,
       train=True,
       download=True,
-      transform=train_transform if split == "train" else test_transform)
+      transform=train_transform if is_train else test_transform)
   if split == "train_eval":
     train_data.data[train_data.data >= 127.5] = 255.
     train_data.data[train_data.data < 127.5] = 0.
@@ -60,7 +62,6 @@ def load_mnist_data(split, batch_size, workers=0, data_path="logs/data"):
   test_data.data[test_data.data >= 127.5] = 255.
   test_data.data[test_data.data < 127.5] = 0.
 
-  is_train = split == "train"
   loader = torch.utils.data.DataLoader(
       train_data if split in ["train", "train_eval"] else test_data,
       pin_memory=True,
@@ -88,9 +89,11 @@ def download_omniglot(data_dir):
 
 
 def load_omniglot_data(split, batch_size, workers=0, data_path="../../logs/"):
+  assert split in ["train", "train_eval", "test"]
   download_omniglot(data_path)
   dataset = scipy.io.loadmat(os.path.join(data_path, "chardata.mat"))
 
+  is_train = split == "train"
   train_transform = transforms.Compose([
       transforms.ToTensor(),
       Binarize(),
@@ -100,7 +103,6 @@ def load_omniglot_data(split, batch_size, workers=0, data_path="../../logs/"):
       transforms.ToTensor(),
   ])
 
-  is_train = split == "train"
   if split == "train" or split == "train_eval":
     data = 255 * dataset["data"].astype("float32").reshape(
         (28, 28, -1)).transpose((2, 1, 0))
@@ -112,16 +114,13 @@ def load_omniglot_data(split, batch_size, workers=0, data_path="../../logs/"):
       data[data < 127.5] = 0.
       dataset = Omniglot(data, test_transform)
 
-  elif split == "test":
+  else:
     data = 255 * dataset["testdata"].astype("float32").reshape(
         (28, 28, -1)).transpose((2, 1, 0))
     data = data.astype("uint8")
     data[data >= 127.5] = 255.
     data[data < 127.5] = 0.
     dataset = Omniglot(data, test_transform)
-
-  else:
-    raise ValueError("Invalid split {:split}")
 
   loader = torch.utils.data.DataLoader(
       dataset,
