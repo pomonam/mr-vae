@@ -32,4 +32,4 @@ jobs:
         pip install isort
     - name: Run isort
       run: |
-        isort . --check --diff
+        isort src --check --diff
