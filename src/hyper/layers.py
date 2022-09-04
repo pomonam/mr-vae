@@ -5,6 +5,7 @@ from src.config import HyperConfig
 from src.hyper.blocks import get_block
 import torch.nn.functional as F
 
+
 def get_hyper_layer(features, hyper_cfg):
   _dict = {
     "sig_gate": HyperSigmoidLayer(features, hyper_cfg),
@@ -19,6 +20,13 @@ def get_hyper_bn_layer(features, hyper_cfg):
     return nn.BatchNorm2d(features)
   else:
     return HyperBatchNormLayer(features, hyper_cfg)
+
+
+def get_hyper_ln_layer(features, hyper_cfg):
+  if hyper_cfg.include_hyper_bn:
+    return nn.LayerNorm(features, eps=1e-12)
+  else:
+    return HyperLayerNormLayer(features, hyper_cfg)
 
 
 class HyperLayer(nn.Module):
@@ -59,6 +67,35 @@ class HyperBatchNormLayer(HyperLayer):
 
     scale = scale.unsqueeze(-1).unsqueeze(-1)
     shift = shift.unsqueeze(-1).unsqueeze(-1)
+    return scale * inputs + shift
+
+
+class HyperLayerNormLayer(HyperLayer):
+
+  def __init__(self, features, hyper_cfg):
+    super().__init__()
+
+    self._net_inputs = None
+    self.features = features
+    self.hyper_cfg = hyper_cfg
+
+    self.ln = nn.LayerNorm(features, elementwise_affine=False, eps=1e-12)
+
+    if hyper_cfg.preprocess_beta:
+      self.hyper_block_scale = get_block("linear")(hyper_cfg.preprocess_dim, self.features)
+      self.hyper_block_shift = get_block("linear")(hyper_cfg.preprocess_dim, self.features)
+    else:
+      self.hyper_block_scale = get_block(self.hyper_cfg.block_type)(
+        in_features=1, width=self.features)
+      self.hyper_block_shift = get_block(self.hyper_cfg.block_type)(
+        in_features=1, width=self.features)
+
+  def forward(self, inputs):
+    inputs = self.ln(inputs)
+
+    scale = self.hyper_block_scale(self._net_inputs)
+    shift = self.hyper_block_shift(self._net_inputs)
+
     return scale * inputs + shift
 
 

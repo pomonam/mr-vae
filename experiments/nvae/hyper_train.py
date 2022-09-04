@@ -16,8 +16,6 @@ import torch
 from torch.cuda.amp import autocast
 from torch.cuda.amp import GradScaler
 import torch.distributed as dist
-from torch.multiprocessing import Process
-import torch.nn as nn
 
 from fid.fid_score import calculate_frechet_distance
 from fid.fid_score import compute_statistics_of_generator
@@ -37,7 +35,7 @@ def main(args):
   torch.cuda.manual_seed_all(args.seed)
 
   logging = utils.Logger(args.global_rank, args.save)
-  # writer = utils.Writer(args.global_rank, args.save)
+  writer = utils.Writer(args.global_rank, args.save)
 
   # Get data loaders.
   train_queue, valid_queue, num_classes = datasets.get_loaders(args)
@@ -46,7 +44,7 @@ def main(args):
 
   arch_instance = utils.get_arch_cells(args.arch_instance)
 
-  model = AutoEncoder(args, None, arch_instance)
+  model = AutoEncoder(args, writer, arch_instance)
   model = model.cuda()
 
   logging.info('args = %s', args)
@@ -95,7 +93,7 @@ def main(args):
     logging.info('epoch %d', epoch)
 
     # Training.
-    train_nelbo, global_step = train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_iters, None, logging)
+    train_nelbo, global_step = train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_iters, writer, logging)
     log_dict["train_nelbo"] = train_nelbo
     logging.info('train_nelbo %f', train_nelbo)
     # writer.add_scalar('train/nelbo', train_nelbo, global_step)
@@ -153,11 +151,11 @@ def main(args):
   valid_neg_log_p, valid_nelbo = evaluate(valid_queue, model, num_samples=1000, args=args, logging=logging)
   logging.info('final valid nelbo %f', valid_nelbo)
   logging.info('final valid neg log p %f', valid_neg_log_p)
-  # writer.add_scalar('val/neg_log_p', valid_neg_log_p, epoch + 1)
-  # writer.add_scalar('val/nelbo', valid_nelbo, epoch + 1)
-  # writer.add_scalar('val/bpd_log_p', valid_neg_log_p * bpd_coeff, epoch + 1)
-  # writer.add_scalar('val/bpd_elbo', valid_nelbo * bpd_coeff, epoch + 1)
-  # writer.close()
+  writer.add_scalar('val/neg_log_p', valid_neg_log_p, epoch + 1)
+  writer.add_scalar('val/nelbo', valid_nelbo, epoch + 1)
+  writer.add_scalar('val/bpd_log_p', valid_neg_log_p * bpd_coeff, epoch + 1)
+  writer.add_scalar('val/bpd_elbo', valid_nelbo * bpd_coeff, epoch + 1)
+  writer.close()
 
 
 def train(train_queue,
@@ -204,7 +202,7 @@ def train(train_queue,
                                 args.kl_const_portion * args.num_total_iter,
                                 args.kl_const_coeff,
                                 args.kl_fixed)
-      wandb.log({"kl_coeff": kl_coeff})
+
       # print(kl_coeff)
       recon_loss = utils.reconstruction_loss(output, x, crop=model.crop_output)
       balanced_kl, kl_coeffs, kl_vals = utils.kl_balancer(kl_all, kl_coeff, kl_balance=True, alpha_i=alpha_i)

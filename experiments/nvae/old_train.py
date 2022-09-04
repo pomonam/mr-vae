@@ -17,7 +17,6 @@ from torch.cuda.amp import autocast
 from torch.cuda.amp import GradScaler
 import torch.distributed as dist
 from torch.multiprocessing import Process
-import torch.nn as nn
 
 from fid.fid_score import calculate_frechet_distance
 from fid.fid_score import compute_statistics_of_generator
