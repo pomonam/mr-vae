@@ -18,7 +18,6 @@ setup(
         "lmdb",
         "texar-pytorch",
         "pytorch-fid",
-        "python-dotenv",
         "h5py",
         "matplotlib",
         "tqdm",

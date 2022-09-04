@@ -17,7 +17,10 @@ class BetaVAE(VAE):
     self.model_name = "BetaVAE"
 
   def forward(self, inputs: torch.Tensor, **kwargs) -> dict:
-    x = inputs["data"]
+    if isinstance(inputs, torch.Tensor):
+      x = inputs
+    else:
+      x = inputs["data"]
 
     encoder_output = self.encoder(x)
     mu, log_var = encoder_output["embedding"], encoder_output["log_covariance"]
