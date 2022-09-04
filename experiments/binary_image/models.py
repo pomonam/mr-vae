@@ -57,8 +57,8 @@ class ConvEncoder(BaseEncoder):
       out = self.layers[i](out)
 
       if i + 1 == self.depth:
-        output["embedding"] = self.embedding(out.reshape(x.shape[0], -1))
-        output["log_covariance"] = self.log_var(out.reshape(x.shape[0], -1))
+        output["embedding"] = self.embedding(out.reshape(inputs.shape[0], -1))
+        output["log_covariance"] = self.log_var(out.reshape(inputs.shape[0], -1))
 
     return output
 
