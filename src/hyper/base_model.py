@@ -3,14 +3,16 @@ import math
 import numpy as np
 import torch
 
-from src.hyper.base_architecture import BaseHyperDecoder
-from src.hyper.base_architecture import BaseHyperEncoder
 from src.base_model import VAE
 from src.config import HyperConfig
+from src.hyper.base_architecture import BaseHyperDecoder
+from src.hyper.base_architecture import BaseHyperEncoder
 from src.hyper.blocks import get_block
 
+# Some constants used for sampling.
 _SQRT3 = math.sqrt(3)
-_LOG_A = math.log(0.001)
+# _LOG_A = math.log(0.001)
+_LOG_A = math.log(0.01)
 _LOG_B = math.log(10)
 _LOG_M = (_LOG_A + _LOG_B) / 2
 _LOG_DIFF = (_LOG_M - _LOG_A)
@@ -20,35 +22,36 @@ class HyperVAE(VAE):
 
   def __init__(self,
                hyper_cfg: HyperConfig,
-               encoder: BaseHyperEncoder = None,
-               decoder: BaseHyperDecoder = None,
-               reconstruction_loss: str = "mse"):
+               encoder: BaseHyperEncoder,
+               decoder: BaseHyperDecoder,
+               reconstruction_loss: str = "mse") -> None:
     VAE.__init__(
         self,
         encoder=encoder,
         decoder=decoder,
         reconstruction_loss=reconstruction_loss)
 
-    self.model_name = "VAE"
+    self.model_name = "HyperVAE"
     self.hyper_cfg = hyper_cfg
 
-    if self.hyper_cfg.preprocess_beta:
+    if self.hyper_cfg.shared_preprocess:
       self.preprocess_block = get_block(self.hyper_cfg.block_type)(
-          in_features=1, width=self.hyper_cfg.preprocess_dim)
+          in_features=1,
+          out_features=self.hyper_cfg.shared_preprocess_dim,
+          # By default, hidden dimension has expansion factor of 4.
+          emd_features=self.hyper_cfg.shared_preprocess_dim * 4)
 
   def set_net_inputs(self, value: torch.Tensor) -> None:
-    if self.hyper_cfg.preprocess_beta:
+    if self.hyper_cfg.shared_preprocess:
       value = self.preprocess_block(value)
     self.encoder.set_net_inputs(value)
-    try:
-      self.decoder.set_net_inputs(value)
-    except:
-      pass
+    self.decoder.set_net_inputs(value)
 
   def forward(self, x, **kwargs):
-    pass
+    raise NotImplementedError
 
-  def sample(self, x: torch.Tensor):
+  # noinspection PyMethodMayBeStatic
+  def sample(self, x: torch.Tensor) -> dict:
     try:
       batch_size = x.shape[0]
       device = x.device
@@ -64,7 +67,8 @@ class HyperVAE(VAE):
     sample_dict["beta"] = torch.exp(beta)
     return sample_dict
 
-  def sample_inverse(self, x: torch.Tensor, value: float):
+  # noinspection PyMethodMayBeStatic
+  def sample_inverse(self, x: torch.Tensor, value: float) -> dict:
     try:
       batch_size = x.shape[0]
     except AttributeError:
@@ -79,5 +83,8 @@ class HyperVAE(VAE):
     sample_dict["net"] = net_beta * (3 / _SQRT3)
     return sample_dict
 
-  def get_test_samples(self, num=20):
-    return np.logspace(-3, 1, num=num, base=10)
+  # noinspection PyMethodMayBeStatic
+  def get_log_uniform_samples(self, num: int = 20) -> np.ndarray:
+    # Log-uniform sampling between 0.01 and 10.
+    return np.logspace(-2, 1, num=num, base=10)
+    # return np.logspace(-3, 1, num=num, base=10)

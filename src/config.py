@@ -36,9 +36,14 @@ class TrainConfig:
 
 
 class HyperConfig:
-  preprocess_dim = 64
+  non_shared_emd_dim = 16 * 4
+  shared_preprocess_dim = 64
 
   def __init__(self, args):
+    self.shared_preprocess = get_ns(args, "shared_preprocess")
+
+    self.apply_zero_init = get_ns(args, "apply_zero_init")
+
     self.param_type = get_ns(args, "param_type")
     self.layer_type = get_ns(args, "layer_type")
     self.block_type = get_ns(args, "block_type")

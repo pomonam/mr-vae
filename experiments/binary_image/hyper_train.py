@@ -20,7 +20,7 @@ from experiments.hyper_train_utils import hyper_train
 from experiments.wandb_utils import init_wandb
 from src.config import HyperConfig
 from src.config import TrainConfig
-from src.hyper.models.beta_vae import BetaHyperVAE
+from src.hyper.beta_vae import HyperBetaVAE
 from src.models.beta_vae import log_sum_exp
 from src.utils import seed_everything
 
@@ -29,13 +29,14 @@ parser.add_argument(
     "--experiment_name", type=str, default="hv_binary_image_debug")
 
 parser.add_argument("--data_name", type=str, default="mnist")
-parser.add_argument("--encoder_name", type=str, default="conv")
-parser.add_argument("--decoder_name", type=str, default="conv")
+parser.add_argument("--encoder_name", type=str, default="resnet")
+parser.add_argument("--decoder_name", type=str, default="resnet")
 
-parser.add_argument("--block_type", type=str, default="mlp1")
-parser.add_argument("--layer_type", type=str, default="tanh_gate")
+parser.add_argument("--block_type", type=str, default="linear")
+parser.add_argument("--layer_type", type=str, default="sig_gate")
 parser.add_argument("--param_type", type=str, default="pre_bn")
-parser.add_argument("--preprocess_beta", type=int, default=1)
+parser.add_argument("--shared_preprocess", type=int, default=0)
+parser.add_argument("--apply_zero_init", type=int, default=1)
 parser.add_argument("--include_latent_stem", type=int, default=0)
 parser.add_argument("--include_output_stem", type=int, default=0)
 parser.add_argument("--include_hyper_bn", type=int, default=1)
@@ -45,7 +46,6 @@ parser.add_argument("--warmup_epochs", type=int, default=10)
 
 parser.add_argument("--lr", type=float, default=1e-4)
 parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--beta", type=float, default=1.)
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
@@ -137,7 +137,7 @@ def build_model(encoder_name, decoder_name, hyper_cfg, device):
   else:
     raise
 
-  model = BetaHyperVAE(encoder=encoder, decoder=decoder, hyper_cfg=hyper_cfg)
+  model = HyperBetaVAE(encoder=encoder, decoder=decoder, hyper_cfg=hyper_cfg)
   return model.to(device)
 
 

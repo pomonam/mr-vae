@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from src.hyper.layers import get_hyper_layer, get_hyper_bn_layer
+from src.hyper.layers import get_hyper_layer
+from src.hyper.norm_layers import get_hyper_bn_layer
 
 
 class ResBlock(nn.Module):
