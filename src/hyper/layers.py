@@ -15,8 +15,10 @@ def get_hyper_layer(features, hyper_cfg):
 
 
 def get_hyper_bn_layer(features, hyper_cfg):
-  # return nn.BatchNorm2d(features)
-  return HyperBatchNormLayer(features, hyper_cfg)
+  if hyper_cfg.include_hyper_bn:
+    return nn.BatchNorm2d(features)
+  else:
+    return HyperBatchNormLayer(features, hyper_cfg)
 
 
 class HyperLayer(nn.Module):
@@ -59,20 +61,6 @@ class HyperBatchNormLayer(HyperLayer):
     shift = shift.unsqueeze(-1).unsqueeze(-1)
     return scale * inputs + shift
 
-  # def forward(self, inputs):
-  #   batch_size, channels, height, width = inputs.data.shape
-  #
-  #   scale = self.hyper_block_scale(self._net_inputs)
-  #   scale = torch.sigmoid(scale)
-  #
-  #   # Get the mean and variance
-  #   batch_mean = torch.mean(inputs)
-  #   batch_var = torch.var(inputs)
-  #
-  #   if len(inputs.shape) == 4:
-  #     scale = scale.unsqueeze(-1).unsqueeze(-1)
-  #
-  #   return scale * inputs
 
 class HyperSigmoidLayer(HyperLayer):
 
