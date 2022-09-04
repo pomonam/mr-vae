@@ -3,7 +3,7 @@ import os
 import wandb
 
 
-def init_api():
+def init_api() -> wandb.Api:
   api = wandb.Api()
   return api
 
