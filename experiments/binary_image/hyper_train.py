@@ -24,36 +24,6 @@ from src.hyper.beta_vae import HyperBetaVAE
 from src.utils import log_sum_exp
 from src.utils import seed_everything
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--experiment_name", type=str, default="hv_binary_image_debug")
-
-parser.add_argument("--data_name", type=str, default="mnist")
-parser.add_argument("--encoder_name", type=str, default="resnet")
-parser.add_argument("--decoder_name", type=str, default="resnet")
-
-parser.add_argument("--block_type", type=str, default="mlp")
-parser.add_argument("--layer_type", type=str, default="sig_gate")
-parser.add_argument("--param_type", type=str, default="pre_bn")
-parser.add_argument("--shared_preprocess", type=int, default=1)
-parser.add_argument("--apply_zero_init", type=int, default=1)
-parser.add_argument("--include_latent_stem", type=int, default=0)
-parser.add_argument("--include_output_stem", type=int, default=0)
-parser.add_argument("--include_hyper_bn", type=int, default=1)
-
-parser.add_argument("--total_epochs", type=int, default=10)
-parser.add_argument("--warmup_epochs", type=int, default=10)
-
-parser.add_argument("--lr", type=float, default=1e-4)
-parser.add_argument("--batch_size", type=int, default=128)
-
-parser.add_argument("--seed", type=int, default=0)
-parser.add_argument("--checkpoint_dir", type=str, default=None)
-parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=50)
-# Never evaluate during training.
-parser.add_argument("--eval_freq", type=int, default=2000)
-args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
@@ -142,6 +112,37 @@ def build_model(encoder_name, decoder_name, hyper_cfg, device):
 
 
 def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    "--experiment_name", type=str, default="hv_binary_image_debug")
+
+  parser.add_argument("--data_name", type=str, default="mnist")
+  parser.add_argument("--encoder_name", type=str, default="resnet")
+  parser.add_argument("--decoder_name", type=str, default="resnet")
+
+  parser.add_argument("--block_type", type=str, default="mlp")
+  parser.add_argument("--layer_type", type=str, default="sig_gate")
+  parser.add_argument("--param_type", type=str, default="pre_bn")
+  parser.add_argument("--shared_preprocess", type=int, default=1)
+  parser.add_argument("--apply_zero_init", type=int, default=1)
+  parser.add_argument("--include_latent_stem", type=int, default=0)
+  parser.add_argument("--include_output_stem", type=int, default=0)
+  parser.add_argument("--include_hyper_bn", type=int, default=1)
+
+  parser.add_argument("--total_epochs", type=int, default=10)
+  parser.add_argument("--warmup_epochs", type=int, default=10)
+
+  parser.add_argument("--lr", type=float, default=1e-4)
+  parser.add_argument("--batch_size", type=int, default=128)
+
+  parser.add_argument("--seed", type=int, default=0)
+  parser.add_argument("--checkpoint_dir", type=str, default=None)
+  parser.add_argument("--save_final_checkpoint", type=int, default=0)
+  parser.add_argument("--save_freq", type=int, default=50)
+  # Never evaluate during training.
+  parser.add_argument("--eval_freq", type=int, default=2000)
+  args = parser.parse_args()
+
   init_wandb(
       args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)

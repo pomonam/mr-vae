@@ -6,13 +6,13 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="block_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_nas_sweep_block_type")
+    "--experiment_name", type=str, default="hvae_nas_sweep_block_type_v2")
 
 args = parser.parse_args()
 
 LINEAR_CONFIG = {
     "lr": [3e-3, 1e-3, 3e-4, 1e-4],
-    "total_epochs": [200],
+    "total_epochs": [400],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
@@ -22,7 +22,7 @@ LINEAR_CONFIG = {
 
 MLP_CONFIG = {
     "lr": [3e-3, 1e-3, 3e-4, 1e-4],
-    "total_epochs": [200],
+    "total_epochs": [400],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
