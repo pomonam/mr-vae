@@ -11,8 +11,8 @@ from src.hyper.blocks import get_block
 
 # Some constants used for sampling.
 _SQRT3 = math.sqrt(3)
-# _LOG_A = math.log(0.001)
-_LOG_A = math.log(0.01)
+_LOG_A = math.log(0.001)
+# _LOG_A = math.log(0.01)
 _LOG_B = math.log(10)
 _LOG_M = (_LOG_A + _LOG_B) / 2
 _LOG_DIFF = (_LOG_M - _LOG_A)
@@ -85,5 +85,5 @@ class HyperVAE(VAE):
   # noinspection PyMethodMayBeStatic
   def get_log_uniform_samples(self, num: int = 20) -> np.ndarray:
     # Log-uniform sampling between 0.01 and 10.
-    return np.logspace(-2, 1, num=num, base=10)
-    # return np.logspace(-3, 1, num=num, base=10)
+    # return np.logspace(-2, 1, num=num, base=10)
+    return np.logspace(-3, 1, num=num, base=10)
