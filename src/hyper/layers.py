@@ -64,7 +64,7 @@ class HyperSigmoidLayer(HyperLayer):
     if len(inputs.shape) == 3:
       scale = scale.unsqueeze(1)
 
-    if self.hyper_cfg.shared_preprocess:
+    if self.hyper_cfg.apply_zero_init:
       # Multiply by 2 to keep activation distribution.
       return 2 * scale * inputs
     else:
