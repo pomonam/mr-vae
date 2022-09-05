@@ -136,8 +136,8 @@ def main():
   rate, dist = generate_hyper_rd(runs, "2j7a130g")
   plt.plot(rate, dist, "-", label="Large MLP Block (Shared)", linewidth=1, alpha=0.8)
 
-  plt.xlim(0, 125)
-  plt.ylim(10, 140)
+  plt.xlim(0, 115)
+  plt.ylim(0, 140)
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")

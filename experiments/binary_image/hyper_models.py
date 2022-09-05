@@ -457,7 +457,6 @@ class HyperResNetDecoder(BaseHyperDecoder):
       layers.append(
           nn.Sequential(
               nn.ConvTranspose2d(128, 64, 3, 2, padding=1, output_padding=1),
-              get_hyper_bn_layer(64),
               nn.ReLU(),
               get_hyper_layer(64, hyper_cfg),
           ))

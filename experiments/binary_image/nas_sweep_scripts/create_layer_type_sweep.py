@@ -19,6 +19,7 @@ CONFIG = {
     "decoder_name": ["resnet"],
     "shared_preprocess": [1],
     "layer_type": ["sig_gate", "tanh_gate", "shift_scale"],
+    "param_type": ["pre_bn", "post_act"],
     "apply_zero_init": [0, 1],
     "block_type": ["mlp"],
 }
