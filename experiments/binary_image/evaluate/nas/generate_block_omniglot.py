@@ -136,7 +136,7 @@ def main():
   rate, dist = generate_hyper_rd(runs, "2jxyyltr")
   plt.plot(rate, dist, "-", label="Large MLP Block (Shared)", linewidth=1, alpha=0.8)
 
-  plt.xlim(0, 125)
+  plt.xlim(0, 120)
   plt.ylim(10, 180)
 
   plt.xlabel("Rate")
