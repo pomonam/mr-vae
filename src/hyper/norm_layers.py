@@ -2,174 +2,93 @@ import torch
 from torch import nn
 
 from src.config import HyperConfig
-from src.hyper.blocks import get_block
 from src.hyper.layers import HyperLayer
+from src.hyper.layers import initialize_hyper_blocks
 
 
-def get_hyper_bn_layer(features, hyper_cfg):
-  if hyper_cfg.include_hyper_bn:
-    return nn.BatchNorm2d(features)
-  else:
-    return HyperBatchNormLayer(features, hyper_cfg)
+def get_hyper_bn_layer(features: int, hyper_cfg: HyperConfig) -> HyperLayer:
+  return HyperBatchNormLayer(features, hyper_cfg)
 
 
-def get_hyper_ln_layer(features, hyper_cfg):
-  if hyper_cfg.include_hyper_bn:
-    return nn.LayerNorm(features, eps=1e-12)
-  else:
-    return HyperLayerNormLayer(features, hyper_cfg)
+def get_hyper_ln_layer(features: int,
+                       hyper_cfg: HyperConfig,
+                       eps: float = 1e-12) -> HyperLayer:
+  return HyperLayerNormLayer(features, hyper_cfg, eps)
 
 
 class HyperBatchNormLayer(HyperLayer):
 
-  def __init__(self, features, hyper_cfg):
+  def __init__(self, features: int, hyper_cfg: HyperConfig) -> None:
     super().__init__()
 
-    self._net_inputs = None
     self.features = features
     self.hyper_cfg = hyper_cfg
 
-    self.bn = nn.BatchNorm2d(features, affine=False, track_running_stats=False)
+    if self.hyper_cfg.apply_norm_layers:
+      if self.hyper_cfg.apply_bn_tracking:
+        self.bn = nn.BatchNorm2d(
+            features, affine=False, track_running_stats=True)
+      else:
+        self.bn = nn.BatchNorm2d(
+            features, affine=False, track_running_stats=False)
 
-    if hyper_cfg.preprocess_beta:
-      self.hyper_block_scale = get_block("linear")(hyper_cfg.preprocess_dim,
-                                                   self.features)
-      self.hyper_block_shift = get_block("linear")(hyper_cfg.preprocess_dim,
-                                                   self.features)
+      self.hyper_block_scale = initialize_hyper_blocks(self.features,
+                                                       self.hyper_cfg)
+      self.hyper_block_shift = initialize_hyper_blocks(self.features,
+                                                       self.hyper_cfg)
     else:
-      self.hyper_block_scale = get_block(self.hyper_cfg.block_type)(
-          in_features=1, width=self.features)
-      self.hyper_block_shift = get_block(self.hyper_cfg.block_type)(
-          in_features=1, width=self.features)
+      self.bn = nn.BatchNorm2d(features)
 
-  def forward(self, inputs):
+  def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     inputs = self.bn(inputs)
 
-    scale = self.hyper_block_scale(self._net_inputs)
-    shift = self.hyper_block_shift(self._net_inputs)
+    if not self.hyper_cfg.apply_norm_layers:
+      return inputs
+    else:
+      scale = self.hyper_block_scale(self._net_inputs)
+      shift = self.hyper_block_shift(self._net_inputs)
 
-    scale = scale.unsqueeze(-1).unsqueeze(-1)
-    shift = shift.unsqueeze(-1).unsqueeze(-1)
-    return scale * inputs + shift
+      # This is currently only applied to conv layers.
+      scale = scale.unsqueeze(-1).unsqueeze(-1)
+      shift = shift.unsqueeze(-1).unsqueeze(-1)
+
+      # Initialized to be identity.
+      return (1 + scale) * inputs + shift
 
 
 class HyperLayerNormLayer(HyperLayer):
 
-  def __init__(self, features, hyper_cfg):
+  def __init__(self,
+               features: int,
+               hyper_cfg: HyperConfig,
+               eps: float = 1e-12) -> None:
     super().__init__()
 
-    self._net_inputs = None
     self.features = features
     self.hyper_cfg = hyper_cfg
 
-    self.ln = nn.LayerNorm(features, elementwise_affine=False, eps=1e-12)
+    if self.hyper_cfg.apply_norm_layers:
+      self.ln = nn.LayerNorm(features, elementwise_affine=False, eps=eps)
 
-    if hyper_cfg.preprocess_beta:
-      self.hyper_block_scale = get_block("linear")(hyper_cfg.preprocess_dim,
-                                                   self.features)
-      self.hyper_block_shift = get_block("linear")(hyper_cfg.preprocess_dim,
-                                                   self.features)
+      self.hyper_block_scale = initialize_hyper_blocks(self.features,
+                                                       self.hyper_cfg)
+      self.hyper_block_shift = initialize_hyper_blocks(self.features,
+                                                       self.hyper_cfg)
     else:
-      self.hyper_block_scale = get_block(self.hyper_cfg.block_type)(
-          in_features=1, width=self.features)
-      self.hyper_block_shift = get_block(self.hyper_cfg.block_type)(
-          in_features=1, width=self.features)
+      self.ln = nn.LayerNorm(features, eps=eps)
 
-  def forward(self, inputs):
+  def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     inputs = self.ln(inputs)
 
-    scale = self.hyper_block_scale(self._net_inputs)
-    shift = self.hyper_block_shift(self._net_inputs)
-
-    return scale * inputs + shift
-
-
-class HyperSigmoidLayer(HyperLayer):
-
-  def __init__(self, features: int, hyper_cfg: HyperConfig):
-    super().__init__()
-
-    self._net_inputs = None
-    self.features = features
-    self.hyper_cfg = hyper_cfg
-
-    if hyper_cfg.shared_preprocess:
-      self.hyper_block_scale = get_block("linear")(hyper_cfg.preprocess_dim,
-                                                   self.features)
+    if not self.hyper_cfg.apply_norm_layers:
+      return inputs
     else:
-      self.hyper_block_scale = get_block(self.hyper_cfg.block_type)(
-          in_features=1, width=self.hyper_cfg.preprocess_dim)
+      scale = self.hyper_block_scale(self._net_inputs)
+      shift = self.hyper_block_shift(self._net_inputs)
 
-  def forward(self, inputs):
-    scale = self.hyper_block_scale(self._net_inputs)
-    scale = torch.sigmoid(scale)
-
-    if len(inputs.shape) == 4:
-      scale = scale.unsqueeze(-1).unsqueeze(-1)
-
-    return scale * inputs
-
-
-class HyperTanhLayer(HyperLayer):
-
-  def __init__(self, features: int, hyper_cfg: HyperConfig):
-    super().__init__()
-
-    self._net_inputs = None
-    self.features = features
-    self.hyper_cfg = hyper_cfg
-
-    if hyper_cfg.preprocess_beta:
-      # self.hyper_block_scale = get_block("linear")(hyper_cfg.preprocess_dim, self.features)
-      self.hyper_block_scale = nn.Linear(
-          hyper_cfg.preprocess_dim, self.features, bias=True)
-      self.hyper_block_scale.weight.data.fill_(0)
-      self.hyper_block_scale.bias.data.fill_(0)
-      print("stp")
-    else:
-      self.hyper_block_scale = get_block(self.hyper_cfg.block_type)(
-          in_features=1, width=self.features)
-
-  def forward(self, inputs):
-    print(self.hyper_block_scale.weight)
-    scale = self.hyper_block_scale(self._net_inputs)
-    scale = torch.tanh(scale)
-
-    if len(inputs.shape) == 4:
-      scale = scale.unsqueeze(-1).unsqueeze(-1)
-
-    if len(inputs.shape) == 3:
-      scale = scale.unsqueeze(1)
-
-    return inputs + scale * inputs
-
-
-class HyperScaleShiftLayer(HyperLayer):
-
-  def __init__(self, features: int, hyper_cfg: HyperConfig):
-    super().__init__()
-
-    self._net_inputs = None
-    self.features = features
-    self.hyper_cfg = hyper_cfg
-
-    if hyper_cfg.preprocess_beta:
-      self.hyper_block_scale = get_block("linear")(hyper_cfg.preprocess_dim,
-                                                   self.features)
-      self.hyper_block_shift = get_block("linear")(hyper_cfg.preprocess_dim,
-                                                   self.features)
-    else:
-      self.hyper_block_scale = get_block(self.hyper_cfg.block_type)(
-          in_features=1, width=self.features)
-      self.hyper_block_shift = get_block(self.hyper_cfg.block_type)(
-          in_features=1, width=self.features)
-
-  def forward(self, inputs):
-    scale = self.hyper_block_scale(self._net_inputs)
-    shift = self.hyper_block_shift(self._net_inputs)
-
-    if len(inputs.shape) == 4:
+      # This is currently only applied to conv layers.
       scale = scale.unsqueeze(-1).unsqueeze(-1)
       shift = shift.unsqueeze(-1).unsqueeze(-1)
 
-    return scale * inputs + shift
+      # Initialized to be identity.
+      return (1 + scale) * inputs + shift

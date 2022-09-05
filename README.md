@@ -32,7 +32,7 @@ export LD_LIBRARY_PATH=/pkgs/cuda-10.2/lib64:/pkgs/cudnn-10.2-v7.6.5.32/lib64:$L
 ```
 Then
 ```shell
-. envs/vae_env
+. envs/hvae_env
 pip install torch==1.12.1 torchvision==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu102
 mkdir codes
 cd codes

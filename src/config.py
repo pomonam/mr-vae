@@ -46,6 +46,8 @@ class HyperConfig:
     self.shared_preprocess = get_ns(args, "shared_preprocess")
 
     self.apply_zero_init = get_ns(args, "apply_zero_init")
+    self.apply_norm_layers = get_ns(args, "apply_norm_layers")
+    self.apply_bn_tracking = get_ns(args, "apply_bn_tracking")
 
     self.param_type = get_ns(args, "param_type")
     self.layer_type = get_ns(args, "layer_type")
