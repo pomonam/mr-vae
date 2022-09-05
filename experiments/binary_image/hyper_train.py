@@ -123,15 +123,13 @@ def main():
   parser.add_argument("--block_type", type=str, default="mlp")
   parser.add_argument("--layer_type", type=str, default="sig_gate")
   parser.add_argument("--param_type", type=str, default="pre_bn")
+  parser.add_argument("--bn_type", type=str, default="none")
   parser.add_argument("--shared_preprocess", type=int, default=1)
   parser.add_argument("--apply_zero_init", type=int, default=1)
   parser.add_argument("--include_latent_stem", type=int, default=0)
-  parser.add_argument("--include_output_stem", type=int, default=0)
-  parser.add_argument("--include_hyper_bn", type=int, default=1)
 
   parser.add_argument("--total_epochs", type=int, default=10)
   parser.add_argument("--warmup_epochs", type=int, default=10)
-
   parser.add_argument("--lr", type=float, default=1e-4)
   parser.add_argument("--batch_size", type=int, default=128)
 
@@ -150,6 +148,7 @@ def main():
 
   seed_everything(cfg.seed)
   model = build_model(args.encoder_name, args.decoder_name, hyper_cfg, DEVICE)
+  wandb.watch(model)
   print(model)
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
@@ -202,7 +201,7 @@ def main():
                  "test",
                  DEVICE)
 
-  for sample in model.get_log_uniform_samples(4):
+  for sample in model.get_log_uniform_samples(5):
     true_data, reconstructions, generations = hyper_predict(model, test_loader, sample, DEVICE)
     column_names = ["images_id", "truth", "reconstruction", "normal_generation"]
     data_to_log = []

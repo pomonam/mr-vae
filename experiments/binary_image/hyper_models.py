@@ -423,19 +423,11 @@ class HyperResNetDecoder(BaseHyperDecoder):
               nn.ReLU(),
           ))
 
-      if hyper_cfg.include_output_stem:
-        layers.append(
-            nn.Sequential(
-                nn.ConvTranspose2d(
-                    64, self.n_channels, 3, 2, padding=1, output_padding=1),
-                get_hyper_layer(self.n_channels, hyper_cfg),
-                nn.Sigmoid()))
-      else:
-        layers.append(
-            nn.Sequential(
-                nn.ConvTranspose2d(
-                    64, self.n_channels, 3, 2, padding=1, output_padding=1),
-                nn.Sigmoid()))
+      layers.append(
+          nn.Sequential(
+              nn.ConvTranspose2d(
+                  64, self.n_channels, 3, 2, padding=1, output_padding=1),
+              nn.Sigmoid()))
 
     elif self.hyper_cfg.param_type == "post_act":
       layers.append(
@@ -461,20 +453,11 @@ class HyperResNetDecoder(BaseHyperDecoder):
               get_hyper_layer(64, hyper_cfg),
           ))
 
-      if hyper_cfg.include_output_stem:
-        layers.append(
-            nn.Sequential(
-                nn.ConvTranspose2d(
-                    64, self.n_channels, 3, 2, padding=1, output_padding=1),
-                nn.Sigmoid(),
-                get_hyper_layer(self.n_channels, hyper_cfg),
-            ))
-      else:
-        layers.append(
-            nn.Sequential(
-                nn.ConvTranspose2d(
-                    64, self.n_channels, 3, 2, padding=1, output_padding=1),
-                nn.Sigmoid()))
+      layers.append(
+          nn.Sequential(
+              nn.ConvTranspose2d(
+                  64, self.n_channels, 3, 2, padding=1, output_padding=1),
+              nn.Sigmoid()))
 
     self.layers = layers
     self.depth = len(layers)
