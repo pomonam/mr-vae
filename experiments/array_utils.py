@@ -53,6 +53,17 @@ def generate_sh_file(file_name: str,
     lines += "#SBATCH --output=temp/array-%A_%a.out\n"
     lines += "#SBATCH -c 4\n"
     lines += "\n"
+
+    lines += ". $HOME/envs/hvae_env\n"
+    lines += "export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH\n"
+    lines += "\n"
+
+    lines += "IFS=$'\\n' read -d '' -r -a lines < {}\n".format(file_name)
+    lines += "cd ..\n"
+    lines += "\n"
+
+    lines += "echo ${lines[SLURM_ARRAY_TASK_ID]} --checkpoint_dir /checkpoint/${USER}/${SLURM_JOB_ID}\n"
+    lines += "eval ${lines[SLURM_ARRAY_TASK_ID]} --checkpoint_dir /checkpoint/${USER}/${SLURM_JOB_ID}"
   else:
     lines += "#!/bin/bash\n"
     lines += "#SBATCH -N 1\n"
@@ -65,16 +76,16 @@ def generate_sh_file(file_name: str,
     lines += "#SBATCH --cpus-per-task=8\n"
     lines += "\n"
 
-  lines += ". $HOME/envs/hvae_env\n"
-  lines += "export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH\n"
-  lines += "\n"
+    lines += ". $HOME/envs/hvae_env\n"
+    lines += "export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH\n"
+    lines += "\n"
 
-  lines += "IFS=$'\\n' read -d '' -r -a lines < {}\n".format(file_name)
-  lines += "cd ..\n"
-  lines += "\n"
+    lines += "IFS=$'\\n' read -d '' -r -a lines < {}\n".format(file_name)
+    lines += "cd ..\n"
+    lines += "\n"
 
-  lines += "echo ${lines[SLURM_ARRAY_TASK_ID]} --checkpoint_dir /checkpoint/${USER}/${SLURM_JOB_ID}\n"
-  lines += "eval ${lines[SLURM_ARRAY_TASK_ID]} --checkpoint_dir /checkpoint/${USER}/${SLURM_JOB_ID}"
+    lines += "echo ${lines[SLURM_ARRAY_TASK_ID]}\n"
+    lines += "eval ${lines[SLURM_ARRAY_TASK_ID]}"
 
   with open("run_" + file_name + ".sh", "w") as f:
     f.writelines(lines)

@@ -415,14 +415,12 @@ class HyperResNetDecoder(BaseHyperDecoder):
               HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
               nn.ReLU(),
           ))
-
       layers.append(
           nn.Sequential(
               nn.ConvTranspose2d(128, 64, 3, 2, padding=1, output_padding=1),
               get_hyper_layer(64, hyper_cfg),
               nn.ReLU(),
           ))
-
       layers.append(
           nn.Sequential(
               nn.ConvTranspose2d(
