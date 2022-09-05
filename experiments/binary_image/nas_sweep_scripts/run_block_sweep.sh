@@ -14,5 +14,5 @@ export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH
 IFS=$'\n' read -d '' -r -a lines < block_sweep
 cd ..
 
-echo ${lines[SLURM_ARRAY_TASK_ID]} --checkpoint_dir /checkpoint/${USER}/${SLURM_JOB_ID}
-eval ${lines[SLURM_ARRAY_TASK_ID]} --checkpoint_dir /checkpoint/${USER}/${SLURM_JOB_ID}
+echo ${lines[SLURM_ARRAY_TASK_ID]}
+eval ${lines[SLURM_ARRAY_TASK_ID]}

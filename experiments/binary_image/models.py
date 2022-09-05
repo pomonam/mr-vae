@@ -186,7 +186,6 @@ class ResNetDecoder(BaseDecoder):
     layers.append(
         nn.Sequential(
             nn.ConvTranspose2d(128, 128, 3, 2, padding=1),
-            # nn.BatchNorm2d(128),
             nn.ReLU(),
         ))
 
@@ -201,7 +200,6 @@ class ResNetDecoder(BaseDecoder):
     layers.append(
         nn.Sequential(
             nn.ConvTranspose2d(128, 64, 3, 2, padding=1, output_padding=1),
-            # nn.BatchNorm2d(64),
             nn.ReLU(),
         ))
     layers.append(
