@@ -32,10 +32,10 @@ parser.add_argument("--data_name", type=str, default="mnist")
 parser.add_argument("--encoder_name", type=str, default="resnet")
 parser.add_argument("--decoder_name", type=str, default="resnet")
 
-parser.add_argument("--block_type", type=str, default="linear")
+parser.add_argument("--block_type", type=str, default="mlp")
 parser.add_argument("--layer_type", type=str, default="sig_gate")
 parser.add_argument("--param_type", type=str, default="pre_bn")
-parser.add_argument("--shared_preprocess", type=int, default=0)
+parser.add_argument("--shared_preprocess", type=int, default=1)
 parser.add_argument("--apply_zero_init", type=int, default=1)
 parser.add_argument("--include_latent_stem", type=int, default=0)
 parser.add_argument("--include_output_stem", type=int, default=0)
@@ -149,6 +149,7 @@ def main():
 
   seed_everything(cfg.seed)
   model = build_model(args.encoder_name, args.decoder_name, hyper_cfg, DEVICE)
+  print(model)
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
@@ -200,7 +201,7 @@ def main():
                  "test",
                  DEVICE)
 
-  for sample in model.get_test_samples(5):
+  for sample in model.get_log_uniform_samples(4):
     true_data, reconstructions, generations = hyper_predict(model, test_loader, sample, DEVICE)
     column_names = ["images_id", "truth", "reconstruction", "normal_generation"]
     data_to_log = []

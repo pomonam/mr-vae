@@ -264,7 +264,7 @@ class HyperConvDecoder(BaseHyperDecoder):
       out = self.layers[i](out)
 
       if i == 1:
-        out = out.reshape(z.shape[0], 1024, 4, 4)
+        out = out.reshape(inputs.shape[0], 1024, 4, 4)
 
       if i + 1 == self.depth:
         output["reconstruction"] = out
@@ -370,18 +370,18 @@ class HyperResNetEncoder(BaseHyperEncoder):
 
       if i + 1 == self.depth:
         if self.hyper_cfg.include_latent_stem:
-          emb = self.embedding(out.reshape(x.shape[0], -1))
+          emb = self.embedding(out.reshape(inputs.shape[0], -1))
           emb = self.hyper_embedding(emb)
           emb = self.embedding_proj(emb)
           output["embedding"] = emb
-          lv = self.log_var(out.reshape(x.shape[0], -1))
+          lv = self.log_var(out.reshape(inputs.shape[0], -1))
           lv = self.hyper_log_var(lv)
           lv = self.log_var_proj(lv)
           output["log_covariance"] = lv
         else:
-          emb = self.embedding(out.reshape(x.shape[0], -1))
+          emb = self.embedding(out.reshape(inputs.shape[0], -1))
           output["embedding"] = emb
-          lv = self.log_var(out.reshape(x.shape[0], -1))
+          lv = self.log_var(out.reshape(inputs.shape[0], -1))
           output["log_covariance"] = lv
     return output
 
