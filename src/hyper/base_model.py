@@ -12,6 +12,7 @@ from src.hyper.blocks import get_block
 # Some constants used for sampling.
 _SQRT3 = math.sqrt(3)
 _LOG_A = math.log(0.001)
+# If you want the samping to start from 0.01, uncomment below.
 # _LOG_A = math.log(0.01)
 _LOG_B = math.log(10)
 _LOG_M = (_LOG_A + _LOG_B) / 2
@@ -70,10 +71,11 @@ class HyperVAE(VAE):
   def sample_inverse(self, x: torch.Tensor, value: float) -> dict:
     try:
       batch_size = x.shape[0]
+      device = x.device
     except AttributeError:
       # This is for text models.
       batch_size = x.batch_size
-    device = x.device
+      device = x._batch["text_ids"].device
     sample_dict = {}
     ones = torch.ones(batch_size, 1).to(device)
     beta = value * ones

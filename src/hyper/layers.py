@@ -60,7 +60,11 @@ class HyperSigmoidLayer(HyperLayer):
     if len(inputs.shape) == 4:
       scale = scale.unsqueeze(-1).unsqueeze(-1)
 
+    if len(inputs.shape) == 3:
+      scale = scale.unsqueeze(1)
+
     if self.hyper_cfg.shared_preprocess:
+      # Multiply by 2 to keep activation distribution.
       return 2 * scale * inputs
     else:
       return scale * inputs
@@ -86,6 +90,7 @@ class HyperTanhLayer(HyperLayer):
     if len(inputs.shape) == 3:
       scale = scale.unsqueeze(1)
 
+    # Residual connection for tanh transformation.
     return inputs + scale * inputs
 
 
@@ -110,6 +115,7 @@ class HyperScaleShiftLayer(HyperLayer):
       shift = shift.unsqueeze(-1).unsqueeze(-1)
 
     if self.hyper_cfg.apply_zero_init:
+      # Initialize the scale to be identity.
       return (scale + 1) * inputs + shift
     else:
       return scale * inputs + shift
