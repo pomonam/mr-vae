@@ -5,7 +5,7 @@ import torch.nn as nn
 
 from src.hyper.base_architecture import BaseHyperDecoder
 from src.hyper.base_architecture import BaseHyperEncoder
-from src.hyper.layer import HyperLayer
+from src.hyper.layers import HyperLayer
 from src.models.resblock import HyperResBlock
 
 
