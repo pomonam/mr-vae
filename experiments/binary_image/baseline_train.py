@@ -118,7 +118,7 @@ def main():
   parser.add_argument(
       "--experiment_name", type=str, default="hv_binary_image_debug")
 
-  parser.add_argument("--data_name", type=str, default="omniglot")
+  parser.add_argument("--data_name", type=str, default="mnist")
   parser.add_argument("--encoder_name", type=str, default="resnet")
   parser.add_argument("--decoder_name", type=str, default="resnet")
 
