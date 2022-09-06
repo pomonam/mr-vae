@@ -7,11 +7,11 @@ import torch
 import torch.nn as nn
 import wandb
 
-from experiments.ablation.input_pipeline import load_mnist_data
-from experiments.ablation.models.encoders import MlpEncoder
-from experiments.ablation.models.decoders import TransformerDecoder
+from experiments.binary_image.input_pipeline import load_mnist_data
+from experiments.binary_image.models import ResNetEncoder
+from experiments.ablation.models.decoders import PixelCnnDecoder
 from experiments.train_utils import evaluate
-from experiments.train_utils import predict
+from experiments.train_utils import build_input_queue
 from experiments.train_utils import train
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
@@ -37,7 +37,6 @@ class ImageCriterion(nn.Module):
   @staticmethod
   def forward(recon_x, x, mu, log_var, z, beta):
     recon_loss = recon_x
-
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
     loss_dict = {
@@ -50,7 +49,6 @@ class ImageCriterion(nn.Module):
   @staticmethod
   def eval_forward(recon_x, x, mu, log_var, z, beta):
     recon_loss = recon_x
-
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
     # Compute MI as well for eval forward.
@@ -74,20 +72,33 @@ class ImageCriterion(nn.Module):
     return loss_dict
 
 
+def predict(model, loader, device):
+  model.eval()
+  queue = build_input_queue(loader, device)
+  batch = next(queue)
+  batch["data"] = batch["data"][:10]
+  model_out = model(batch)
+  reconstructions = model_out["reconstruction"].cpu().detach()
+  z_enc = model_out["z"]
+  z = torch.randn_like(z_enc)
+  normal_generation = model.decoder.decode(z).detach().cpu()
+  return batch["data"], normal_generation
+
+
 def build_criterion(device):
   loss_fnc = ImageCriterion()
   return loss_fnc.to(device)
 
 
 def build_model(device):
-  encoder = MlpEncoder()
-  decoder = TransformerDecoder()
+  encoder = ResNetEncoder()
+  decoder = PixelCnnDecoder()
 
   model = BetaVAE(
       encoder=encoder,
       decoder=decoder,
   )
-  model.reconstruction_loss = "mse"
+  model.reconstruction_loss = "bce"
   return model.to(device)
 
 
@@ -97,10 +108,10 @@ def main():
       "--experiment_name", type=str, default="hv_ablation_debug")
 
   parser.add_argument("--total_epochs", type=int, default=10)
-  parser.add_argument("--warmup_epochs", type=int, default=10)
+  parser.add_argument("--warmup_epochs", type=int, default=1)
 
-  parser.add_argument("--lr", type=float, default=1e-3)
-  parser.add_argument("--batch_size", type=int, default=128)
+  parser.add_argument("--lr", type=float, default=3e-3)
+  parser.add_argument("--batch_size", type=int, default=32)
   parser.add_argument("--beta", type=float, default=1.)
   parser.add_argument("--schedule", type=str, default="monotonic")
 
@@ -156,19 +167,19 @@ def main():
            DEVICE)
   evaluate(model, test_loader, criterion, cfg.total_epochs, "test", DEVICE)
 
-  true_data, reconstructions, generations = predict(model, test_loader, DEVICE)
-  column_names = ["images_id", "truth", "reconstruction", "normal_generation"]
+  true_data, generations = predict(model, test_loader, DEVICE)
+  column_names = ["images_id", "truth", "normal_generation"]
   data_to_log = []
   for i in range(len(true_data)):
     data_to_log.append([
         f"img_{i}",
         wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
-        wandb.Image(
-            np.clip(
-                np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
-                0,
-                255.0,
-            )),
+        # wandb.Image(
+        #     np.clip(
+        #         np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
+        #         0,
+        #         255.0,
+        #     )),
         wandb.Image(
             np.clip(
                 np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
@@ -179,26 +190,10 @@ def main():
   val_table = wandb.Table(data=data_to_log, columns=column_names)
   wandb.log({"image": val_table})
 
-  # Uncomment ot compute NLL.
-  # TODO(JB): This function gives negative NLL?
-  # test_loader = load_mnist_data(
-  #   "test", 10000, workers=0, data_path="../../logs/data")
-  # test_data = next(iter(test_loader))
-  # test_data = test_data[0]
-  # test_data = test_data.to(DEVICE).type(torch.float)
-  # with torch.no_grad():
-  #   nll = []
-  #   for i in range(5):
-  #     nll_i = model.get_nll(test_data, n_samples=500, batch_size=500)
-  #     print(f"Round {i + 1} nll: {nll_i}")
-  #     nll.append(nll_i)
-  # wandb.log({"nll_mean": np.mean(nll), "nll_std": np.std(nll)})
-
   if args.save_final_checkpoint:
     save_checkpoint = \
-      os.path.join("checkpoints", "base_{}_{}_{}_{}_{}.pth".
-                   format(args.data_name, args.encoder_name,
-                          args.decoder_name, args.beta, args.schedule))
+      os.path.join("checkpoints", "base_{}_{}.pth".
+                   format(args.beta, args.schedule))
     log_info = {
         "state_dict": model.state_dict(),
     }

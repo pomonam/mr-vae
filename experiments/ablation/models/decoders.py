@@ -1,160 +1,75 @@
 from collections import OrderedDict
-
+import math
 import torch
 from torch import nn
 import texar.torch as tx
-
+from src.models.pixelcnn import PixelCNN
 from src.base_architecture import BaseDecoder
 from src.base_architecture import BaseEncoder
 from src.models.resblock import ResBlock
 
 
-class TransformerDecoder(BaseDecoder):
+class PixelCnnDecoder(BaseDecoder):
 
   def __init__(self):
     super().__init__()
 
-    vocab_size = 2
-    seq_length = 28 * 28
-    self.hidden_size = 512
-    dec_emb_hparams = {
-      'name': 'lookup_table',
-      "dim": self.hidden_size,
-      "dropout_rate": 0.,
-      'initializer': {
-        'type': 'normal_',
-        'kwargs': {
-          'mean': 0.0,
-          'std': self.hidden_size ** -0.5,
-        },
-      }
-    }
-    self.decoder_w_embedder = tx.modules.WordEmbedder(
-      vocab_size=vocab_size, hparams=dec_emb_hparams)
+    self.latent_size = 32
+    self.num_channels = 1
+    self.fm_latent = 4
+    self.img_latent = 28 * 28 * self.fm_latent
 
-    dec_pos_emb_hparams = {
-      'dim': self.hidden_size,
-    }
-    self.decoder_p_embedder = tx.modules.SinusoidsPositionEmbedder(
-      position_size=seq_length,
-      hparams=dec_pos_emb_hparams)
+    self.z_transform = nn.Sequential(
+      nn.Linear(self.latent_size, self.img_latent),
+    )
 
-    relu_dropout = 0.2
-    embedding_dropout = 0.2
-    attention_dropout = 0.2
-    residual_dropout = 0.2
-    num_blocks = 3
-    trans_hparams = {
-      'output_layer_bias': False,
-      'embedding_dropout': embedding_dropout,
-      'residual_dropout': residual_dropout,
-      'num_blocks': num_blocks,
-      'dim': self.hidden_size,
-      'initializer': {
-        'type': 'variance_scaling_initializer',
-        'kwargs': {
-          'factor': 1.0,
-          'mode': 'FAN_AVG',
-          'uniform': True,
-        },
-      },
-      'multihead_attention': {
-        'dropout_rate': attention_dropout,
-        'num_heads': 8,
-        'num_units': self.hidden_size,
-        'output_dim': self.hidden_size
-      },
-      'poswise_feedforward': {
-        'name': 'fnn',
-        'layers': [
-          {
-            'type': 'Linear',
-            'kwargs': {
-              "in_features": self.hidden_size,
-              "out_features": self.hidden_size * 4,
-              "bias": True,
-            },
-          },
-          {
-            'type': 'ReLU',
-          },
-          {
-            'type': 'Dropout',
-            'kwargs': {
-              'p': relu_dropout,
-            }
-          },
-          {
-            'type': 'Linear',
-            'kwargs': {
-              "in_features": self.hidden_size * 4,
-              "out_features": self.hidden_size,
-              "bias": True,
-            }
-          }
-        ],
-      }
-    }
+    kernal_sizes = [7, 7, 7, 5, 5, 3, 3]
+    hidden_channels = 64
+    self.layers = nn.Sequential(
+      PixelCNN(self.num_channels + self.fm_latent, hidden_channels, len(kernal_sizes), kernal_sizes, self.latent_size),
+      nn.Conv2d(hidden_channels, hidden_channels, 1, bias=False),
+      nn.BatchNorm2d(hidden_channels),
+      nn.ELU(),
+      nn.Conv2d(hidden_channels, self.num_channels, 1, bias=False),
+      nn.Sigmoid(),
+    )
 
-    self.transformer_decoder = tx.modules.TransformerDecoder(
-      # tie word embedding with output layer
-      output_layer=self.decoder_w_embedder.embedding,
-      token_pos_embedder=self._embed_fn_transformer,
-      hparams=trans_hparams)
-
-    self.mlp_linear_layer = nn.Linear(16, self.hidden_size, bias=True)
-    self.output_layer = nn.Linear(2, 1, bias=True)
-
-  def _embed_fn_transformer(self,
-                            tokens: torch.LongTensor,
-                            positions: torch.LongTensor):
-    r"""Generates word embeddings combined with positional embeddings
-      """
-    output_p_embed = self.decoder_p_embedder(positions)
-    output_w_embed = self.decoder_w_embedder(tokens.long())
-    output_w_embed = output_w_embed * self.hidden_size ** 0.5
-    output_embed = output_w_embed + output_p_embed
-    return output_embed
-
-  def forward(self, z: torch.Tensor):
+  def forward(self, inputs):
     raise LookupError
 
-  def decode(self,
-             helper,
-             latent_z,
-             text_ids,
-             seq_lengths,
-             max_decoding_length=None):
-    self._latent_z = latent_z
-    fc_output = self.mlp_linear_layer(latent_z)
+  def ar_forward(self, x, z, inputs):
+    z = z.unsqueeze(1)
+    batch_size, nsampels, nz = z.size()
+    z = self.z_transform(z).view(batch_size, nsampels, self.fm_latent, 28, 28)
+    img = x.unsqueeze(1).expand(batch_size, nsampels, *x.size()[1:])
+    img = torch.cat([img, z], dim=2)
+    img = img.view(-1, *img.size()[2:])
+    recon_x = self.layers(img).view(batch_size, nsampels, -1)
+    recon_loss = torch.nn.functional.binary_cross_entropy(
+        recon_x.reshape(x.shape[0], -1),
+        x.reshape(x.shape[0], -1),
+        reduction="none",
+    ).sum(dim=-1)
 
-    transformer_states = fc_output.unsqueeze(1)
-    outputs = self.transformer_decoder(
-      inputs=text_ids,
-      memory=transformer_states,
-      memory_sequence_length=torch.ones(transformer_states.size(0)),
-      helper=helper,
-      max_decoding_length=max_decoding_length)
-    return outputs
+    return recon_loss
 
-  def ar_forward(self, x, z, batch):
-    data_batch = x
-    self._latent_z = z
+  def decode(self, z):
+    H = W = 28
+    batch_size, nz = z.size()
 
-    x_flatten = x.reshape(-1, 784)
-    x_flatten = torch.cat((torch.zeros((x_flatten.shape[0], 1)), x_flatten[:, :-1]), 1)
-    seq_lengths = 784 - 1
-    outputs = self.decode(
-      helper=None, latent_z=z,
-      text_ids=x_flatten[:, :-1], seq_lengths=seq_lengths)
+    # [batch, -1] --> [batch, fm, H, W]
+    z = self.z_transform(z).view(batch_size, self.fm_latent, H, W)
+    img = z.data.new(batch_size, self.num_channels, H, W).zero_()
+    # [batch, nc+fm, H, W]
+    img = torch.cat([img, z], dim=1)
+    for i in range(H):
+      for j in range(W):
+        # [batch, nc, H, W]
+        recon_img = self.layers(img)
+        # [batch, nc]
+        img[:, :self.num_channels, i, j] = torch.ge(recon_img[:, :, i, j], 0.5).float()
+        # img[:, :self.nc, i, j] = torch.bernoulli(recon_img[:, :, i, j])
 
-    logits = outputs.logits
-    logits = self.output_layer(logits)
-    logits = torch.sigmoid(logits)
-
-    rc_loss = torch.nn.functional.mse_loss(logits.squeeze(-1),
-                                           x_flatten[:, 1:],
-                                           reduction="none",
-                                           ).sum(dim=-1)
-
-    return rc_loss
+    # [batch, nc, H, W]
+    img_probs = self.layers(img)
+    return img_probs

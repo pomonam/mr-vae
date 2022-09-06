@@ -56,7 +56,6 @@ class HyperSigmoidLayer(HyperLayer):
   def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     scale = self.hyper_block_scale(self._net_inputs)
     scale = torch.sigmoid(scale)
-    # print(scale.norm())
 
     if len(inputs.shape) == 4:
       scale = scale.unsqueeze(-1).unsqueeze(-1)
