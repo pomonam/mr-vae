@@ -27,7 +27,7 @@ parser.add_argument(
     "--experiment_name", type=str, default="linear_beta_vae-mnist_baseline")
 
 parser.add_argument("--bottleneck_size", type=int, default=100)
-parser.add_argument("--total_epochs", type=int, default=50)
+parser.add_argument("--total_epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=50000) # Do full-batch training
 #parser.add_argument("--beta", type=float, default=-1)
@@ -155,7 +155,7 @@ def main():
     model = LinearVae(encoder, decoder).to(DEVICE)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
-    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, gamma=0.05)
+    lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.995)
 
     train(model, build_input_queue, optimizer, lr_scheduler, cfg)
     evaluate(model, build_input_queue, cfg.total_epochs, "train_eval")
