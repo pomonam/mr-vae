@@ -8,12 +8,12 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="baseline_jobs")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_b_image_jobs_v3")
+    "--experiment_name", type=str, default="hvae_bimage_jobs_v1")
 
 args = parser.parse_args()
 
 CONV_CONFIG1 = {
-    "lr": [0.0003],
+    "lr": [0.0001],
     "total_epochs": [200],
     "data_name": ["mnist"],
     "encoder_name": ["conv"],
@@ -24,7 +24,7 @@ CONV_CONFIG1 = {
 }
 
 CONV_CONFIG2 = {
-    "lr": [0.0003],
+    "lr": [0.001],
     "total_epochs": [200],
     "data_name": ["omniglot"],
     "encoder_name": ["conv"],

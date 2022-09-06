@@ -73,7 +73,7 @@ class HyperConvEncoder(BaseHyperEncoder):
               get_hyper_bn_layer(1024, hyper_cfg),
               get_hyper_layer(1024, hyper_cfg),
               nn.ReLU()))
-    else:
+    elif self.hyper_cfg.param_type == "post_act":
       layers.append(
           nn.Sequential(
               nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
@@ -103,17 +103,19 @@ class HyperConvEncoder(BaseHyperEncoder):
               nn.ReLU(),
               get_hyper_layer(1024, hyper_cfg),
           ))
+    else:
+      raise NotImplementedError()
 
     self.layers = layers
     self.depth = len(layers)
 
-    self.embedding = nn.Linear(1024, self.latent_dim)
-    self.hyper_embedding = get_hyper_layer(self.latent_dim, hyper_cfg)
-    self.embedding_proj = nn.Linear(self.latent_dim, self.latent_dim)
+    self.embedding = nn.Linear(1024, 1024)
+    self.hyper_embedding = get_hyper_layer(1024, hyper_cfg)
+    self.embedding_proj = nn.Linear(1024, self.latent_dim)
 
-    self.log_var = nn.Linear(1024, self.latent_dim)
-    self.hyper_log_var = get_hyper_layer(self.latent_dim, hyper_cfg)
-    self.log_var_proj = nn.Linear(self.latent_dim, self.latent_dim)
+    self.log_var = nn.Linear(1024, 1024)
+    self.hyper_log_var = get_hyper_layer(1024, hyper_cfg)
+    self.log_var_proj = nn.Linear(1024, self.latent_dim)
 
   def forward(self, x: torch.Tensor):
     max_depth = self.depth
@@ -136,8 +138,8 @@ class HyperConvEncoder(BaseHyperEncoder):
           output["log_covariance"] = lv
 
         else:
-          output["embedding"] = self.embedding(out.reshape(x.shape[0], -1))
-          output["log_covariance"] = self.log_var(out.reshape(x.shape[0], -1))
+          output["embedding"] = self.embedding_proj(out.reshape(x.shape[0], -1))
+          output["log_covariance"] = self.log_var_proj(out.reshape(x.shape[0], -1))
 
     return output
 
@@ -173,21 +175,13 @@ class HyperConvDecoder(BaseHyperDecoder):
               get_hyper_bn_layer(256, hyper_cfg),
               nn.ReLU(),
           ))
-      if hyper_cfg.include_output_stem:
-        layers.append(
-            nn.Sequential(
-                nn.ConvTranspose2d(
-                    256, self.n_channels, 3, 2, padding=1, output_padding=1),
-                get_hyper_layer(self.n_channels, hyper_cfg),
-                nn.Sigmoid(),
-            ))
-      else:
-        layers.append(
-            nn.Sequential(
-                nn.ConvTranspose2d(
-                    256, self.n_channels, 3, 2, padding=1, output_padding=1),
-                nn.Sigmoid(),
-            ))
+
+      layers.append(
+          nn.Sequential(
+              nn.ConvTranspose2d(
+                  256, self.n_channels, 3, 2, padding=1, output_padding=1),
+              nn.Sigmoid(),
+          ))
     elif self.hyper_cfg.param_type == "post_bn":
       layers.append(
           nn.Sequential(
@@ -204,22 +198,14 @@ class HyperConvDecoder(BaseHyperDecoder):
               get_hyper_layer(256, hyper_cfg),
               nn.ReLU(),
           ))
-      if hyper_cfg.include_output_stem:
-        layers.append(
-            nn.Sequential(
-                nn.ConvTranspose2d(
-                    256, self.n_channels, 3, 2, padding=1, output_padding=1),
-                get_hyper_layer(self.n_channels, hyper_cfg),
-                nn.Sigmoid(),
-            ))
-      else:
-        layers.append(
-            nn.Sequential(
-                nn.ConvTranspose2d(
-                    256, self.n_channels, 3, 2, padding=1, output_padding=1),
-                nn.Sigmoid(),
-            ))
-    else:
+
+      layers.append(
+          nn.Sequential(
+              nn.ConvTranspose2d(
+                  256, self.n_channels, 3, 2, padding=1, output_padding=1),
+              nn.Sigmoid(),
+          ))
+    elif self.hyper_cfg.param_type == "post_act":
       layers.append(
           nn.Sequential(
               nn.ConvTranspose2d(1024, 512, 3, 2, padding=1),
@@ -235,21 +221,16 @@ class HyperConvDecoder(BaseHyperDecoder):
               nn.ReLU(),
               get_hyper_layer(256, hyper_cfg),
           ))
-      if hyper_cfg.include_output_stem:
-        layers.append(
-            nn.Sequential(
-                nn.ConvTranspose2d(
-                    256, self.n_channels, 3, 2, padding=1, output_padding=1),
-                nn.Sigmoid(),
-                get_hyper_layer(self.n_channels, hyper_cfg),
-            ))
-      else:
-        layers.append(
-            nn.Sequential(
-                nn.ConvTranspose2d(
-                    256, self.n_channels, 3, 2, padding=1, output_padding=1),
-                nn.Sigmoid(),
-            ))
+
+      layers.append(
+          nn.Sequential(
+              nn.ConvTranspose2d(
+                  256, self.n_channels, 3, 2, padding=1, output_padding=1),
+              nn.Sigmoid(),
+          ))
+    else:
+      raise NotImplementedError()
+
     self.layers = layers
     self.depth = len(layers)
 
@@ -352,13 +333,13 @@ class HyperResNetEncoder(BaseHyperEncoder):
     self.layers = layers
     self.depth = len(layers)
 
-    self.embedding = nn.Linear(128 * 4 * 4, self.latent_dim)
-    self.hyper_embedding = get_hyper_layer(self.latent_dim, hyper_cfg)
-    self.embedding_proj = nn.Linear(self.latent_dim, self.latent_dim)
+    self.embedding = nn.Linear(128 * 4 * 4, 128 * 4 * 4)
+    self.hyper_embedding = get_hyper_layer(128 * 4 * 4, hyper_cfg)
+    self.embedding_proj = nn.Linear(128 * 4 * 4, self.latent_dim)
 
-    self.log_var = nn.Linear(128 * 4 * 4, self.latent_dim)
-    self.hyper_log_var = get_hyper_layer(self.latent_dim, hyper_cfg)
-    self.log_var_proj = nn.Linear(self.latent_dim, self.latent_dim)
+    self.log_var = nn.Linear(128 * 4 * 4, 128 * 4 * 4)
+    self.hyper_log_var = get_hyper_layer(128 * 4 * 4, hyper_cfg)
+    self.log_var_proj = nn.Linear(128 * 4 * 4, self.latent_dim)
 
   def forward(self, inputs: torch.Tensor):
     max_depth = self.depth
@@ -379,9 +360,9 @@ class HyperResNetEncoder(BaseHyperEncoder):
           lv = self.log_var_proj(lv)
           output["log_covariance"] = lv
         else:
-          emb = self.embedding(out.reshape(inputs.shape[0], -1))
+          emb = self.embedding_proj(out.reshape(inputs.shape[0], -1))
           output["embedding"] = emb
-          lv = self.log_var(out.reshape(inputs.shape[0], -1))
+          lv = self.log_var_proj(out.reshape(inputs.shape[0], -1))
           output["log_covariance"] = lv
     return output
 
