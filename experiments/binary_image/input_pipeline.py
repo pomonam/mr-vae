@@ -1,6 +1,9 @@
 import os
 import urllib
 
+import os
+import pickle as pkl
+import numpy as np
 from PIL import Image
 import scipy.io
 import torch
@@ -11,6 +14,7 @@ import torch.utils.data.dataset
 import torch.utils.data.distributed
 from torchvision import transforms
 from torchvision.datasets import MNIST
+from urllib.request import urlretrieve
 
 
 class Binarize(object):
@@ -37,30 +41,37 @@ class Omniglot(Dataset):
     return len(self.data)
 
 
+def load_mnist_binarized(data_path):
+  dataset = os.path.join(data_path, "mnist.gz")
+
+  if not os.path.isfile(dataset):
+
+    datafiles = {
+      "train": "http://www.cs.toronto.edu/~larocheh/public/"
+               "datasets/binarized_mnist/binarized_mnist_train.amat",
+      "valid": "http://www.cs.toronto.edu/~larocheh/public/datasets/"
+               "binarized_mnist/binarized_mnist_valid.amat",
+      "test": "http://www.cs.toronto.edu/~larocheh/public/datasets/"
+              "binarized_mnist/binarized_mnist_test.amat"
+    }
+    datasplits = {}
+    for split in datafiles.keys():
+      print("Downloading %s data..." % (split))
+      datasplits[split] = np.loadtxt(urlretrieve(datafiles[split])[0])
+
+    pkl.dump([datasplits['train'], datasplits['valid'], datasplits['test']], open(dataset, "wb"))
+
+  x_train, x_valid, x_test = pkl.load(open(dataset, "rb"))
+  return x_train, x_valid, x_test
+
+
 def load_mnist_data(split, batch_size, workers=0, data_path="logs/data"):
   assert split in ["train", "train_eval", "test"]
-  train_transform = transforms.Compose([
-      transforms.ToTensor(),
-      Binarize(),
-  ])
-  test_transform = transforms.Compose([
-      transforms.ToTensor(),
-  ])
+
+  train_data, _, test_data = load_mnist_binarized(data_path)
+  train_data = train_data.reshape(-1, 1, 28, 28).astype('float32')
+  test_data = test_data.reshape(-1, 1, 28, 28).astype('float32')
   is_train = split == "train"
-
-  train_data = MNIST(
-      root=data_path,
-      train=True,
-      download=True,
-      transform=train_transform if is_train else test_transform)
-  if split == "train_eval":
-    train_data.data[train_data.data >= 127.5] = 255.
-    train_data.data[train_data.data < 127.5] = 0.
-
-  test_data = MNIST(
-      root=data_path, train=False, download=True, transform=test_transform)
-  test_data.data[test_data.data >= 127.5] = 255.
-  test_data.data[test_data.data < 127.5] = 0.
 
   loader = torch.utils.data.DataLoader(
       train_data if split in ["train", "train_eval"] else test_data,
@@ -95,31 +106,31 @@ def load_omniglot_data(split, batch_size, workers=0, data_path="../../logs/"):
 
   is_train = split == "train"
   train_transform = transforms.Compose([
-      transforms.ToTensor(),
-      Binarize(),
+    transforms.ToTensor(),
+    Binarize(),
   ])
 
   test_transform = transforms.Compose([
-      transforms.ToTensor(),
+    transforms.ToTensor(),
   ])
 
   if split == "train" or split == "train_eval":
-    data = 255 * dataset["data"].astype("float32").reshape(
+    data = dataset["data"].astype("float32").reshape(
         (28, 28, -1)).transpose((2, 1, 0))
-    data = data.astype("uint8")
+
     if is_train:
       dataset = Omniglot(data, train_transform)
     else:
-      data[data >= 127.5] = 255.
-      data[data < 127.5] = 0.
+      np.random.seed(777)
+      data = np.random.binomial(1, data).astype("float32")
       dataset = Omniglot(data, test_transform)
 
   else:
-    data = 255 * dataset["testdata"].astype("float32").reshape(
+    data = dataset["testdata"].astype("float32").reshape(
         (28, 28, -1)).transpose((2, 1, 0))
-    data = data.astype("uint8")
-    data[data >= 127.5] = 255.
-    data[data < 127.5] = 0.
+
+    np.random.seed(777)
+    data = np.random.binomial(1, data).astype("float32")
     dataset = Omniglot(data, test_transform)
 
   loader = torch.utils.data.DataLoader(

@@ -45,7 +45,6 @@ def evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
 
   means = torch.cat(means, dim=0)
   au_mean = means.mean(0, keepdim=True)
-
   au_var = means - au_mean
   ns = au_var.size(0)
   au_var = (au_var**2).sum(dim=0) / (ns - 1)

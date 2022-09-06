@@ -19,7 +19,7 @@ from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
 from src.models.beta_vae import BetaVAE
-from src.models.beta_vae import log_sum_exp
+from src.utils import log_sum_exp
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()

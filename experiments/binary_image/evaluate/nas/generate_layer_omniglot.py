@@ -10,7 +10,7 @@ from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_b_image_jobs_v3"
-HYPER_NAME = "hvae_nas_sweep_block_type_v10"
+HYPER_NAME = "hvae_nas_sweep_layer_type_v10"
 
 
 def get_summary(summary, test=True):
@@ -93,7 +93,7 @@ def generate_hyper_rd(runs, _id):
         {k: v for k, v in run.config.items() if not k.startswith('_')})
       name_list.append(run.name)
 
-  rate_dict, dist_dict, elbo_dict = get_summary(summary_list[0], test=False)
+  rate_dict, dist_dict, elbo_dict = get_summary(summary_list[0], test=True)
   keys = rate_dict.keys()
   values = zip(rate_dict.values(), dist_dict.values())
   combined_dict = dict(zip(keys, values))
@@ -111,7 +111,7 @@ def main():
   api = init_api()
   runs = api.runs(ENTITY + "/" + HYPER_NAME)
 
-  rate, dist = get_baseline_rd(BASELINE_NAME, schedule="monotonic", test=False)
+  rate, dist = get_baseline_rd(BASELINE_NAME, schedule="monotonic", test=True)
   plt.scatter(
     rate,
     dist,
@@ -121,20 +121,20 @@ def main():
     c=rgb.tue_lightblue
   )
 
-  rate, dist = generate_hyper_rd(runs, "2e0t784o")
+  rate, dist = generate_hyper_rd(runs, "3s9bs123")
   plt.plot(rate, dist, "-", label="Linear Block", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "1872qfij")
-  plt.plot(rate, dist, "-", label="MLP Block", linewidth=1, alpha=0.8)
-
-  rate, dist = generate_hyper_rd(runs, "a7vj922n")
-  plt.plot(rate, dist, "-", label="MLP Block (Shared)", linewidth=1, alpha=0.8)
-
-  rate, dist = generate_hyper_rd(runs, "2numv3q2")
-  plt.plot(rate, dist, "-", label="Large MLP Block", linewidth=1, alpha=0.8)
-
-  rate, dist = generate_hyper_rd(runs, "1sqyip8c")
-  plt.plot(rate, dist, "-", label="Large MLP Block (Shared)", linewidth=1, alpha=0.8)
+  # rate, dist = generate_hyper_rd(runs, "1872qfij")
+  # plt.plot(rate, dist, "-", label="MLP Block", linewidth=1, alpha=0.8)
+  #
+  # rate, dist = generate_hyper_rd(runs, "a7vj922n")
+  # plt.plot(rate, dist, "-", label="MLP Block (Shared)", linewidth=1, alpha=0.8)
+  #
+  # rate, dist = generate_hyper_rd(runs, "2numv3q2")
+  # plt.plot(rate, dist, "-", label="Large MLP Block", linewidth=1, alpha=0.8)
+  #
+  # rate, dist = generate_hyper_rd(runs, "1sqyip8c")
+  # plt.plot(rate, dist, "-", label="Large MLP Block (Shared)", linewidth=1, alpha=0.8)
 
   plt.xlim(0, 120)
   plt.ylim(10, 150)

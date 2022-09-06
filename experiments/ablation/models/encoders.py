@@ -14,7 +14,7 @@ class MlpEncoder(BaseEncoder):
     super().__init__()
 
     self.input_dim = (1, 28, 28)
-    self.latent_dim = 16
+    self.latent_dim = 32
 
     layers = nn.ModuleList()
     layers.append(

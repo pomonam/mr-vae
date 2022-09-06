@@ -24,7 +24,6 @@ from src.hyper.beta_vae import HyperBetaVAE
 from src.utils import log_sum_exp
 from src.utils import seed_everything
 
-
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
@@ -42,26 +41,26 @@ class HyperBinaryImageCriterion(nn.Module):
   @staticmethod
   def forward(recon_x, x, mu, log_var, z, beta):
     recon_loss = F.binary_cross_entropy(
-        recon_x.reshape(x.shape[0], -1),
-        x.reshape(x.shape[0], -1),
-        reduction="none",
+      recon_x.reshape(x.shape[0], -1),
+      x.reshape(x.shape[0], -1),
+      reduction="none",
     ).sum(dim=-1)
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
     loss_dict = {
-        "loss": (recon_loss + beta.squeeze(-1) * kld).mean(dim=0),
-        "distortion": recon_loss.mean(dim=0),
-        "rate": kld.mean(dim=0)
+      "loss": (recon_loss + beta.squeeze(-1) * kld).mean(dim=0),
+      "distortion": recon_loss.mean(dim=0),
+      "rate": kld.mean(dim=0)
     }
     return loss_dict
 
   @staticmethod
   def eval_forward(recon_x, x, mu, log_var, z, beta):
     recon_loss = F.binary_cross_entropy(
-        recon_x.reshape(x.shape[0], -1),
-        x.reshape(x.shape[0], -1),
-        reduction="none",
+      recon_x.reshape(x.shape[0], -1),
+      x.reshape(x.shape[0], -1),
+      reduction="none",
     ).sum(dim=-1)
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
@@ -79,10 +78,10 @@ class HyperBinaryImageCriterion(nn.Module):
     mi = neg_entropy - log_qz.mean(-1)
 
     loss_dict = {
-        "loss": (recon_loss + beta * kld).mean(dim=0),
-        "distortion": recon_loss.mean(dim=0),
-        "rate": kld.mean(dim=0),
-        "mi": mi
+      "loss": (recon_loss + beta * kld).mean(dim=0),
+      "distortion": recon_loss.mean(dim=0),
+      "rate": kld.mean(dim=0),
+      "mi": mi
     }
     return loss_dict
 
@@ -142,7 +141,7 @@ def main():
   args = parser.parse_args()
 
   init_wandb(
-      args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
+    args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
   hyper_cfg = HyperConfig(args)
 
@@ -155,28 +154,28 @@ def main():
   criterion = build_criterion(DEVICE)
 
   scheduler1 = torch.optim.lr_scheduler.LinearLR(
-      optimizer,
-      start_factor=1e-10,
-      end_factor=1.,
-      total_iters=cfg.warmup_epochs)
+    optimizer,
+    start_factor=1e-10,
+    end_factor=1.,
+    total_iters=cfg.warmup_epochs)
   cosine_epochs = max(cfg.total_epochs - cfg.warmup_epochs, 1)
   scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
-      optimizer, T_max=cosine_epochs)
+    optimizer, T_max=cosine_epochs)
   scheduler = torch.optim.lr_scheduler.SequentialLR(
-      optimizer,
-      schedulers=[scheduler1, scheduler2],
-      milestones=[cfg.warmup_epochs])
+    optimizer,
+    schedulers=[scheduler1, scheduler2],
+    milestones=[cfg.warmup_epochs])
 
   if args.data_name == "mnist":
     train_loader = load_mnist_data(
-        "train", cfg.batch_size, workers=2, data_path="../../logs/data")
+      "train", cfg.batch_size, workers=2, data_path="../../logs/data")
     test_loader = load_mnist_data(
-        "test", cfg.batch_size, workers=2, data_path="../../logs/data")
+      "test", cfg.batch_size, workers=2, data_path="../../logs/data")
   elif args.data_name == "omniglot":
     train_loader = load_omniglot_data(
-        "train", cfg.batch_size, workers=2, data_path="../../logs/data")
+      "train", cfg.batch_size, workers=2, data_path="../../logs/data")
     test_loader = load_omniglot_data(
-        "test", cfg.batch_size, workers=2, data_path="../../logs/data")
+      "test", cfg.batch_size, workers=2, data_path="../../logs/data")
   else:
     raise NotImplementedError
 
@@ -207,20 +206,20 @@ def main():
     data_to_log = []
     for i in range(len(true_data)):
       data_to_log.append([
-          f"img_{i}",
-          wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
-          wandb.Image(
-              np.clip(
-                  np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
-                  0,
-                  255.0,
-              )),
-          wandb.Image(
-              np.clip(
-                  np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
-                  0,
-                  255.0,
-              )),
+        f"img_{i}",
+        wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
+        wandb.Image(
+          np.clip(
+            np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
+            0,
+            255.0,
+          )),
+        wandb.Image(
+          np.clip(
+            np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
+            0,
+            255.0,
+          )),
       ])
 
     val_table = wandb.Table(data=data_to_log, columns=column_names)
@@ -230,7 +229,7 @@ def main():
     save_checkpoint = \
       os.path.join("checkpoints", "hyper_{}_{}_{}.pth".format(args.data_name, args.encoder_name, args.decoder_name))
     log_info = {
-        "state_dict": model.state_dict(),
+      "state_dict": model.state_dict(),
     }
     torch.save(log_info, save_checkpoint)
 
