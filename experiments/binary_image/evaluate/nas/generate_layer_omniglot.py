@@ -10,7 +10,7 @@ from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_b_image_jobs_v3"
-HYPER_NAME = "hvae_nas_sweep_layer_type_v10"
+HYPER_NAME = "hvae_bimage_nas_sweep_layer_type"
 
 
 def get_summary(summary, test=True):
@@ -121,21 +121,23 @@ def main():
     c=rgb.tue_lightblue
   )
 
-  rate, dist = generate_hyper_rd(runs, "3s9bs123")
-  plt.plot(rate, dist, "-", label="Linear Block", linewidth=1, alpha=0.8)
+  rate, dist = generate_hyper_rd(runs, "19e12aoo")
+  plt.plot(rate, dist, "-", label="Sigmoid Gate", linewidth=1, alpha=0.8)
 
-  # rate, dist = generate_hyper_rd(runs, "1872qfij")
-  # plt.plot(rate, dist, "-", label="MLP Block", linewidth=1, alpha=0.8)
-  #
-  # rate, dist = generate_hyper_rd(runs, "a7vj922n")
-  # plt.plot(rate, dist, "-", label="MLP Block (Shared)", linewidth=1, alpha=0.8)
-  #
-  # rate, dist = generate_hyper_rd(runs, "2numv3q2")
-  # plt.plot(rate, dist, "-", label="Large MLP Block", linewidth=1, alpha=0.8)
-  #
-  # rate, dist = generate_hyper_rd(runs, "1sqyip8c")
-  # plt.plot(rate, dist, "-", label="Large MLP Block (Shared)", linewidth=1, alpha=0.8)
+  rate, dist = generate_hyper_rd(runs, "wc7c2qtu")
+  plt.plot(rate, dist, "-", label="Sigmoid Gate (Zero-Init)", linewidth=1, alpha=0.8)
 
+  rate, dist = generate_hyper_rd(runs, "1rowfx0u")
+  plt.plot(rate, dist, "-", label="Tanh Gate", linewidth=1, alpha=0.8)
+
+  rate, dist = generate_hyper_rd(runs, "35904nkj")
+  plt.plot(rate, dist, "-", label="Tanh Gate (Zero-Init)", linewidth=1, alpha=0.8)
+
+  rate, dist = generate_hyper_rd(runs, "1zsx0cvg")
+  plt.plot(rate, dist, "-", label="Scale and Shift", linewidth=1, alpha=0.8)
+
+  rate, dist = generate_hyper_rd(runs, "121g7887")
+  plt.plot(rate, dist, "-", label="Scale and Shift", linewidth=1, alpha=0.8)
   plt.xlim(0, 120)
   plt.ylim(10, 150)
 
