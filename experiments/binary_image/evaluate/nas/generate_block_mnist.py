@@ -10,7 +10,7 @@ from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_b_image_jobs_v3"
-HYPER_NAME = "hvae_nas_sweep_block_type_v10"
+HYPER_NAME = "hvae_bimage_nas_sweep_block_type"
 
 
 def get_summary(summary, test=True):
@@ -93,7 +93,7 @@ def generate_hyper_rd(runs, _id):
           {k: v for k, v in run.config.items() if not k.startswith('_')})
       name_list.append(run.name)
 
-  rate_dict, dist_dict, elbo_dict = get_summary(summary_list[0], test=False)
+  rate_dict, dist_dict, elbo_dict = get_summary(summary_list[0], test=True)
   keys = rate_dict.keys()
   values = zip(rate_dict.values(), dist_dict.values())
   combined_dict = dict(zip(keys, values))
@@ -111,7 +111,7 @@ def main():
   api = init_api()
   runs = api.runs(ENTITY + "/" + HYPER_NAME)
 
-  rate, dist = get_baseline_rd(BASELINE_NAME, schedule="monotonic", test=False)
+  rate, dist = get_baseline_rd(BASELINE_NAME, schedule="monotonic", test=True)
   plt.scatter(
       rate,
       dist,
@@ -121,19 +121,19 @@ def main():
       c=rgb.tue_lightblue
   )
 
-  rate, dist = generate_hyper_rd(runs, "3kpc5l1d")
-  plt.plot(rate, dist, "-", label="Linear Block", linewidth=1, alpha=0.8)
+  # rate, dist = generate_hyper_rd(runs, "3kpc5l1d")
+  # plt.plot(rate, dist, "-", label="Linear Block", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "246ioful")
+  rate, dist = generate_hyper_rd(runs, "1t6841un")
   plt.plot(rate, dist, "-", label="MLP Block", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "2zqcooyx")
+  rate, dist = generate_hyper_rd(runs, "p6nk8jfw")
   plt.plot(rate, dist, "-", label="MLP Block (Shared)", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "3awzijj5")
+  rate, dist = generate_hyper_rd(runs, "1ni26qv1")
   plt.plot(rate, dist, "-", label="Large MLP Block", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "25s1svvf")
+  rate, dist = generate_hyper_rd(runs, "d02neega")
   plt.plot(rate, dist, "-", label="Large MLP Block (Shared)", linewidth=1, alpha=0.8)
 
   # plt.xlim(0, 115)

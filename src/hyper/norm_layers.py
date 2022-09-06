@@ -56,7 +56,7 @@ class HyperBatchNormLayer(HyperLayer):
   def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     inputs = self.bn(inputs)
 
-    if self.hyper_cfg.norm_type == "scale_shift":
+    if self.hyper_cfg.norm_type == "none":
       return inputs
     else:
       scale = self.hyper_block_scale(self._net_inputs)
