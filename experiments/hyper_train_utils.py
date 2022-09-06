@@ -36,6 +36,7 @@ def hyper_evaluate(model, loader, criterion, epoch, name, hyper_cfg, device,
       if hyper_cfg.apply_bn_calibrate:
         # Reset all statistics...
         model.apply(calibrate_bn)
+        # Recompute the statistics...
         run_one_epoch(model, train_loader, sample, device)
         model.eval()
 

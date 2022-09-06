@@ -10,7 +10,7 @@ from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_b_image_jobs_v3"
-HYPER_NAME = "hvae_nas_sweep_layer_type"
+HYPER_NAME = "hvae_bimage_nas_sweep_layer_type"
 
 
 def get_summary(summary, test=True):
@@ -121,23 +121,23 @@ def main():
       c=rgb.tue_lightblue
   )
 
-  rate, dist = generate_hyper_rd(runs, "2ea1zyt6")
+  rate, dist = generate_hyper_rd(runs, "2o763uxy")
   plt.plot(rate, dist, "-", label="Sigmoid Gate", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "3r4ivkg6")
+  rate, dist = generate_hyper_rd(runs, "acki6cvx")
   plt.plot(rate, dist, "-", label="Sigmoid Gate (Zero-Init)", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "2sov5t7n")
+  rate, dist = generate_hyper_rd(runs, "ehtxdgwf")
   plt.plot(rate, dist, "-", label="Tanh Gate", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "984lrd9o")
+  rate, dist = generate_hyper_rd(runs, "2g26yrgo")
   plt.plot(rate, dist, "-", label="Tanh Gate (Zero-Init)", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "116ghh3k")
-  plt.plot(rate, dist, "-", label="SS", linewidth=1, alpha=0.8)
+  rate, dist = generate_hyper_rd(runs, "2d4tego9")
+  plt.plot(rate, dist, "-", label="Scale and Shift", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "7ey9145d")
-  plt.plot(rate, dist, "-", label="SS (Zero-Init)", linewidth=1, alpha=0.8)
+  rate, dist = generate_hyper_rd(runs, "3lpimvta")
+  plt.plot(rate, dist, "-", label="Scale and Shift", linewidth=1, alpha=0.8)
 
   # plt.xlim(0, 115)
   plt.ylim(0, 140)
@@ -145,7 +145,7 @@ def main():
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
 
-  plt.title("Rate-Distortion Curve for MNIST")
+  plt.title("Test Rate-Distortion Curve for MNIST")
   plt.legend()
   plt.grid()
   plt.show()
