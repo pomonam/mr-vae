@@ -9,9 +9,9 @@ from tueplots.constants.color import rgb
 from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
-BASELINE_NAME = "hvae_b_image_jobs_v3"
-HYPER_NAME = "hvae_b_image_hyper_sweep_v6"
-ID = "1xhjcwo0"
+BASELINE_NAME = "hvae_bimage_jobs_v1"
+HYPER_NAME = "hvae_bimage_nas_sweep_stem"
+ID = "3ctceaig"
 
 
 def get_summary(summary, test=True):

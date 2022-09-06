@@ -56,9 +56,7 @@ class HyperBatchNormLayer(HyperLayer):
   def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     inputs = self.bn(inputs)
 
-    if self.hyper_cfg.norm_type == "none":
-      return inputs
-    else:
+    if self.hyper_cfg.norm_type == "scale_shift":
       scale = self.hyper_block_scale(self._net_inputs)
       shift = self.hyper_block_shift(self._net_inputs)
 
@@ -68,6 +66,9 @@ class HyperBatchNormLayer(HyperLayer):
 
       # Initialized to be identity.
       return (1 + scale) * inputs + shift
+
+    else:
+      return inputs
 
 
 class HyperLayerNormLayer(HyperLayer):
@@ -89,20 +90,16 @@ class HyperLayerNormLayer(HyperLayer):
       self.hyper_block_shift = initialize_hyper_blocks(self.features,
                                                        self.hyper_cfg)
     else:
-      self.ln = nn.LayerNorm(features, eps=eps)
+      self.ln = nn.LayerNorm(features, elementwise_affine=True, eps=eps)
 
   def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     inputs = self.ln(inputs)
 
     if self.hyper_cfg.norm_type == "scale_shift":
-      return inputs
-    else:
       scale = self.hyper_block_scale(self._net_inputs)
       shift = self.hyper_block_shift(self._net_inputs)
 
-      # This is currently only applied to conv layers.
-      scale = scale.unsqueeze(-1).unsqueeze(-1)
-      shift = shift.unsqueeze(-1).unsqueeze(-1)
-
       # Initialized to be identity.
       return (1 + scale) * inputs + shift
+    else:
+      return inputs

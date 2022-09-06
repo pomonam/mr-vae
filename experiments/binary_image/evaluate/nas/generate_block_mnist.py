@@ -121,8 +121,8 @@ def main():
       c=rgb.tue_lightblue
   )
 
-  # rate, dist = generate_hyper_rd(runs, "3kpc5l1d")
-  # plt.plot(rate, dist, "-", label="Linear Block", linewidth=1, alpha=0.8)
+  rate, dist = generate_hyper_rd(runs, "34mt1uwq")
+  plt.plot(rate, dist, "-", label="Linear Block", linewidth=1, alpha=0.8)
 
   rate, dist = generate_hyper_rd(runs, "1t6841un")
   plt.plot(rate, dist, "-", label="MLP Block", linewidth=1, alpha=0.8)
@@ -136,8 +136,8 @@ def main():
   rate, dist = generate_hyper_rd(runs, "d02neega")
   plt.plot(rate, dist, "-", label="Large MLP Block (Shared)", linewidth=1, alpha=0.8)
 
-  # plt.xlim(0, 115)
-  plt.ylim(0, 140)
+  plt.xlim(0, 130)
+  plt.ylim(0, 130)
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
