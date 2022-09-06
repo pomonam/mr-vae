@@ -1,4 +1,3 @@
-import os
 import urllib
 
 import os
@@ -13,7 +12,6 @@ from torch.utils.data import Dataset
 import torch.utils.data.dataset
 import torch.utils.data.distributed
 from torchvision import transforms
-from torchvision.datasets import MNIST
 from urllib.request import urlretrieve
 
 
@@ -108,6 +106,7 @@ def load_omniglot_data(split, batch_size, workers=0, data_path="../../logs/"):
   is_train = split == "train"
   train_transform = transforms.Compose([
     transforms.ToTensor(),
+    # For training, dynamically binarize the dataset.
     Binarize(),
   ])
 
