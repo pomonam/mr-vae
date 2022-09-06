@@ -138,8 +138,9 @@ def main():
 
   rate, dist = generate_hyper_rd(runs, "121g7887")
   plt.plot(rate, dist, "-", label="Scale and Shift", linewidth=1, alpha=0.8)
-  plt.xlim(0, 120)
-  plt.ylim(10, 150)
+
+  plt.xlim(0, 140)
+  plt.ylim(0, 140)
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")

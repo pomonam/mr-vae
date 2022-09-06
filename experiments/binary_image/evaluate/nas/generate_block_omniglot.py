@@ -136,13 +136,13 @@ def main():
   rate, dist = generate_hyper_rd(runs, "2qsrte1d")
   plt.plot(rate, dist, "-", label="Large MLP Block (Shared)", linewidth=1, alpha=0.8)
 
-  plt.xlim(0, 120)
-  plt.ylim(10, 150)
+  plt.xlim(0, 140)
+  plt.ylim(0, 140)
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
 
-  plt.title("Rate-Distortion Curve for Omniglot")
+  plt.title("Test Rate-Distortion Curve for Omniglot")
   plt.legend()
   plt.grid()
   plt.show()

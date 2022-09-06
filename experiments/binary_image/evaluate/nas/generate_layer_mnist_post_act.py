@@ -121,22 +121,22 @@ def main():
       c=rgb.tue_lightblue
   )
 
-  rate, dist = generate_hyper_rd(runs, "2o763uxy")
+  rate, dist = generate_hyper_rd(runs, "3w2s7kgx")
   plt.plot(rate, dist, "-", label="Sigmoid Gate", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "acki6cvx")
+  rate, dist = generate_hyper_rd(runs, "mat7ss9o")
   plt.plot(rate, dist, "-", label="Sigmoid Gate (Zero-Init)", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "ehtxdgwf")
+  rate, dist = generate_hyper_rd(runs, "2yh2denb")
   plt.plot(rate, dist, "-", label="Tanh Gate", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "2g26yrgo")
+  rate, dist = generate_hyper_rd(runs, "1n5f588i")
   plt.plot(rate, dist, "-", label="Tanh Gate (Zero-Init)", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "2d4tego9")
+  rate, dist = generate_hyper_rd(runs, "4sojvkfn")
   plt.plot(rate, dist, "-", label="Scale and Shift", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "3lpimvta")
+  rate, dist = generate_hyper_rd(runs, "ps9eq1on")
   plt.plot(rate, dist, "-", label="Scale and Shift", linewidth=1, alpha=0.8)
 
   plt.xlim(0, 130)
