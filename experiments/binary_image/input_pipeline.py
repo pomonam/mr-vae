@@ -20,6 +20,7 @@ from urllib.request import urlretrieve
 class Binarize(object):
 
   def __call__(self, pic):
+    # This transform dynamically binarizes the dataset.
     return torch.Tensor(pic.size()).bernoulli_(pic)
 
   def __repr__(self):
@@ -59,7 +60,7 @@ def load_mnist_binarized(data_path):
       print("Downloading %s data..." % (split))
       datasplits[split] = np.loadtxt(urlretrieve(datafiles[split])[0])
 
-    pkl.dump([datasplits['train'], datasplits['valid'], datasplits['test']], open(dataset, "wb"))
+    pkl.dump([datasplits["train"], datasplits["valid"], datasplits["test"]], open(dataset, "wb"))
 
   x_train, x_valid, x_test = pkl.load(open(dataset, "rb"))
   return x_train, x_valid, x_test
@@ -69,8 +70,8 @@ def load_mnist_data(split, batch_size, workers=0, data_path="logs/data"):
   assert split in ["train", "train_eval", "test"]
 
   train_data, _, test_data = load_mnist_binarized(data_path)
-  train_data = train_data.reshape(-1, 1, 28, 28).astype('float32')
-  test_data = test_data.reshape(-1, 1, 28, 28).astype('float32')
+  train_data = train_data.reshape(-1, 1, 28, 28).astype("float32")
+  test_data = test_data.reshape(-1, 1, 28, 28).astype("float32")
   is_train = split == "train"
 
   loader = torch.utils.data.DataLoader(
@@ -86,15 +87,15 @@ def load_mnist_data(split, batch_size, workers=0, data_path="logs/data"):
 
 
 def download_omniglot(data_dir):
-  filename = 'chardata.mat'
+  filename = "chardata.mat"
   if not os.path.exists(data_dir):
     os.mkdir(data_dir)
-  url = 'https://raw.github.com/yburda/iwae/master/datasets/OMNIGLOT/chardata.mat'
+  url = "https://raw.github.com/yburda/iwae/master/datasets/OMNIGLOT/chardata.mat"
 
   filepath = os.path.join(data_dir, filename)
   if not os.path.exists(filepath):
     filepath, _ = urllib.request.urlretrieve(url, filepath)
-    print('Downloaded', filename)
+    print("Downloaded", filename)
 
   return
 
