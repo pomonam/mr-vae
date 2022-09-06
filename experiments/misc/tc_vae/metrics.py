@@ -1,15 +1,16 @@
+""" Code adapted from:
+- https://github.com/rtqichen/beta-tcvae/blob/master/metric_helpers/mi_metric.py
+- https://github.com/rtqichen/beta-tcvae/blob/master/disentanglement_metrics.py
+"""
+
 import torch
 
 import math
 import os
 import torch
 from tqdm import tqdm
-from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from experiments.misc.tc_vae.dist import Normal
-# import lib.utils as utils
-# from metric_helpers.loader import load_model_and_dataset
-# from metric_helpers.mi_metric import compute_metric_shapes, compute_metric_faces
 
 metric_name = 'MIG'
 
@@ -83,7 +84,8 @@ def mutual_info_metric_shapes(model, loader):
         batch_size = xs.size(0)
         xs = Variable(xs.view(batch_size, 1, 64, 64).cuda(), volatile=True)
         outputs = model.encoder.forward(xs)
-        qz_params[n:n + batch_size] = torch.cat((outputs["embedding"].unsqueeze(-1), outputs["log_covariance"].unsqueeze(-1)), -1).data
+        qz_params[n:n + batch_size] = torch.cat((outputs["embedding"].unsqueeze(-1),
+                                                 outputs["log_covariance"].unsqueeze(-1)), -1).data
         n += batch_size
 
     qz_params = Variable(qz_params.view(3, 6, 40, 32, 32, K, nparams).cuda())

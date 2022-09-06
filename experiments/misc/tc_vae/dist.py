@@ -1,16 +1,17 @@
+""" Code adapted from:
+https://github.com/rtqichen/beta-tcvae/blob/master/lib/dist.py
+"""
+
 import math
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.autograd import Variable
 
 eps = 1e-8
 
 
 class Normal(nn.Module):
-    """Samples from a Normal distribution using the reparameterization trick.
-    """
 
     def __init__(self, mu=0, sigma=1):
         super(Normal, self).__init__()
@@ -22,7 +23,7 @@ class Normal(nn.Module):
     def _check_inputs(self, size, mu_logsigma):
         if size is None and mu_logsigma is None:
             raise ValueError(
-                'Either one of size or params should be provided.')
+                "Either one of size or params should be provided.")
         elif size is not None and mu_logsigma is not None:
             mu = mu_logsigma.select(-1, 0).expand(size)
             logsigma = mu_logsigma.select(-1, 1).expand(size)
@@ -37,7 +38,7 @@ class Normal(nn.Module):
             return mu, logsigma
         else:
             raise ValueError(
-                'Given invalid inputs: size={}, mu_logsigma={})'.format(
+                "Given invalid inputs: size={}, mu_logsigma={})".format(
                     size, mu_logsigma))
 
     def sample(self, size=None, params=None):
@@ -104,6 +105,6 @@ class Normal(nn.Module):
         return True
 
     def __repr__(self):
-        tmpstr = self.__class__.__name__ + ' ({:.3f}, {:.3f})'.format(
+        tmpstr = self.__class__.__name__ + " ({:.3f}, {:.3f})".format(
             self.mu.data[0], self.logsigma.exp().data[0])
         return tmpstr

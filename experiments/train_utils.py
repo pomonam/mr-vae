@@ -124,16 +124,17 @@ def train(model,
     wandb.log(summ_dict)
     epoch = epoch + 1
 
-    if "ReduceLROnPlateau" in str(scheduler.__class__):
-      val_loss = evaluate(model,
-                          valid_loader,
-                          criterion,
-                          epoch,
-                          "valid",
-                          device)
-      scheduler.step(val_loss)
-    else:
-      scheduler.step()
+    # We are not using this at the moment.
+    # if "ReduceLROnPlateau" in str(scheduler.__class__):
+    #   val_loss = evaluate(model,
+    #                       valid_loader,
+    #                       criterion,
+    #                       epoch,
+    #                       "valid",
+    #                       device)
+    #   scheduler.step(val_loss)
+    # else:
+    scheduler.step()
 
     if np.isnan(summ_dict["train_step/loss"]):
       wandb.finish(exit_code=1)

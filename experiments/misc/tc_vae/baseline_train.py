@@ -20,13 +20,13 @@ from experiments.misc.tc_vae.metrics import mutual_info_metric_shapes
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--experiment_name", type=str, default="hv_binary_image_debug")
+    "--experiment_name", type=str, default="hvae_tc_debug")
 
 parser.add_argument("--total_epochs", type=int, default=50)
 
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=2048)
-parser.add_argument("--beta", type=float, default=5.)
+parser.add_argument("--beta", type=float, default=1.)
 parser.add_argument("--schedule", type=str, default="monotonic")
 
 parser.add_argument("--seed", type=int, default=0)
@@ -43,13 +43,12 @@ DEVICE = torch.device("cuda" if cuda else "cpu")
 class Criterion(nn.Module):
 
   @staticmethod
-  def _compute_log_gauss_density(z, mu, log_var):
+  def _compute_log_gauss_density(z, mu, log_std):
     """element-wise computation"""
-    return -0.5 * (
-        torch.log(torch.tensor([2 * np.pi]).to(z.device))
-        + log_var
-        + (z - mu) ** 2 * torch.exp(-log_var)
-    )
+    c = torch.log(torch.tensor([2 * np.pi]).to(z.device))
+    inv_sigma = torch.exp(-log_std)
+    tmp = (z - mu) * inv_sigma
+    return -0.5 * (tmp * tmp + 2 * log_std + c)
 
   @staticmethod
   def _log_importance_weight_matrix(batch_size, dataset_size):
@@ -75,6 +74,10 @@ class Criterion(nn.Module):
 
   @staticmethod
   def forward(recon_x, x, mu, log_var, z, beta):
+    log_std = log_var
+    # This is bad practice, but log_var means log_std for TC-VAE.
+    del log_var
+
     dataset_size = 737280
     recon_loss = F.mse_loss(
       recon_x.reshape(x.shape[0], -1),
@@ -82,7 +85,7 @@ class Criterion(nn.Module):
       reduction="none",
     ).sum(dim=-1)
 
-    log_q_z_given_x = Criterion._compute_log_gauss_density(z, mu, log_var).sum(
+    log_q_z_given_x = Criterion._compute_log_gauss_density(z, mu, log_std).sum(
       dim=-1
     )  # [B]
 
@@ -95,12 +98,13 @@ class Criterion(nn.Module):
     log_q_batch_perm = Criterion._compute_log_gauss_density(
       z.reshape(z.shape[0], 1, -1),
       mu.reshape(1, z.shape[0], -1),
-      log_var.reshape(1, z.shape[0], -1),
+      log_std.reshape(1, z.shape[0], -1),
     )  # [B x B x Latent_dim]
 
     log_q_z = torch.logsumexp(log_q_batch_perm.sum(dim=-1), dim=-1) - torch.log(
       torch.tensor([z.shape[0] * dataset_size]).to(z.device)
     )  # MWS [B]
+
     log_prod_q_z = (
         torch.logsumexp(log_q_batch_perm, dim=1)
         - torch.log(torch.tensor([z.shape[0] * dataset_size]).to(z.device))
@@ -112,24 +116,21 @@ class Criterion(nn.Module):
     TC_loss = log_q_z - log_prod_q_z
     dimension_wise_KL = log_prod_q_z - log_prior
 
-    # TODO(JB): Need to find the correct alpha, gamma configuration ...
-    alpha = 0
-    gamma = 1
     loss_dict = {
         "loss": (recon_loss
-                + alpha * mutual_info_loss
-                + beta * TC_loss
-                + gamma * dimension_wise_KL).mean(dim=0),
+                + dimension_wise_KL
+                + mutual_info_loss
+                + beta * TC_loss).mean(dim=0),
         "distortion": recon_loss.mean(dim=0),
-        "rate": (alpha * mutual_info_loss
-                + beta * TC_loss
-                + gamma * dimension_wise_KL).mean(dim=0)
+        "rate": (beta * dimension_wise_KL
+                + mutual_info_loss
+                + beta * TC_loss).mean(dim=0)
     }
     return loss_dict
 
   @staticmethod
   def eval_forward(recon_x, x, mu, log_var, z, beta):
-    return Criterion.forward(recon_x, x, mu, log_var, z, beta)
+    return Criterion.forward(recon_x, x, mu, log_var, z, beta=1.)
 
 
 def build_criterion(device):
@@ -165,6 +166,7 @@ def main():
 
   train_loader = load_data(
       "train", cfg.batch_size, workers=2, data_path="../../../logs/data")
+  # Note that this is the same as train.
   test_loader = load_data(
       "test", cfg.batch_size, workers=2, data_path="../../../logs/data")
 
@@ -212,9 +214,8 @@ def main():
 
   if args.save_final_checkpoint:
     save_checkpoint = \
-      os.path.join("checkpoints", "base_{}_{}_{}_{}_{}.pth".
-                   format(args.data_name, args.encoder_name,
-                          args.decoder_name, args.beta, args.schedule))
+      os.path.join("checkpoints", "base_{}.pth".
+                   format(args.beta))
     log_info = {
         "state_dict": model.state_dict(),
     }
