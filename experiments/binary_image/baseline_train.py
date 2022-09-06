@@ -116,7 +116,7 @@ def build_model(encoder_name, decoder_name, device):
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument(
-      "--experiment_name", type=str, default="hv_binary_image_debug")
+      "--experiment_name", type=str, default="hvae_bimage_debug")
 
   parser.add_argument("--data_name", type=str, default="mnist")
   parser.add_argument("--encoder_name", type=str, default="resnet")

@@ -5,6 +5,7 @@ import torch
 import tqdm
 import wandb
 
+from src.hyper.norm_layers import calibrate_bn
 from experiments.train_utils import build_input_queue
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
@@ -12,7 +13,8 @@ from src.evaluate import summarize_metric
 from src.evaluate import update_metric
 
 
-def hyper_evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
+def hyper_evaluate(model, loader, criterion, epoch, name, hyper_cfg, device,
+                   delta=0.01, train_loader=None):
   model.eval()
 
   with torch.no_grad():
@@ -29,6 +31,14 @@ def hyper_evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
     for sample in sample_lst:
       queue = build_input_queue(loader, device)
       p_bar = tqdm.tqdm(queue)
+
+      # We might want to calibrate bn.
+      if hyper_cfg.apply_bn_calibrate:
+        # Reset all statistics...
+        model.apply(calibrate_bn)
+        run_one_epoch(model, train_loader, sample, device)
+        model.eval()
+
       metric_dict = initialize_metric(criterion.get_eval_metric_lst())
       means = []
 
@@ -86,33 +96,14 @@ def hyper_evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
   return mid_loss
 
 
-def hyper_single_evaluate(model, loader, criterion, epoch, name, device):
-  model.eval()
+def run_one_epoch(model, loader, value, device):
+  model.train()
+  queue = build_input_queue(loader, device)
+  p_bar = tqdm.tqdm(queue)
 
-  with torch.no_grad():
-    sample_lst = model.get_test_samples(20)
-    mid_point = sample_lst[len(sample_lst) // 2]
-
-    queue = build_input_queue(loader, device)
-    p_bar = tqdm.tqdm(queue)
-    metric_dict = initialize_metric(criterion.get_eval_metric_lst())
-
-    for batch in p_bar:
-      output_dict = model.fixed_forward(batch, mid_point)
-
-      loss_dict = criterion.eval_forward(
-          recon_x=output_dict["reconstruction"],
-          x=output_dict["data"],
-          mu=output_dict["mu"],
-          log_var=output_dict["log_var"],
-          z=output_dict["z"],
-          beta=1.)
-      metric_dict = update_metric(metric_dict, loss_dict, batch["data"].size(0))
-      summ_dict = summarize_metric(metric_dict)
-      summ_str = generate_metric_str(name, epoch, summ_dict)
-      p_bar.set_description(summ_str)
-
-  return loss_dict["loss"]
+  for batch in p_bar:
+    # Don't need to do anything.
+    model.fixed_forward(batch, value)
 
 
 def hyper_train(model,
@@ -123,6 +114,7 @@ def hyper_train(model,
                 scheduler,
                 device,
                 cfg,
+                hyper_cfg,
                 valid_loader=None):
   do_checkpoint = cfg.checkpoint_dir is not None
   if do_checkpoint and os.path.exists(
@@ -146,8 +138,11 @@ def hyper_train(model,
                      criterion,
                      epoch,
                      "train_eval",
-                     device)
-      hyper_evaluate(model, test_loader, criterion, epoch, "test", device)
+                     hyper_cfg,
+                     device,
+                     train_loader=train_loader)
+      hyper_evaluate(model, test_loader, criterion, epoch, "test", hyper_cfg, device,
+                     train_loader=train_loader)
 
     if do_checkpoint and do_save:
       slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")
@@ -188,16 +183,16 @@ def hyper_train(model,
     wandb.log(summ_dict)
     epoch = epoch + 1
 
-    if "ReduceLROnPlateau" in str(scheduler.__class__):
-      val_loss = hyper_single_evaluate(model,
-                                       valid_loader,
-                                       criterion,
-                                       epoch,
-                                       "valid",
-                                       device)
-      scheduler.step(val_loss)
-    else:
-      scheduler.step()
+    # We don't use it for now.
+    # if "ReduceLROnPlateau" in str(scheduler.__class__):
+    #   val_loss = hyper_single_evaluate(model,
+    #                                    valid_loader,
+    #                                    criterion,
+    #                                    epoch,
+    #                                    "valid",
+    #                                    device)
+    #   scheduler.step(val_loss)
+    scheduler.step()
 
     if np.isnan(summ_dict["train_step/loss"]):
       wandb.finish(exit_code=1)

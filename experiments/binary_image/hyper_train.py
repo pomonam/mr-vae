@@ -113,16 +113,18 @@ def build_model(encoder_name, decoder_name, hyper_cfg, device):
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument(
-    "--experiment_name", type=str, default="hv_binary_image_debug")
+    "--experiment_name", type=str, default="hvae_bimage_debug")
 
   parser.add_argument("--data_name", type=str, default="mnist")
-  parser.add_argument("--encoder_name", type=str, default="resnet")
-  parser.add_argument("--decoder_name", type=str, default="resnet")
+  parser.add_argument("--encoder_name", type=str, default="conv")
+  parser.add_argument("--decoder_name", type=str, default="conv")
 
   parser.add_argument("--block_type", type=str, default="mlp")
   parser.add_argument("--layer_type", type=str, default="sig_gate")
   parser.add_argument("--param_type", type=str, default="pre_bn")
-  parser.add_argument("--bn_type", type=str, default="none")
+  parser.add_argument("--norm_type", type=str, default="scale_shift")
+  parser.add_argument("--apply_bn_tracking", type=int, default=0)
+  parser.add_argument("--apply_bn_calibrate", type=int, default=1)
   parser.add_argument("--shared_preprocess", type=int, default=1)
   parser.add_argument("--apply_zero_init", type=int, default=1)
   parser.add_argument("--include_latent_stem", type=int, default=0)
@@ -186,19 +188,24 @@ def main():
               optimizer,
               scheduler,
               DEVICE,
-              cfg)
+              cfg,
+              hyper_cfg)
   hyper_evaluate(model,
                  train_loader,
                  criterion,
                  cfg.total_epochs,
                  "train_eval",
-                 DEVICE)
+                 hyper_cfg,
+                 DEVICE,
+                 train_loader=train_loader)
   hyper_evaluate(model,
                  test_loader,
                  criterion,
                  cfg.total_epochs,
                  "test",
-                 DEVICE)
+                 hyper_cfg,
+                 DEVICE,
+                 train_loader=train_loader)
 
   for sample in model.get_log_uniform_samples(5):
     true_data, reconstructions, generations = hyper_predict(model, test_loader, sample, DEVICE)

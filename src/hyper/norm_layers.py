@@ -10,6 +10,15 @@ def get_hyper_bn_layer(features: int, hyper_cfg: HyperConfig) -> HyperLayer:
   return HyperBatchNormLayer(features, hyper_cfg)
 
 
+def calibrate_bn(module: nn.Module):
+  if isinstance(module, nn.BatchNorm2d):
+    # Reset all values.
+    module.reset_running_stats()
+    module.training = True
+    # Using cumulative moving average.
+    module.momentum = None
+
+
 def get_hyper_ln_layer(features: int,
                        hyper_cfg: HyperConfig,
                        eps: float = 1e-12) -> HyperLayer:
@@ -24,7 +33,7 @@ class HyperBatchNormLayer(HyperLayer):
     self.features = features
     self.hyper_cfg = hyper_cfg
 
-    if self.hyper_cfg.apply_norm_layers:
+    if self.hyper_cfg.norm_type == "scale_shift":
       if self.hyper_cfg.apply_bn_tracking:
         self.bn = nn.BatchNorm2d(
             features, affine=False, track_running_stats=True)
@@ -37,12 +46,17 @@ class HyperBatchNormLayer(HyperLayer):
       self.hyper_block_shift = initialize_hyper_blocks(self.features,
                                                        self.hyper_cfg)
     else:
-      self.bn = nn.BatchNorm2d(features)
+      if self.hyper_cfg.apply_bn_tracking:
+        self.bn = nn.BatchNorm2d(
+            features, affine=True, track_running_stats=True)
+      else:
+        self.bn = nn.BatchNorm2d(
+            features, affine=True, track_running_stats=False)
 
   def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     inputs = self.bn(inputs)
 
-    if not self.hyper_cfg.apply_norm_layers:
+    if self.hyper_cfg.norm_type == "scale_shift":
       return inputs
     else:
       scale = self.hyper_block_scale(self._net_inputs)
@@ -67,7 +81,7 @@ class HyperLayerNormLayer(HyperLayer):
     self.features = features
     self.hyper_cfg = hyper_cfg
 
-    if self.hyper_cfg.apply_norm_layers:
+    if self.hyper_cfg.norm_type == "scale_shift":
       self.ln = nn.LayerNorm(features, elementwise_affine=False, eps=eps)
 
       self.hyper_block_scale = initialize_hyper_blocks(self.features,
@@ -80,7 +94,7 @@ class HyperLayerNormLayer(HyperLayer):
   def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     inputs = self.ln(inputs)
 
-    if not self.hyper_cfg.apply_norm_layers:
+    if self.hyper_cfg.norm_type == "scale_shift":
       return inputs
     else:
       scale = self.hyper_block_scale(self._net_inputs)
