@@ -12,8 +12,6 @@ from tqdm import tqdm
 from torch.autograd import Variable
 from experiments.misc.tc_vae.dist import Normal
 
-metric_name = 'MIG'
-
 
 def MIG(mi_normed):
     return torch.mean(mi_normed[:, 0] - mi_normed[:, 1])
@@ -24,7 +22,7 @@ def compute_metric_shapes(marginal_entropies, cond_entropies):
     mutual_infos = marginal_entropies[None] - cond_entropies
     mutual_infos = torch.sort(mutual_infos, dim=1, descending=True)[0].clamp(min=0)
     mi_normed = mutual_infos / torch.Tensor(factor_entropies).log()[:, None]
-    metric = eval(metric_name)(mi_normed)
+    metric = MIG(mi_normed)
     return metric
 
 
