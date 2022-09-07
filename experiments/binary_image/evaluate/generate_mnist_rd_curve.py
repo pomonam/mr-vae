@@ -10,8 +10,8 @@ from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_bimage_jobs_v1"
-HYPER_NAME = "hvae_bimage_nas_sweep_reduce_stem"
-ID = "2wwn2gme"
+HYPER_NAME = "hvae_ablation_hyper_sweep"
+ID = "2c5dfh8s"
 
 
 def get_summary(summary, test=True):
