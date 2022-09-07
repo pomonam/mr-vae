@@ -13,7 +13,9 @@ def get_hyper_bn_layer(features: int, hyper_cfg: HyperConfig) -> HyperLayer:
 def calibrate_bn(module: nn.Module):
   if isinstance(module, nn.BatchNorm2d):
     # Reset all values.
+    module.track_running_stats = True
     module.reset_running_stats()
+
     module.training = True
     # Using cumulative moving average.
     module.momentum = None
@@ -39,7 +41,9 @@ class HyperBatchNormLayer(HyperLayer):
             features, affine=False, track_running_stats=True)
       else:
         self.bn = nn.BatchNorm2d(
-            features, affine=False, track_running_stats=False)
+            features, affine=False, track_running_stats=True)
+        # We need to initialize the statistics
+        self.bn.track_running_stats = False
 
       self.hyper_block_scale = initialize_hyper_blocks(self.features,
                                                        self.hyper_cfg)
@@ -51,7 +55,8 @@ class HyperBatchNormLayer(HyperLayer):
             features, affine=True, track_running_stats=True)
       else:
         self.bn = nn.BatchNorm2d(
-            features, affine=True, track_running_stats=False)
+            features, affine=True, track_running_stats=True)
+        self.bn.track_running_stats = False
 
   def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     inputs = self.bn(inputs)
