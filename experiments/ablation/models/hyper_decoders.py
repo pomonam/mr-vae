@@ -147,9 +147,9 @@ class HyperResNetDecoder(BaseHyperDecoder):
         ))
     layers.append(
         nn.Sequential(
-            ResBlock(channels=128, hyper_cfg=hyper_cfg),
+            ResBlock(channels=128),
             nn.ReLU(),
-            ResBlock(channels=128, hyper_cfg=hyper_cfg),
+            ResBlock(channels=128),
             nn.ReLU(),
         ))
     layers.append(
@@ -176,7 +176,7 @@ class HyperResNetDecoder(BaseHyperDecoder):
     for i in range(max_depth):
       out = self.layers[i](out)
 
-      if i == 1:
+      if i == 0:
         out = out.reshape(z.shape[0], 128, 4, 4)
 
       if i + 1 == self.depth:
