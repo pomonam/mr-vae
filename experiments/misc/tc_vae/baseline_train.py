@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--experiment_name", type=str, default="hvae_tc_debug")
 
-parser.add_argument("--total_epochs", type=int, default=50)
+parser.add_argument("--total_epochs", type=int, default=100)
 
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=2048)
@@ -78,7 +78,8 @@ class Criterion(nn.Module):
     # This is bad practice, but log_var means log_std for TC-VAE.
     del log_var
 
-    dataset_size = 737280
+    # dataset_size = 737280
+    dataset_size = recon_x.shape[0]
     recon_loss = F.mse_loss(
       recon_x.reshape(x.shape[0], -1),
       x.reshape(x.shape[0], -1),
@@ -101,16 +102,31 @@ class Criterion(nn.Module):
       log_std.reshape(1, z.shape[0], -1),
     )  # [B x B x Latent_dim]
 
-    log_q_z = torch.logsumexp(log_q_batch_perm.sum(dim=-1), dim=-1) - torch.log(
-      torch.tensor([z.shape[0] * dataset_size]).to(z.device)
-    )  # MWS [B]
-
+    logiw_mat = Criterion._log_importance_weight_matrix(z.shape[0], dataset_size).to(
+      z.device
+    )
+    log_q_z = torch.logsumexp(
+      logiw_mat + log_q_batch_perm.sum(dim=-1), dim=-1
+    )  # MMS [B]
     log_prod_q_z = (
-        torch.logsumexp(log_q_batch_perm, dim=1)
-        - torch.log(torch.tensor([z.shape[0] * dataset_size]).to(z.device))
+      torch.logsumexp(
+        logiw_mat.reshape(z.shape[0], z.shape[0], -1) + log_q_batch_perm,
+        dim=1,
+      )
     ).sum(
       dim=-1
-    )  # MWS [B]
+    )  # MMS [B]
+
+    # log_q_z = torch.logsumexp(log_q_batch_perm.sum(dim=-1), dim=-1) - torch.log(
+    #   torch.tensor([z.shape[0] * dataset_size]).to(z.device)
+    # )  # MWS [B]
+    #
+    # log_prod_q_z = (
+    #     torch.logsumexp(log_q_batch_perm, dim=1)
+    #     - torch.log(torch.tensor([z.shape[0] * dataset_size]).to(z.device))
+    # ).sum(
+    #   dim=-1
+    # )  # MWS [B]
 
     mutual_info_loss = log_q_z_given_x - log_q_z
     TC_loss = log_q_z - log_prod_q_z
@@ -122,9 +138,9 @@ class Criterion(nn.Module):
                 + mutual_info_loss
                 + beta * TC_loss).mean(dim=0),
         "distortion": recon_loss.mean(dim=0),
-        "rate": (beta * dimension_wise_KL
+        "rate": (dimension_wise_KL
                 + mutual_info_loss
-                + beta * TC_loss).mean(dim=0)
+                + TC_loss).mean(dim=0)
     }
     return loss_dict
 
@@ -186,6 +202,8 @@ def main():
            DEVICE)
   evaluate(model, test_loader, criterion, cfg.total_epochs, "test", DEVICE)
 
+  train_loader = load_data(
+      "train", 1000, workers=0, data_path="../../../logs/data", shuffle=False)
   metric, marginal_entropies, cond_entropies = mutual_info_metric_shapes(model, train_loader)
   wandb.log({"metric": metric})
 

@@ -6,7 +6,7 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="stem_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_bimage_nas_sweep_stem")
+    "--experiment_name", type=str, default="hvae_bimage_nas_sweep_reduce_stem")
 
 args = parser.parse_args()
 
@@ -22,7 +22,8 @@ CONFIG = {
     "param_type": ["pre_bn", "post_act"],
     "apply_zero_init": [0],
     "block_type": ["mlp"],
-    "include_latent_stem": [0, 1]
+    "include_latent_stem": [0, 1],
+    "reduce_range": [1],
 }
 
 if __name__ == "__main__":
