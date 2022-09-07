@@ -142,7 +142,7 @@ def main():
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
 
-  plt.title("Rate-Distortion Curve for MNIST")
+  plt.title("Test Rate-Distortion Curve for MNIST")
   plt.legend()
   plt.grid()
   plt.show()

@@ -10,7 +10,7 @@ from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_bimage_jobs_v1"
-HYPER_NAME = "hvae_bimage_nas_sweep_layer_type"
+HYPER_NAME = "hvae_bimage_nas_sweep_bn_type_v2"
 
 
 def get_summary(summary, test=True):
@@ -41,7 +41,7 @@ def get_baseline_summary(config_lst,
 
   for i, c in enumerate(config_lst):
     if c["schedule"] == schedule and c["data_name"] == "omniglot" \
-            and c["encoder_name"] == "resnet":
+            and c["encoder_name"] == "conv":
       if test:
         beta_to_rate[c["beta"]] = summary_lst[i]["test/rate"]
         beta_to_dist[c["beta"]] = summary_lst[i]["test/distortion"]
@@ -59,7 +59,7 @@ def get_baseline_summary(config_lst,
   return sorted_beta_to_rate, sorted_beta_to_dist, sorted_beta_to_elbo
 
 
-def get_baseline_rd(experiment_name, schedule="monotonic", test=False):
+def get_baseline_rd(experiment_name, schedule="monotonic", test=True):
   api = init_api()
   runs = api.runs(ENTITY + "/" + experiment_name)
 
@@ -121,23 +121,20 @@ def main():
     c=rgb.tue_lightblue
   )
 
-  rate, dist = generate_hyper_rd(runs, "19e12aoo")
-  plt.plot(rate, dist, "-", label="Sigmoid Gate", linewidth=1, alpha=0.8)
+  rate, dist = generate_hyper_rd(runs, "a7kc8otw")
+  plt.plot(rate, dist, "-", label="BN", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "wc7c2qtu")
-  plt.plot(rate, dist, "-", label="Sigmoid Gate (Zero-Init)", linewidth=1, alpha=0.8)
+  rate, dist = generate_hyper_rd(runs, "2zfyvgzf")
+  plt.plot(rate, dist, "-", label="Hyper BN", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "1rowfx0u")
-  plt.plot(rate, dist, "-", label="Tanh Gate", linewidth=1, alpha=0.8)
-
-  rate, dist = generate_hyper_rd(runs, "35904nkj")
-  plt.plot(rate, dist, "-", label="Tanh Gate (Zero-Init)", linewidth=1, alpha=0.8)
-
-  rate, dist = generate_hyper_rd(runs, "1zsx0cvg")
-  plt.plot(rate, dist, "-", label="Scale and Shift", linewidth=1, alpha=0.8)
-
-  rate, dist = generate_hyper_rd(runs, "121g7887")
-  plt.plot(rate, dist, "-", label="Scale and Shift", linewidth=1, alpha=0.8)
+  # rate, dist = generate_hyper_rd(runs, "1lqzz6tm")
+  # plt.plot(rate, dist, "-", label="MLP Block (Shared)", linewidth=1, alpha=0.8)
+  #
+  # rate, dist = generate_hyper_rd(runs, "33wmfw9x")
+  # plt.plot(rate, dist, "-", label="Large MLP Block", linewidth=1, alpha=0.8)
+  #
+  # rate, dist = generate_hyper_rd(runs, "2qsrte1d")
+  # plt.plot(rate, dist, "-", label="Large MLP Block (Shared)", linewidth=1, alpha=0.8)
 
   plt.xlim(0, 140)
   plt.ylim(0, 140)
