@@ -6,7 +6,7 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="bn_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_bimage_nas_sweep_bn_type")
+    "--experiment_name", type=str, default="hvae_bimage_nas_sweep_bn_type_v2")
 
 args = parser.parse_args()
 
@@ -19,7 +19,7 @@ CONFIG = {
     "decoder_name": ["conv"],
     "shared_preprocess": [1],
     "layer_type": ["sig_gate"],
-    "param_type": ["pre_bn"],
+    "param_type": ["pre_bn", "post_act"],
     "apply_zero_init": [0],
     "block_type": ["mlp"],
     "norm_type": ["none", "scale_shift"],
@@ -34,4 +34,4 @@ if __name__ == "__main__":
           args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
-  generate_sh_file(args.file_name, len(jobs), cluster_name="q")
+  generate_sh_file(args.file_name, len(jobs))
