@@ -6,14 +6,17 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="layer_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_bimage_nas_sweep_layer_type_v2")
+    "--experiment_name", type=str, default="hvae_bimage_nas_sweep_layer_type_v3")
 
 args = parser.parse_args()
 
 
 CONFIG = {
-    "lr": [3e-3, 1e-3, 3e-4, 1e-4],
-    "total_epochs": [200],
+    "lr": [3e-3,
+           1e-3,
+           3e-4,
+           1e-4],
+    "total_epochs": [200, 400],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],

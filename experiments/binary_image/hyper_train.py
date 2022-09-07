@@ -163,7 +163,7 @@ def main():
     total_iters=cfg.warmup_epochs)
   cosine_epochs = max(cfg.total_epochs - cfg.warmup_epochs, 1)
   scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
-    optimizer, T_max=cosine_epochs)
+    optimizer, T_max=cosine_epochs, eta_min=1e-5)
   scheduler = torch.optim.lr_scheduler.SequentialLR(
     optimizer,
     schedulers=[scheduler1, scheduler2],
