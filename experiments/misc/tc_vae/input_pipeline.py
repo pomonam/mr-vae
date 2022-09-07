@@ -33,7 +33,7 @@ class DisentangledSpritesDataset(Dataset):
     return sample, []
 
 
-def load_data(split, batch_size, workers=0, data_path="../../logs/"):
+def load_data(split, batch_size, workers=0, data_path="../../logs/", shuffle=True):
   del split
 
   dataset = DisentangledSpritesDataset(data_path, transform=transforms.ToTensor())
@@ -42,7 +42,7 @@ def load_data(split, batch_size, workers=0, data_path="../../logs/"):
       dataset,
       pin_memory=True,
       batch_size=batch_size,
-      shuffle=True,
+      shuffle=shuffle,
       num_workers=workers,
       drop_last=False,
       sampler=None)

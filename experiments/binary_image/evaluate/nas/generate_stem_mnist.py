@@ -11,7 +11,6 @@ from experiments.wandb_utils import init_api
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_bimage_jobs_v1"
 HYPER_NAME = "hvae_bimage_nas_sweep_stem"
-ID = "3am9f1h7"
 
 
 def get_summary(summary, test=True):
@@ -41,8 +40,8 @@ def get_baseline_summary(config_lst,
   beta_to_elbo = {}
 
   for i, c in enumerate(config_lst):
-    if c["schedule"] == schedule and c["data_name"] == "mnist" and c[
-        "encoder_name"] == "resnet":
+    if c["schedule"] == schedule and c["data_name"] == "mnist" \
+            and c["encoder_name"] == "resnet":
       if test:
         beta_to_rate[c["beta"]] = summary_lst[i]["test/rate"]
         beta_to_dist[c["beta"]] = summary_lst[i]["test/distortion"]
@@ -60,7 +59,7 @@ def get_baseline_summary(config_lst,
   return sorted_beta_to_rate, sorted_beta_to_dist, sorted_beta_to_elbo
 
 
-def get_baseline_rd(experiment_name, schedule="cyclic", test=True):
+def get_baseline_rd(experiment_name, schedule="monotonic", test=True):
   api = init_api()
   runs = api.runs(ENTITY + "/" + experiment_name)
 
@@ -85,28 +84,10 @@ def get_baseline_rd(experiment_name, schedule="cyclic", test=True):
   return rate, dist
 
 
-def main():
-  plt.rcParams.update({"figure.dpi": 300})
-  plt.rcParams.update(bundles.aistats2022(column="full"))
-  plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
-  plt.rcParams.update(markers.inverted())
-
-  api = init_api()
-  runs = api.runs(ENTITY + "/" + HYPER_NAME)
-
-  rate, dist = get_baseline_rd(BASELINE_NAME, schedule="monotonic", test=True)
-  # plt.plot([0], [0])
-  plt.plot(
-      rate,
-      dist,
-      label=r"Independent Training",
-      # edgecolors="k",
-      # linewidths=0.5,
-      c=rgb.tue_lightblue)
-
+def generate_hyper_rd(runs, _id):
   summary_list, config_list, name_list = [], [], []
   for run in runs:
-    if run.id == ID:
+    if run.id == _id:
       summary_list.append(run.summary._json_dict)
       config_list.append(
           {k: v for k, v in run.config.items() if not k.startswith('_')})
@@ -118,18 +99,42 @@ def main():
   combined_dict = dict(zip(keys, values))
   rate = np.array([c[0] for c in combined_dict.values()])
   dist = np.array([c[1] for c in combined_dict.values()])
-  plt.plot(rate, dist, "-", label="Hypernetwork", linewidth=2, c=rgb.tue_ocre)
+  return rate, dist
 
-  # rate_dict, dist_dict, elbo_dict = get_summary(summary_list[0], test=False)
-  # keys = rate_dict.keys()
-  # values = zip(rate_dict.values(), dist_dict.values())
-  # combined_dict = dict(zip(keys, values))
-  # rate = np.array([c[0] for c in combined_dict.values()])
-  # dist = np.array([c[1] for c in combined_dict.values()])
-  # plt.plot(rate, dist, "o-", label="Hypernetwork", linewidth=2)
 
-  plt.xlim(0, 140)
-  plt.ylim(0, 140)
+def main():
+  plt.rcParams.update({"figure.dpi": 300})
+  plt.rcParams.update(bundles.aistats2022(column="full"))
+  plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
+  plt.rcParams.update(markers.inverted())
+
+  api = init_api()
+  runs = api.runs(ENTITY + "/" + HYPER_NAME)
+
+  rate, dist = get_baseline_rd(BASELINE_NAME, schedule="monotonic", test=True)
+  plt.scatter(
+      rate,
+      dist,
+      label=r"Independent Training",
+      edgecolors="k",
+      linewidths=0.5,
+      c=rgb.tue_lightblue
+  )
+
+  rate, dist = generate_hyper_rd(runs, "1w5iu3r8")
+  plt.plot(rate, dist, "-", label="No stem - pre_bn", linewidth=1, alpha=0.8)
+
+  rate, dist = generate_hyper_rd(runs, "3ah1zcd9")
+  plt.plot(rate, dist, "-", label="No stem - post_act", linewidth=1, alpha=0.8)
+
+  rate, dist = generate_hyper_rd(runs, "r4kccdch")
+  plt.plot(rate, dist, "-", label="Stem - pre_bn", linewidth=1, alpha=0.8)
+
+  rate, dist = generate_hyper_rd(runs, "3am9f1h7")
+  plt.plot(rate, dist, "-", label="Stem - post_act", linewidth=1, alpha=0.8)
+
+  plt.xlim(0, 130)
+  plt.ylim(0, 130)
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
