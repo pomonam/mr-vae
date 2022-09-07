@@ -8,9 +8,7 @@ from torch import nn
 import torch.nn.functional as F
 import wandb
 
-from experiments.ablation.models import HyperConvDecoder
-from experiments.binary_image.hyper_models import HyperConvEncoder
-from experiments.binary_image.hyper_models import HyperResNetDecoder
+from experiments.ablation.models.hyper_decoders import HyperResNetDecoder
 from experiments.binary_image.hyper_models import HyperResNetEncoder
 from experiments.binary_image.input_pipeline import load_mnist_data
 from experiments.binary_image.input_pipeline import load_omniglot_data
@@ -91,21 +89,9 @@ def build_criterion(device):
   return loss_fnc.to(device)
 
 
-def build_model(encoder_name, decoder_name, hyper_cfg, device):
-  if encoder_name == "conv":
-    encoder = HyperConvEncoder(hyper_cfg)
-  elif encoder_name == "resnet":
-    encoder = HyperResNetEncoder(hyper_cfg)
-  else:
-    raise
-
-  if decoder_name == "conv":
-    decoder = HyperConvDecoder(hyper_cfg)
-  elif decoder_name == "resnet":
-    decoder = HyperResNetDecoder(hyper_cfg)
-  else:
-    raise
-
+def build_model(hyper_cfg, device):
+  encoder = HyperResNetEncoder(hyper_cfg)
+  decoder = HyperResNetDecoder(hyper_cfg)
   model = HyperBetaVAE(encoder=encoder, decoder=decoder, hyper_cfg=hyper_cfg)
   return model.to(device)
 
@@ -116,14 +102,12 @@ def main():
     "--experiment_name", type=str, default="hvae_bimage_debug")
 
   parser.add_argument("--data_name", type=str, default="mnist")
-  parser.add_argument("--encoder_name", type=str, default="conv")
-  parser.add_argument("--decoder_name", type=str, default="conv")
 
   parser.add_argument("--block_type", type=str, default="mlp")
   parser.add_argument("--layer_type", type=str, default="sig_gate")
   parser.add_argument("--param_type", type=str, default="pre_bn")
   parser.add_argument("--norm_type", type=str, default="none")
-  parser.add_argument("--reduce_range", type=int, default=0)
+  parser.add_argument("--reduce_range", type=int, default=1)
   parser.add_argument("--apply_bn_tracking", type=int, default=0)
   parser.add_argument("--apply_bn_calibrate", type=int, default=0)
   parser.add_argument("--shared_preprocess", type=int, default=1)
@@ -149,7 +133,7 @@ def main():
   hyper_cfg = HyperConfig(args)
 
   seed_everything(cfg.seed)
-  model = build_model(args.encoder_name, args.decoder_name, hyper_cfg, DEVICE)
+  model = build_model(hyper_cfg, DEVICE)
   wandb.watch(model)
   print(model)
 
