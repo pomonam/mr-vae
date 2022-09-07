@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--experiment_name", type=str, default="hvae_tc_debug")
 
-parser.add_argument("--total_epochs", type=int, default=100)
+parser.add_argument("--total_epochs", type=int, default=10)
 
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--batch_size", type=int, default=2048)
