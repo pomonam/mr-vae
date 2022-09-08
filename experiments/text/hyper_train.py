@@ -276,7 +276,7 @@ def hyper_train(model,
         mu=output_dict["mu"],
         log_var=output_dict["log_var"],
         z=output_dict["z"],
-        beta=cfg.get_beta(epoch))
+        beta=output_dict["beta"])
       optimizer.zero_grad()
       loss_dict["loss"].backward()
       torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
@@ -315,7 +315,7 @@ def hyper_train(model,
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument(
-    "--experiment_name", type=str, default="hypervae-text-train")
+    "--experiment_name", type=str, default="hvae_text_debug")
 
   parser.add_argument("--decoder_name", type=str, default="trans")
   parser.add_argument("--data_name", type=str, default="ptb")

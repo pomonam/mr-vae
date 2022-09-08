@@ -119,8 +119,8 @@ class HyperLayerNormLayer(HyperLayer):
     inputs = self.ln(inputs)
 
     if self.hyper_cfg.norm_type == "scale_shift":
-      scale = self.hyper_block_scale(self._net_inputs)
-      shift = self.hyper_block_shift(self._net_inputs)
+      scale = self.hyper_block_scale(self._net_inputs).unsqueeze(1)
+      shift = self.hyper_block_shift(self._net_inputs).unsqueeze(1)
       return (self.weight + scale) * inputs + (self.bias + shift)
     else:
       return inputs

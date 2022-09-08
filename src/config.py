@@ -44,8 +44,8 @@ class HyperConfig:
 
   def __init__(self, args: Optional[Namespace]) -> None:
     if args is not None:
-      self.summary_hyper_config = get_ns(args, "summary_hyper_config")
-      if self.summary_hyper_config == "linear":
+      self.hyper_config_summary = get_ns(args, "hyper_config_summary")
+      if self.hyper_config_summary == "linear":
         self.shared_preprocess = 0
         self.apply_zero_init = 0
         self.apply_bn_tracking = 1
@@ -59,7 +59,7 @@ class HyperConfig:
         self.block_type = "linear"
         self.norm_type = "scale_shift"
 
-      elif self.summary_hyper_config == "mlp_shared":
+      elif self.hyper_config_summary == "mlp_shared":
         self.shared_preprocess = 1
         self.apply_zero_init = 0
         self.apply_bn_tracking = 1

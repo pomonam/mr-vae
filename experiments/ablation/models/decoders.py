@@ -11,6 +11,34 @@ from src.models.pixelcnn import PixelCNN
 from src.models.resblock import ResBlock
 
 
+class MlpDecoder(BaseDecoder):
+
+  def __init__(self):
+    super().__init__()
+
+    self.input_dim = (1, 28, 28)
+    self.latent_dim = 32
+
+    layers = nn.ModuleList()
+    layers.append(
+      nn.Sequential(
+        nn.Linear(self.latent_dim, 1024),
+        nn.ReLU(),
+        nn.Linear(1024, 1024),
+        nn.ReLU(),
+        nn.Linear(1024, 1024),
+        nn.ReLU(),
+        nn.Linear(1024, 784),
+        nn.Sigmoid()
+      )
+    )
+    self.layers = layers
+
+  def forward(self, inputs: torch.Tensor) -> dict:
+    out = self.layers(inputs)
+    return out.view(-1, 1, 28, 28)
+
+
 class PixelCnnDecoder(BaseDecoder):
 
   def __init__(self):
@@ -59,19 +87,13 @@ class PixelCnnDecoder(BaseDecoder):
     H = W = 28
     batch_size, nz = z.size()
 
-    # [batch, -1] --> [batch, fm, H, W]
     z = self.z_transform(z).view(batch_size, self.fm_latent, H, W)
     img = z.data.new(batch_size, self.num_channels, H, W).zero_()
-    # [batch, nc+fm, H, W]
     img = torch.cat([img, z], dim=1)
     for i in range(H):
       for j in range(W):
-        # [batch, nc, H, W]
         recon_img = self.layers(img)
-        # [batch, nc]
         img[:, :self.num_channels, i, j] = torch.ge(recon_img[:, :, i, j], 0.5).float()
-        # img[:, :self.nc, i, j] = torch.bernoulli(recon_img[:, :, i, j])
 
-    # [batch, nc, H, W]
     img_probs = self.layers(img)
     return img_probs
