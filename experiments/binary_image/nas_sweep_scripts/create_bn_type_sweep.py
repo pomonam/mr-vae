@@ -6,7 +6,7 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="bn_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_bimage_nas_sweep_bn_type_v2")
+    "--experiment_name", type=str, default="hvae_bimage_nas_sweep_bn_type_v3")
 
 args = parser.parse_args()
 
@@ -20,14 +20,15 @@ CONFIG = {
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["conv"],
     "decoder_name": ["conv"],
-    "shared_preprocess": [1],
+    "shared_preprocess": [0],
     "layer_type": ["sig_gate"],
-    "param_type": ["pre_bn", "post_act"],
+    "param_type": ["post_act"],
     "apply_zero_init": [0],
-    "block_type": ["mlp"],
+    "block_type": ["linear"],
     "norm_type": ["none", "scale_shift"],
     "apply_bn_tracking": [0, 1],
     "apply_bn_calibrate": [0, 1],
+    "apply_bn_replace": [0, 1],
 }
 
 if __name__ == "__main__":

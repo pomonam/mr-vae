@@ -48,6 +48,7 @@ class HyperConfig:
       self.apply_zero_init = get_ns(args, "apply_zero_init")
       self.apply_bn_tracking = get_ns(args, "apply_bn_tracking")
       self.apply_bn_calibrate = get_ns(args, "apply_bn_calibrate")
+      self.apply_bn_replace = get_ns(args, "apply_bn_replace")
       self.reduce_range = get_ns(args, "reduce_range")
 
       self.param_type = get_ns(args, "param_type")
