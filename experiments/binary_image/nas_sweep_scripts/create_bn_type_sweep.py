@@ -6,7 +6,7 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="bn_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_bimage_nas_sweep_bn_type_v3")
+    "--experiment_name", type=str, default="hvae_bimage_nas_sweep_bn_type_v4")
 
 args = parser.parse_args()
 
