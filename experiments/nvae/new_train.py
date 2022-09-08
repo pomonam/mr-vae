@@ -406,29 +406,29 @@ def _test_vae_fid(model, args, total_fid_samples):
   return fid
 
 
-def init_processes(rank, size, fn, args):
-  """ Initialize the distributed environment. """
-  os.environ['MASTER_ADDR'] = args.master_address
-  os.environ['MASTER_PORT'] = '6020'
-  torch.cuda.set_device(args.local_rank)
-  dist.init_process_group(
-      backend='nccl', init_method='env://', rank=rank, world_size=size)
-  fn(args)
-  cleanup()
-
-
-def cleanup():
-  dist.destroy_process_group()
+# def init_processes(rank, size, fn, args):
+#   """ Initialize the distributed environment. """
+#   os.environ['MASTER_ADDR'] = args.master_address
+#   os.environ['MASTER_PORT'] = '6020'
+#   torch.cuda.set_device(args.local_rank)
+#   dist.init_process_group(
+#       backend='nccl', init_method='env://', rank=rank, world_size=size)
+#   fn(args)
+#   cleanup()
+#
+#
+# def cleanup():
+#   dist.destroy_process_group()
 
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser('encoder decoder examiner')
   # experimental results
-  parser.add_argument('--experiment_name', type=str, default='nvae')
+  parser.add_argument('--experiment_name', type=str, default='hvae_nvae_debug')
   parser.add_argument(
       '--root',
       type=str,
-      default='/tmp/nasvae/expr22',
+      default='/checkpoints',
       help='location of the results')
   parser.add_argument(
       '--save',
@@ -444,6 +444,7 @@ if __name__ == '__main__':
           'cifar10',
           'mnist',
           'omniglot',
+          'svhn',
           'celeba_64',
           'celeba_256',
           'imagenet_32',
@@ -457,7 +458,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--data',
       type=str,
-      default='/tmp/nasvae/data',
+      default='../../../logs/data',
       help='location of the data corpus')
   # optimization
   parser.add_argument(
@@ -675,6 +676,7 @@ if __name__ == '__main__':
   # else:
   # for debugging
   print('starting in debug mode')
+  # Setting off any DDP results.
   args.distributed = False
   # init_processes(0, 1, main, args)
   main(args)

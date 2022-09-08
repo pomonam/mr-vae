@@ -18,6 +18,8 @@ import torch
 from torch.utils.data import Dataset
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
+from experiments.binary_image.input_pipeline import load_mnist_data, load_omniglot_data
+from experiments.image.input_pipeline import load_data
 
 
 class StackedMNIST(dset.MNIST):
@@ -160,13 +162,18 @@ def get_loaders_eval(dataset, args):
         root=args.data, train=True, download=True, transform=train_transform)
     valid_data = dset.CIFAR10(
         root=args.data, train=False, download=True, transform=valid_transform)
+    # train_data = lo
+
   elif dataset == 'mnist':
     num_classes = 10
-    train_transform, valid_transform = _data_transforms_mnist(args)
-    train_data = dset.MNIST(
-        root=args.data, train=True, download=True, transform=train_transform)
-    valid_data = dset.MNIST(
-        root=args.data, train=False, download=True, transform=valid_transform)
+    # train_transform, valid_transform = _data_transforms_mnist(args)
+    # train_data = dset.MNIST(
+    #     root=args.data, train=True, download=True, transform=train_transform)
+    # valid_data = dset.MNIST(
+    #     root=args.data, train=False, download=True, transform=valid_transform)
+    train_data = load_mnist_data("train", args.batch_size, workers=4, data_path=args.data)
+    valid_data = load_mnist_data("test", args.batch_size, workers=4, data_path=args.data)
+
   elif dataset == 'stacked_mnist':
     num_classes = 1000
     train_transform, valid_transform = _data_transforms_stacked_mnist(args)
@@ -176,11 +183,9 @@ def get_loaders_eval(dataset, args):
         root=args.data, train=False, download=True, transform=valid_transform)
   elif dataset == 'omniglot':
     num_classes = 0
-    download_omniglot(args.data)
-    train_transform, valid_transform = _data_transforms_mnist(args)
-    train_data, valid_data = load_omniglot(args.data)
-    train_data = OMNIGLOT(train_data, train_transform)
-    valid_data = OMNIGLOT(valid_data, valid_transform)
+    train_data = load_omniglot_data("train", args.batch_size, workers=4, data_path=args.data)
+    valid_data = load_omniglot_data("test", args.batch_size, workers=4, data_path=args.data)
+
   elif dataset.startswith('celeba'):
     if dataset == 'celeba_64':
       resize = 64

@@ -1,11 +1,7 @@
-from collections import OrderedDict
-
 import torch
 from torch import nn
 
-from src.base_architecture import BaseDecoder
 from src.base_architecture import BaseEncoder
-from src.models.resblock import ResBlock
 
 
 class MlpEncoder(BaseEncoder):
@@ -19,9 +15,11 @@ class MlpEncoder(BaseEncoder):
     layers = nn.ModuleList()
     layers.append(
       nn.Sequential(
-        nn.Linear(784, 512),
+        nn.Linear(784, 1024),
         nn.ReLU(),
-        nn.Linear(512, 512),
+        nn.Linear(1024, 1024),
+        nn.ReLU(),
+        nn.Linear(1024, 1024),
         nn.ReLU()
       )
     )
@@ -29,8 +27,8 @@ class MlpEncoder(BaseEncoder):
     self.layers = layers
     self.depth = len(layers)
 
-    self.embedding = nn.Linear(512, self.latent_dim)
-    self.log_var = nn.Linear(512, self.latent_dim)
+    self.embedding = nn.Linear(1024, self.latent_dim)
+    self.log_var = nn.Linear(1024, self.latent_dim)
 
   def forward(self, inputs: torch.Tensor) -> dict:
     max_depth = self.depth
