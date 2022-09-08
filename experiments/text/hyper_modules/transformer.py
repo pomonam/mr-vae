@@ -38,7 +38,7 @@ import torch
 from torch import nn
 
 from src.hyper.layers import get_hyper_layer
-from src.hyper.layers import get_hyper_ln_layer
+from src.hyper.norm_layers import get_hyper_ln_layer
 
 __all__ = [
     'TransformerDecoderOutput',

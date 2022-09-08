@@ -5,7 +5,6 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import tqdm
 import wandb
 
@@ -23,26 +22,6 @@ from src.models.beta_vae import BetaVAE
 from src.utils import log_sum_exp
 from src.utils import seed_everything
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-  "--experiment_name", type=str, default="hypervae-text-train")
-
-parser.add_argument("--decoder_name", type=str, default="trans")
-parser.add_argument("--data_name", type=str, default="yahoo")
-
-parser.add_argument("--total_epochs", type=int, default=10)
-parser.add_argument("--lr", type=float, default=0.001)
-parser.add_argument("--batch_size", type=int, default=32)
-parser.add_argument("--beta", type=float, default=1.)
-parser.add_argument("--schedule", type=str, default="constant")
-
-parser.add_argument("--seed", type=int, default=0)
-parser.add_argument("--checkpoint_dir", type=str, default=None)
-parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=5)
-parser.add_argument("--eval_freq", type=int, default=15)
-args = parser.parse_args()
-
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
@@ -59,6 +38,7 @@ class TextCriterion(nn.Module):
 
   @staticmethod
   def forward(recon_x, x, mu, log_var, z, beta):
+    # Autoregressive loss.
     recon_loss = recon_x
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
@@ -71,7 +51,7 @@ class TextCriterion(nn.Module):
     return loss_dict
 
   @staticmethod
-  def eval_forward(recon_x, x, mu, log_var, z, beta):
+  def eval_forward(recon_x, x, mu, log_var, z, beta=1):
     recon_loss = recon_x
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
@@ -103,12 +83,15 @@ def build_criterion(device):
 
 
 def build_model(vocab_size, data_name, decoder_name, device):
+  # Use the smaller models for both datasets.
   # v1 = data_name == "yahoo"
   v1 = False
   model = BetaVAE(
     encoder=LstmEncoder(vocab_size, v1=v1),
-    decoder=LstmDecoder(vocab_size, v1=v1) if decoder_name == "lstm" else TransformerDecoder(vocab_size, v1=v1),
+    decoder=LstmDecoder(vocab_size, v1=v1) if decoder_name == "lstm"
+      else TransformerDecoder(vocab_size, v1=v1),
   )
+  model.reconstruction_loss = "ce"
   return model.to(device)
 
 
@@ -228,6 +211,7 @@ def train(model,
 
     model.train()
     metric_dict = initialize_metric(criterion.get_metric_lst())
+    # Set to training mode ...
     iterator.switch_to_dataset("train")
     p_bar = tqdm.tqdm(iterator)
 
@@ -276,12 +260,31 @@ def train(model,
 
 
 def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    "--experiment_name", type=str, default="hvae_text_debug")
+
+  parser.add_argument("--decoder_name", type=str, default="trans")
+  parser.add_argument("--data_name", type=str, default="ptb")
+
+  parser.add_argument("--total_epochs", type=int, default=10)
+  parser.add_argument("--lr", type=float, default=0.001)
+  parser.add_argument("--batch_size", type=int, default=32)
+  parser.add_argument("--beta", type=float, default=1.)
+  parser.add_argument("--schedule", type=str, default="constant")
+
+  parser.add_argument("--seed", type=int, default=0)
+  parser.add_argument("--checkpoint_dir", type=str, default=None)
+  parser.add_argument("--save_final_checkpoint", type=int, default=0)
+  parser.add_argument("--save_freq", type=int, default=5)
+  parser.add_argument("--eval_freq", type=int, default=15)
+  args = parser.parse_args()
+
   init_wandb(
     args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
 
   seed_everything(cfg.seed)
-
   train_data, iterator, vocab = load_data(args.data_name, "train", cfg.batch_size,
                                           data_path="../../logs/text_data", device=DEVICE)
   model = build_model(train_data.vocab.size, args.data_name, args.decoder_name, DEVICE)

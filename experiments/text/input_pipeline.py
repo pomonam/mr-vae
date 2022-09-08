@@ -7,10 +7,12 @@ def load_data(name, split, batch_size, data_path="../../logs/text_data", device=
   elif name == "ptb":
     return load_ptb_data(name, split, batch_size, data_path, device)
   else:
-    raise NotImplementedError
+    raise NotImplementedError()
 
 
 def load_yahoo_data(name, split, batch_size, data_path="../../logs/text_data", device=None):
+  del data_path
+
   train_data_hparams = {
     "num_epochs": 1,
     "batch_size": batch_size,
@@ -52,6 +54,8 @@ def load_yahoo_data(name, split, batch_size, data_path="../../logs/text_data", d
 
 
 def load_ptb_data(name, split, batch_size, data_path="../../logs/text_data", device=None):
+  del data_path
+
   train_data_hparams = {
     "num_epochs": 1,
     "batch_size": batch_size,

@@ -19,8 +19,6 @@ def hyper_evaluate(model, loader, criterion, epoch, name, hyper_cfg, device,
 
   with torch.no_grad():
     sample_lst = model.get_log_uniform_samples(20)
-    mid_point = sample_lst[len(sample_lst) // 2]
-    mid_loss = 0
 
     loss_lst = []
     rate_lst = []
@@ -70,9 +68,6 @@ def hyper_evaluate(model, loader, criterion, epoch, name, hyper_cfg, device,
       ns = au_var.size(0)
       au_var = (au_var**2).sum(dim=0) / (ns - 1)
 
-      if sample == mid_point:
-        mid_loss = summ_dict["loss"]
-
       loss_lst.append(summ_dict["loss"])
       rate_lst.append(summ_dict["rate"])
       dist_lst.append(summ_dict["distortion"])
@@ -94,7 +89,6 @@ def hyper_evaluate(model, loader, criterion, epoch, name, hyper_cfg, device,
         f"{name}/rd_curve":
             wandb.plot.line(table, "rate", "distortion", title="RD Curve")
     })
-  return mid_loss
 
 
 def run_one_epoch(model, loader, value, device):

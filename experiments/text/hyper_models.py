@@ -12,8 +12,8 @@ from src.hyper.layers import get_hyper_layer
 
 class HyperLstmEncoder(BaseHyperEncoder):
 
-  def __init__(self, vocab_size, hyper_cfg, v1=True):
-    BaseHyperEncoder.__init__(self)
+  def __init__(self, vocab_size, hyper_cfg, v1=False):
+    super().__init__()
 
     self.latent_dim = 32
     self.hyper_cfg = hyper_cfg
@@ -52,7 +52,12 @@ class HyperLstmEncoder(BaseHyperEncoder):
     self.hyper_encoder = get_hyper_layer(hidden_size * 2, hyper_cfg)
 
     self.embedding = nn.Linear(hidden_size * 2, self.latent_dim)
+    self.hyper_embedding = get_hyper_layer(self.latent_dim, hyper_cfg)
+    self.embedding_proj = nn.Linear(self.latent_dim, self.latent_dim)
+
     self.log_var = nn.Linear(hidden_size * 2, self.latent_dim)
+    self.hyper_log_var = get_hyper_layer(self.latent_dim, hyper_cfg)
+    self.log_var_proj = nn.Linear(self.latent_dim, self.latent_dim)
 
   def forward(self, batch):
     text_ids = batch["text_ids"]
@@ -60,22 +65,36 @@ class HyperLstmEncoder(BaseHyperEncoder):
     output = OrderedDict()
     input_embed = self.embed(text_ids)
     input_embed = self.hyper_embed(input_embed)
+
     _, encoder_states = self.encoder(
       input_embed,
       sequence_length=batch["length"])
     out = torch.cat(encoder_states, 1)
     out = self.hyper_encoder(out)
-    output["embedding"] = self.embedding(out)
-    output["log_covariance"] = self.log_var(out)
+
+    if self.hyper_cfg.include_latent_stem:
+      emb = self.embedding(out)
+      emb = self.hyper_embedding(emb)
+      emb = self.embedding_proj(emb)
+      output["embedding"] = emb
+
+      lv = self.log_var(out)
+      lv = self.hyper_log_var(lv)
+      lv = self.log_var_proj(lv)
+      output["log_covariance"] = lv
+
+    else:
+      output["embedding"] = self.embedding(out)
+      output["log_covariance"] = self.log_var(out)
     return output
 
 
 class HyperLstmDecoder(BaseHyperDecoder):
 
-  def __init__(self, vocab_size, hyper_cfg, v1=True):
-    BaseHyperDecoder.__init__(self)
-    self.hyper_cfg = hyper_cfg
+  def __init__(self, vocab_size, hyper_cfg, v1=False):
+    super().__init__()
 
+    self.hyper_cfg = hyper_cfg
     embed_dim = 512 if v1 else 256
     dec_emb_hparams = {
       'name': 'lookup_table',
@@ -168,8 +187,8 @@ class HyperLstmDecoder(BaseHyperDecoder):
 
 class HyperTransformerDecoder(BaseHyperDecoder):
 
-  def __init__(self, vocab_size, hyper_cfg, v1=True):
-    BaseHyperDecoder.__init__(self)
+  def __init__(self, vocab_size, hyper_cfg, v1=False):
+    super().__init__()
 
     embd_dim = 512 if v1 else 256
     hidden_size = 512 if v1 else 256

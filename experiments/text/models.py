@@ -10,10 +10,10 @@ from src.base_architecture import BaseEncoder
 
 class LstmEncoder(BaseEncoder):
 
-  def __init__(self, vocab_size, v1=True):
-    BaseEncoder.__init__(self)
-    # v1 is for yahoo, v2 is for ptb.
+  def __init__(self, vocab_size, v1=False):
+    super().__init__()
 
+    # v1 is for yahoo, v2 is for ptb.
     self.latent_dim = 32
 
     embed_dim = 512 if v1 else 256
@@ -66,8 +66,8 @@ class LstmEncoder(BaseEncoder):
 
 class LstmDecoder(BaseDecoder):
 
-  def __init__(self, vocab_size, v1=True):
-    BaseDecoder.__init__(self)
+  def __init__(self, vocab_size, v1=False):
+    super().__init__()
 
     embed_dim = 512 if v1 else 256
     dec_emb_hparams = {
@@ -158,8 +158,8 @@ class LstmDecoder(BaseDecoder):
 
 class TransformerDecoder(BaseDecoder):
 
-  def __init__(self, vocab_size, v1=True):
-    BaseDecoder.__init__(self)
+  def __init__(self, vocab_size, v1=False):
+    super().__init__()
 
     embd_dim = 512 if v1 else 256
     hidden_size = 512 if v1 else 256
@@ -254,8 +254,6 @@ class TransformerDecoder(BaseDecoder):
   def _embed_fn_transformer(self,
                             tokens: torch.LongTensor,
                             positions: torch.LongTensor):
-    r"""Generates word embeddings combined with positional embeddings
-      """
     output_p_embed = self.decoder_p_embedder(positions)
     output_w_embed = self.decoder_w_embedder(tokens)
     output_w_embed = output_w_embed * self.hidden_size ** 0.5
