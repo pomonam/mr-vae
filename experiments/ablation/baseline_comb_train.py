@@ -8,18 +8,19 @@ import torch.nn as nn
 import torch.nn.functional as F
 import wandb
 
-from experiments.binary_image.input_pipeline import load_mnist_data
 from experiments.binary_image.input_pipeline import load_omniglot_data
-from experiments.binary_image.models import ConvDecoder
-from experiments.binary_image.models import ConvEncoder
-from experiments.binary_image.models import ResNetDecoder
+from experiments.ablation.models.encoders import MlpEncoder
+from experiments.ablation.models.decoders import MlpDecoder, PixelCnnDecoder
 from experiments.binary_image.models import ResNetEncoder
+from experiments.binary_image.baseline_train import BinaryImageCriterion
 from experiments.train_utils import evaluate
 from experiments.train_utils import predict
 from experiments.train_utils import train
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
 from src.models.beta_vae import BetaVAE
+from src.models.vamp_vae import VampVAE
+
 from src.utils import log_sum_exp
 from src.utils import seed_everything
 
@@ -27,7 +28,7 @@ cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
 
-class BinaryImageCriterion(nn.Module):
+class BinaryImageVampCriterion(nn.Module):
 
   @staticmethod
   def get_metric_lst():
@@ -35,7 +36,7 @@ class BinaryImageCriterion(nn.Module):
 
   @staticmethod
   def get_eval_metric_lst():
-    return BinaryImageCriterion.get_metric_lst() + ["mi"]
+    return BinaryImageVampCriterion.get_metric_lst() + ["mi"]
 
   @staticmethod
   def forward(recon_x, x, mu, log_var, z, beta):
@@ -85,23 +86,23 @@ class BinaryImageCriterion(nn.Module):
     return loss_dict
 
 
-def build_criterion(device):
+def build_criterion(cfg, device):
   loss_fnc = BinaryImageCriterion()
   return loss_fnc.to(device)
 
 
 def build_model(encoder_name, decoder_name, device):
-  if encoder_name == "conv":
-    encoder = ConvEncoder()
+  if encoder_name == "mlp":
+    encoder = MlpEncoder()
   elif encoder_name == "resnet":
     encoder = ResNetEncoder()
   else:
     raise
 
-  if decoder_name == "conv":
-    decoder = ConvDecoder()
-  elif decoder_name == "resnet":
-    decoder = ResNetDecoder()
+  if decoder_name == "mlp":
+    decoder = MlpDecoder()
+  elif decoder_name == "pixel":
+    decoder = PixelCnnDecoder()
   else:
     raise
 
@@ -116,11 +117,10 @@ def build_model(encoder_name, decoder_name, device):
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument(
-      "--experiment_name", type=str, default="hvae_bimage_debug")
+      "--experiment_name", type=str, default="hvae_ablation_debug")
 
-  parser.add_argument("--data_name", type=str, default="mnist")
-  parser.add_argument("--encoder_name", type=str, default="conv")
-  parser.add_argument("--decoder_name", type=str, default="conv")
+  parser.add_argument("--encoder_name", type=str, default="mlp")
+  parser.add_argument("--decoder_name", type=str, default="mlp")
 
   parser.add_argument("--total_epochs", type=int, default=10)
   parser.add_argument("--warmup_epochs", type=int, default=10)
@@ -161,18 +161,10 @@ def main():
       schedulers=[scheduler1, scheduler2],
       milestones=[cfg.warmup_epochs])
 
-  if args.data_name == "mnist":
-    train_loader = load_mnist_data(
-        "train", cfg.batch_size, workers=2, data_path="../../logs/data")
-    test_loader = load_mnist_data(
-        "test", cfg.batch_size, workers=2, data_path="../../logs/data")
-  elif args.data_name == "omniglot":
-    train_loader = load_omniglot_data(
-        "train", cfg.batch_size, workers=2, data_path="../../logs/data")
-    test_loader = load_omniglot_data(
-        "test", cfg.batch_size, workers=2, data_path="../../logs/data")
-  else:
-    raise NotImplementedError
+  train_loader = load_omniglot_data(
+      "train", cfg.batch_size, workers=2, data_path="../../logs/data")
+  test_loader = load_omniglot_data(
+      "test", cfg.batch_size, workers=2, data_path="../../logs/data")
 
   train(model,
         train_loader,
@@ -212,21 +204,6 @@ def main():
     ])
   val_table = wandb.Table(data=data_to_log, columns=column_names)
   wandb.log({"image": val_table})
-
-  # Uncomment ot compute NLL.
-  # TODO(JB): This function gives negative NLL?
-  # test_loader = load_mnist_data(
-  #   "test", 10000, workers=0, data_path="../../logs/data")
-  # test_data = next(iter(test_loader))
-  # test_data = test_data[0]
-  # test_data = test_data.to(DEVICE).type(torch.float)
-  # with torch.no_grad():
-  #   nll = []
-  #   for i in range(5):
-  #     nll_i = model.get_nll(test_data, n_samples=500, batch_size=500)
-  #     print(f"Round {i + 1} nll: {nll_i}")
-  #     nll.append(nll_i)
-  # wandb.log({"nll_mean": np.mean(nll), "nll_std": np.std(nll)})
 
   if args.save_final_checkpoint:
     save_checkpoint = \

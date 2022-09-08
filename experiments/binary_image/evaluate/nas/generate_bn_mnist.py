@@ -10,7 +10,7 @@ from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_bimage_jobs_v1"
-HYPER_NAME = "hvae_bimage_nas_sweep_bn_type_v2"
+HYPER_NAME = "hvae_bimage_nas_sweep_bn_type_v3"
 
 
 def get_summary(summary, test=True):
@@ -121,10 +121,10 @@ def main():
       c=rgb.tue_lightblue
   )
 
-  rate, dist = generate_hyper_rd(runs, "1gxvif25")
+  rate, dist = generate_hyper_rd(runs, "1j6sneol")
   plt.plot(rate, dist, "-", label="BN", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "3fqqnevc")
+  rate, dist = generate_hyper_rd(runs, "uv982a7g")
   plt.plot(rate, dist, "-", label="Hyper BN", linewidth=1, alpha=0.8)
   #
   # rate, dist = generate_hyper_rd(runs, "p6nk8jfw")

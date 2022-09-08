@@ -70,7 +70,11 @@ class HyperBatchNormLayer(HyperLayer):
         self.bn.track_running_stats = False
 
   def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-    inputs = self.bn(inputs)
+    try:
+      inputs = self.bn(inputs)
+    except ValueError:
+      # InstanceNorm does not work here.
+      inputs = inputs
 
     if self.hyper_cfg.norm_type == "scale_shift":
       scale = self.hyper_block_scale(self._net_inputs)

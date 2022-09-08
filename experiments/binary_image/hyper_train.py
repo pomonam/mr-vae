@@ -127,7 +127,7 @@ def main():
   parser.add_argument("--reduce_range", type=int, default=1)
   parser.add_argument("--apply_bn_tracking", type=int, default=1)
   parser.add_argument("--apply_bn_calibrate", type=int, default=0)
-  parser.add_argument("--apply_bn_replace", type=int, default=0)
+  parser.add_argument("--apply_bn_replace", type=int, default=1)
   parser.add_argument("--shared_preprocess", type=int, default=0)
   parser.add_argument("--apply_zero_init", type=int, default=0)
   parser.add_argument("--include_latent_stem", type=int, default=1)
