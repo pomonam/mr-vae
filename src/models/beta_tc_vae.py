@@ -32,8 +32,7 @@ class BetaTCVAE(VAE):
     output = {
         "reconstruction": recon_x,
         "data": x,
-        "mu": mu,
-        # This is bad practice!
+        "mu": mu,  # This is bad practice!
         "log_var": log_std,
         "z": z,
     }

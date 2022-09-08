@@ -2,7 +2,6 @@ from collections import OrderedDict
 
 import numpy as np
 import torch
-from torch.autograd import Variable
 import torch.nn as nn
 
 

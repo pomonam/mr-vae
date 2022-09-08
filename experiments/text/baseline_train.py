@@ -10,8 +10,9 @@ import tqdm
 import wandb
 
 from experiments.text.input_pipeline import load_data
-from experiments.text.models import LstmDecoder, TransformerDecoder
+from experiments.text.models import LstmDecoder
 from experiments.text.models import LstmEncoder
+from experiments.text.models import TransformerDecoder
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
 from src.evaluate import generate_metric_str

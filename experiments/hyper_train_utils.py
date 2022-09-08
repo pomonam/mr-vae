@@ -5,12 +5,12 @@ import torch
 import tqdm
 import wandb
 
-from src.hyper.norm_layers import calibrate_bn
 from experiments.train_utils import build_input_queue
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
+from src.hyper.norm_layers import calibrate_bn
 
 
 def hyper_evaluate(model, loader, criterion, epoch, name, hyper_cfg, device,

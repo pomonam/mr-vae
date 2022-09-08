@@ -22,7 +22,10 @@ class HyperBetaVAE(HyperVAE):
     return self.sample_forward(inputs)
 
   def sample_forward(self, inputs: dict, **kwargs) -> dict:
-    x = inputs["data"]
+    if isinstance(inputs, torch.Tensor):
+      x = inputs
+    else:
+      x = inputs["data"]
     sample_dict = self.sample(x)
     self.set_net_inputs(sample_dict["net"])
 

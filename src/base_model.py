@@ -77,8 +77,7 @@ class VAE(BaseAE):
     raise NotImplementedError()
 
   # noinspection PyMethodMayBeStatic
-  def _sample_gauss(self,
-                    mu: torch.Tensor,
+  def _sample_gauss(self, mu: torch.Tensor,
                     std: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     # Reparametrization trick.
     eps = torch.randn_like(std)

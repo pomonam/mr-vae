@@ -8,7 +8,9 @@ import torch.nn.functional as F
 import wandb
 
 from experiments.misc.tc_vae.input_pipeline import load_data
-from experiments.misc.tc_vae.model import Encoder, Decoder
+from experiments.misc.tc_vae.metrics import mutual_info_metric_shapes
+from experiments.misc.tc_vae.model import Decoder
+from experiments.misc.tc_vae.model import Encoder
 from experiments.train_utils import evaluate
 from experiments.train_utils import predict
 from experiments.train_utils import train
@@ -16,7 +18,6 @@ from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
 from src.models.beta_tc_vae import BetaTCVAE
 from src.utils import seed_everything
-from experiments.misc.tc_vae.metrics import mutual_info_metric_shapes
 
 parser = argparse.ArgumentParser()
 parser.add_argument(

@@ -119,8 +119,8 @@ def main():
       "--experiment_name", type=str, default="hvae_bimage_debug")
 
   parser.add_argument("--data_name", type=str, default="mnist")
-  parser.add_argument("--encoder_name", type=str, default="resnet")
-  parser.add_argument("--decoder_name", type=str, default="resnet")
+  parser.add_argument("--encoder_name", type=str, default="conv")
+  parser.add_argument("--decoder_name", type=str, default="conv")
 
   parser.add_argument("--total_epochs", type=int, default=10)
   parser.add_argument("--warmup_epochs", type=int, default=10)

@@ -3,13 +3,13 @@
 - https://github.com/rtqichen/beta-tcvae/blob/master/disentanglement_metrics.py
 """
 
-import torch
-
 import math
 import os
+
 import torch
-from tqdm import tqdm
 from torch.autograd import Variable
+from tqdm import tqdm
+
 from experiments.misc.tc_vae.dist import Normal
 
 

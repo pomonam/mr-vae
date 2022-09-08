@@ -1,11 +1,13 @@
 from collections import OrderedDict
 import math
+
+import texar.torch as tx
 import torch
 from torch import nn
-import texar.torch as tx
-from src.models.pixelcnn import PixelCNN
+
 from src.base_architecture import BaseDecoder
 from src.base_architecture import BaseEncoder
+from src.models.pixelcnn import PixelCNN
 from src.models.resblock import ResBlock
 
 

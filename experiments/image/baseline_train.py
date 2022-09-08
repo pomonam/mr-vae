@@ -9,8 +9,14 @@ import torch.nn.functional as F
 import wandb
 
 from experiments.image.input_pipeline import load_data
-from experiments.image.models import CelebConvDecoder, CelebResNetDecoder, CelebConvEncoder, CelebResNetEncoder
-from experiments.image.models import CifarConvEncoder, CifarResNetEncoder, CifarResNetDecoder, CifarConvDecoder
+from experiments.image.models import CelebConvDecoder
+from experiments.image.models import CelebConvEncoder
+from experiments.image.models import CelebResNetDecoder
+from experiments.image.models import CelebResNetEncoder
+from experiments.image.models import CifarConvDecoder
+from experiments.image.models import CifarConvEncoder
+from experiments.image.models import CifarResNetDecoder
+from experiments.image.models import CifarResNetEncoder
 from experiments.train_utils import evaluate
 from experiments.train_utils import predict
 from experiments.train_utils import train

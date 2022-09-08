@@ -3,10 +3,11 @@ https://github.com/rtqichen/beta-tcvae/blob/master/lib/dist.py
 """
 
 import math
+
 import numpy as np
 import torch
-import torch.nn as nn
 from torch.autograd import Variable
+import torch.nn as nn
 
 eps = 1e-8
 

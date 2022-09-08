@@ -7,7 +7,7 @@
 
 import argparse
 import os
-import wandb
+
 import datasets
 from model import AutoEncoder
 import numpy as np
@@ -16,13 +16,14 @@ import torch
 from torch.cuda.amp import autocast
 from torch.cuda.amp import GradScaler
 import torch.distributed as dist
+import wandb
 
+from experiments.wandb_utils import init_wandb
 from fid.fid_score import calculate_frechet_distance
 from fid.fid_score import compute_statistics_of_generator
 from fid.fid_score import load_statistics
 from fid.inception import InceptionV3
 import utils
-from experiments.wandb_utils import init_wandb
 
 
 def main(args):
