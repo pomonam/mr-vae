@@ -26,10 +26,12 @@ def get_hyper_layer(features: int, hyper_cfg: HyperConfig) -> HyperLayer:
   return hyper_dict[hyper_cfg.layer_type]
 
 
-def initialize_hyper_blocks(features: int, hyper_cfg: HyperConfig) -> nn.Module:
+def initialize_hyper_blocks(features: int,
+                            hyper_cfg: HyperConfig,
+                            apply_zero_init: bool = False) -> nn.Module:
   if hyper_cfg.shared_preprocess:
     block = nn.Linear(hyper_cfg.shared_preprocess_dim, features, bias=True)
-    if hyper_cfg.apply_zero_init:
+    if hyper_cfg.apply_zero_init or apply_zero_init:
       block.weight.data.fill_(0)
       block.bias.data.fill_(0)
   else:
@@ -37,7 +39,7 @@ def initialize_hyper_blocks(features: int, hyper_cfg: HyperConfig) -> nn.Module:
         in_features=1,
         out_features=features,
         emd_features=hyper_cfg.non_shared_emd_dim)
-    if hyper_cfg.apply_zero_init:
+    if hyper_cfg.apply_zero_init or apply_zero_init:
       block.layers[-1].weight.data.fill_(0)
       block.layers[-1].bias.data.fill_(0)
   return block

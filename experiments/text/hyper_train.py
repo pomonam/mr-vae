@@ -21,38 +21,10 @@ from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
-from src.hyper.models.beta_vae import BetaHyperVAE
+from src.hyper.beta_vae import HyperBetaVAE
 from src.models.beta_vae import BetaVAE
-from src.models.beta_vae import log_sum_exp
+from src.utils import log_sum_exp
 from src.utils import seed_everything
-
-parser = argparse.ArgumentParser()
-parser.add_argument(
-  "--experiment_name", type=str, default="hypervae-text-train")
-
-parser.add_argument("--decoder_name", type=str, default="trans")
-parser.add_argument("--data_name", type=str, default="ptb")
-
-parser.add_argument("--block_type", type=str, default="mlp1")
-parser.add_argument("--layer_type", type=str, default="tanh_gate")
-parser.add_argument("--param_type", type=str, default="pre_bn")
-parser.add_argument("--preprocess_beta", type=int, default=1)
-parser.add_argument("--include_latent_stem", type=int, default=0)
-parser.add_argument("--include_output_stem", type=int, default=0)
-parser.add_argument("--include_hyper_bn", type=int, default=1)
-
-parser.add_argument("--total_epochs", type=int, default=10)
-parser.add_argument("--lr", type=float, default=0.001)
-parser.add_argument("--batch_size", type=int, default=32)
-parser.add_argument("--beta", type=float, default=1.)
-parser.add_argument("--schedule", type=str, default="constant")
-
-parser.add_argument("--seed", type=int, default=0)
-parser.add_argument("--checkpoint_dir", type=str, default=None)
-parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=5)
-parser.add_argument("--eval_freq", type=int, default=15)
-args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
@@ -82,7 +54,7 @@ class HyperTextCriterion(nn.Module):
     return loss_dict
 
   @staticmethod
-  def eval_forward(recon_x, x, mu, log_var, z, beta):
+  def eval_forward(recon_x, x, mu, log_var, z, beta=1):
     recon_loss = recon_x
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
@@ -114,9 +86,8 @@ def build_criterion(device):
 
 
 def build_model(vocab_size, data_name, decoder_name, hyper_cfg, device):
-  # v1 = data_name == "yahoo"
   v1 = False
-  model = BetaHyperVAE(
+  model = HyperBetaVAE(
     encoder=HyperLstmEncoder(vocab_size, hyper_cfg, v1=v1),
     decoder=HyperLstmDecoder(vocab_size, hyper_cfg, v1=v1) if decoder_name == "lstm"
       else HyperTransformerDecoder(vocab_size, hyper_cfg, v1=v1),
@@ -138,63 +109,86 @@ def hyper_evaluate(model, iterator, criterion, epoch, name, device, start_token,
 
   with torch.no_grad():
     iterator.switch_to_dataset(name)
-    p_bar = tqdm.tqdm(iterator)
-    metric_dict = initialize_metric(criterion.get_eval_metric_lst())
-    means = []
 
-    num_words = 0.
-    nll_total = 0.
-    for batch in p_bar:
-      batch = {"data": batch, "start_tokens": start_token, "end_token": end_token}
-      output_dict = model(batch)
-      means.append(output_dict["mu"])
+    sample_lst = model.get_log_uniform_samples(20)
 
-      loss_dict = criterion.eval_forward(
-        recon_x=output_dict["reconstruction"],
-        x=output_dict["data"],
-        mu=output_dict["mu"],
-        log_var=output_dict["log_var"],
-        z=output_dict["z"],
-        beta=1.)
-      metric_dict = update_metric(metric_dict, loss_dict, batch["data"]["text_ids"].size(0))
-      summ_dict = summarize_metric(metric_dict)
-      summ_str = generate_metric_str(name, epoch, summ_dict)
-      p_bar.set_description(summ_str)
+    loss_lst = []
+    rate_lst = []
+    dist_lst = []
+    au_lst = []
+    mi_lst = []
 
-      num_words += len(batch["data"]["length"] - 1)
-      nll_total += loss_dict["loss"].item()
-  means = torch.cat(means, dim=0)
-  au_mean = means.mean(0, keepdim=True)
+    for sample in sample_lst:
+      iterator.switch_to_dataset(name)
 
-  au_var = means - au_mean
-  ns = au_var.size(0)
-  au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
+      p_bar = tqdm.tqdm(iterator)
+      metric_dict = initialize_metric(criterion.get_eval_metric_lst())
+      means = []
 
-  summ_dict = summarize_metric(metric_dict, name=name + "/")
-  summ_dict[name + "/" + "au"] = (au_var >= delta).sum().item()
+      num_words = 0.
+      nll_total = 0.
+      for batch in p_bar:
+        batch = {"data": batch, "start_tokens": start_token, "end_token": end_token}
+        output_dict = model.fixed_forward(batch, sample)
+        means.append(output_dict["mu"])
 
-  log_ppl = nll_total / num_words
-  ppl = math.exp(log_ppl)
-  summ_dict[name + "/" + "log_ppl"] = log_ppl
-  summ_dict[name + "/" + "ppl"] = ppl
-  wandb.log(summ_dict)
-  return metric_dict["loss"].avg
+        loss_dict = criterion.eval_forward(
+          recon_x=output_dict["reconstruction"],
+          x=output_dict["data"],
+          mu=output_dict["mu"],
+          log_var=output_dict["log_var"],
+          z=output_dict["z"],
+          beta=1.)
+        metric_dict = update_metric(metric_dict, loss_dict, batch["data"]["text_ids"].size(0))
+        summ_dict = summarize_metric(metric_dict)
+        summ_str = generate_metric_str(name, epoch, summ_dict)
+        p_bar.set_description(summ_str)
+
+        num_words += len(batch["data"]["length"] - 1)
+        nll_total += loss_dict["loss"].item()
+
+      summ_dict = summarize_metric(metric_dict, name="")
+
+      means = torch.cat(means, dim=0)
+      au_mean = means.mean(0, keepdim=True)
+
+      au_var = means - au_mean
+      ns = au_var.size(0)
+      au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
+
+      loss_lst.append(summ_dict["loss"])
+      rate_lst.append(summ_dict["rate"])
+      dist_lst.append(summ_dict["distortion"])
+      au_lst.append((au_var >= delta).sum().item())
+      mi_lst.append(summ_dict["mi"])
+
+    wandb.log({
+        f"{name}/loss_lst": loss_lst,
+        f"{name}/rate_lst": rate_lst,
+        f"{name}/dist_lst": dist_lst,
+        f"{name}/sample_lst": sample_lst,
+        f"{name}/au_lst": au_lst,
+        f"{name}/mi_lst": mi_lst,
+    })
+
+    rd_data = [[x, y] for (x, y) in zip(rate_lst, dist_lst)]
+    table = wandb.Table(data=rd_data, columns=["rate", "distortion"])
+    wandb.log({
+      f"{name}/rd_curve":
+        wandb.plot.line(table, "rate", "distortion", title="RD Curve")
+    })
 
 
 def hyper_single_evaluate(model, iterator, criterion, epoch, name, device, start_token, end_token, delta=0.01, ):
   model.eval()
 
   with torch.no_grad():
-    sample_lst = model.get_test_samples(20)
-    mid_point = sample_lst[len(sample_lst) // 2]
-
-    queue = build_input_queue(loader, device)
-    p_bar = tqdm.tqdm(queue)
+    iterator.switch_to_dataset(name)
+    p_bar = tqdm.tqdm(iterator)
     metric_dict = initialize_metric(criterion.get_eval_metric_lst())
 
     for batch in p_bar:
-      output_dict = model.fixed_forward(batch, mid_point)
-
+      output_dict = model.fixed_forward(batch, value=1)
       loss_dict = criterion.eval_forward(
           recon_x=output_dict["reconstruction"],
           x=output_dict["data"],
@@ -207,7 +201,7 @@ def hyper_single_evaluate(model, iterator, criterion, epoch, name, device, start
       summ_str = generate_metric_str(name, epoch, summ_dict)
       p_bar.set_description(summ_str)
 
-  return loss_dict["loss"]
+  return metric_dict["loss"].avg
 
 
 def hyper_train(model,
@@ -319,6 +313,27 @@ def hyper_train(model,
 
 
 def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    "--experiment_name", type=str, default="hypervae-text-train")
+
+  parser.add_argument("--decoder_name", type=str, default="trans")
+  parser.add_argument("--data_name", type=str, default="ptb")
+
+  parser.add_argument("--hyper_config_summary", type=str, default="linear")
+
+  parser.add_argument("--total_epochs", type=int, default=10)
+  parser.add_argument("--lr", type=float, default=0.001)
+  parser.add_argument("--batch_size", type=int, default=32)
+
+  parser.add_argument("--seed", type=int, default=0)
+  parser.add_argument("--checkpoint_dir", type=str, default=None)
+  parser.add_argument("--save_final_checkpoint", type=int, default=0)
+  parser.add_argument("--save_freq", type=int, default=5)
+  # Never evaluate during training.
+  parser.add_argument("--eval_freq", type=int, default=1000)
+  args = parser.parse_args()
+
   init_wandb(
     args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
@@ -363,8 +378,7 @@ def main():
 
   if args.save_final_checkpoint:
     save_checkpoint = \
-      os.path.join("checkpoints", "base_{}_{}_{}_{}.pth".format(args.data_name, args.decoder_name,
-                                                                args.beta, args.schedule))
+      os.path.join("checkpoints", "base_{}_{}.pth".format(args.data_name, args.decoder_name))
     log_info = {
       "state_dict": model.state_dict(),
     }
