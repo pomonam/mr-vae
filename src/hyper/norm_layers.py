@@ -13,9 +13,8 @@ def get_hyper_bn_layer(features: int, hyper_cfg: HyperConfig) -> HyperLayer:
 def calibrate_bn(module: nn.Module):
   if isinstance(module, nn.BatchNorm2d):
     # Reset all values.
-    module.track_running_stats = True
     module.reset_running_stats()
-
+    module.track_running_stats = True
     module.training = True
     # Using cumulative moving average.
     module.momentum = None
@@ -36,14 +35,17 @@ class HyperBatchNormLayer(HyperLayer):
     self.hyper_cfg = hyper_cfg
 
     if self.hyper_cfg.norm_type == "scale_shift":
-      if self.hyper_cfg.apply_bn_tracking:
-        self.bn = nn.BatchNorm2d(
-            features, affine=False, track_running_stats=True)
+      if not self.hyper_cfg.apply_bn_replace:
+        if self.hyper_cfg.apply_bn_tracking:
+          self.bn = nn.BatchNorm2d(
+              features, affine=False, track_running_stats=True)
+        else:
+          self.bn = nn.BatchNorm2d(
+              features, affine=False, track_running_stats=True)
+          # We need to initialize the statistics
+          self.bn.track_running_stats = False
       else:
-        self.bn = nn.BatchNorm2d(
-            features, affine=False, track_running_stats=True)
-        # We need to initialize the statistics
-        self.bn.track_running_stats = False
+        self.bn = nn.InstanceNorm2d(features, affine=False)
 
       self.hyper_block_scale = initialize_hyper_blocks(self.features,
                                                        self.hyper_cfg)

@@ -10,7 +10,7 @@ from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_bimage_jobs_v1"
-HYPER_NAME = "hvae_bimage_nas_sweep_block_type"
+HYPER_NAME = "hvae_bimage_nas_sweep_block_type_v3"
 
 
 def get_summary(summary, test=True):
@@ -121,20 +121,20 @@ def main():
     c=rgb.tue_lightblue
   )
 
-  rate, dist = generate_hyper_rd(runs, "fev3zx1n")
+  rate, dist = generate_hyper_rd(runs, "zuxkyw3x")
   plt.plot(rate, dist, "-", label="Linear Block", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "2k9d61w0")
+  rate, dist = generate_hyper_rd(runs, "pwyd207h")
   plt.plot(rate, dist, "-", label="MLP Block", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "1lqzz6tm")
+  rate, dist = generate_hyper_rd(runs, "g6bat937")
   plt.plot(rate, dist, "-", label="MLP Block (Shared)", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "33wmfw9x")
+  rate, dist = generate_hyper_rd(runs, "4656crzo")
   plt.plot(rate, dist, "-", label="Large MLP Block", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "2qsrte1d")
-  plt.plot(rate, dist, "-", label="Large MLP Block (Shared)", linewidth=1, alpha=0.8)
+  # rate, dist = generate_hyper_rd(runs, "2qsrte1d")
+  # plt.plot(rate, dist, "-", label="Large MLP Block (Shared)", linewidth=1, alpha=0.8)
 
   plt.xlim(0, 140)
   plt.ylim(0, 140)

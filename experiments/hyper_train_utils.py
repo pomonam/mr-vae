@@ -98,12 +98,11 @@ def hyper_evaluate(model, loader, criterion, epoch, name, hyper_cfg, device,
 
 
 def run_one_epoch(model, loader, value, device):
-  model.train()
   queue = build_input_queue(loader, device)
   p_bar = tqdm.tqdm(queue)
 
   for batch in p_bar:
-    # Don't need to do anything.
+    # Don't need to do anything, just computing the statistics.
     model.fixed_forward(batch, value)
 
 
