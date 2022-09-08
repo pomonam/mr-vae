@@ -107,6 +107,7 @@ def build_model(encoder_name, decoder_name, hyper_cfg, device):
     raise
 
   model = HyperBetaVAE(encoder=encoder, decoder=decoder, hyper_cfg=hyper_cfg)
+  model.reconstruction_loss = "bce"
   return model.to(device)
 
 
@@ -208,7 +209,7 @@ def main():
                  DEVICE,
                  train_loader=train_loader)
 
-  for sample in model.get_log_uniform_samples(5):
+  for sample in model.get_log_uniform_samples(4):
     true_data, reconstructions, generations = hyper_predict(model, test_loader, sample, DEVICE)
     column_names = ["images_id", "truth", "reconstruction", "normal_generation"]
     data_to_log = []
@@ -235,7 +236,9 @@ def main():
 
   if args.save_final_checkpoint:
     save_checkpoint = \
-      os.path.join("checkpoints", "hyper_{}_{}_{}.pth".format(args.data_name, args.encoder_name, args.decoder_name))
+      os.path.join("checkpoints", "hyper_{}_{}_{}.pth".format(args.data_name,
+                                                              args.encoder_name,
+                                                              args.decoder_name))
     log_info = {
       "state_dict": model.state_dict(),
     }

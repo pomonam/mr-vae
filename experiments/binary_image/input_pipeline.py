@@ -64,7 +64,7 @@ def load_mnist_binarized(data_path):
   return x_train, x_valid, x_test
 
 
-def load_mnist_data(split, batch_size, workers=0, data_path="logs/data"):
+def load_mnist_data(split, batch_size, workers=0, data_path="../../logs/data"):
   assert split in ["train", "train_eval", "test"]
 
   train_data, _, test_data = load_mnist_binarized(data_path)
