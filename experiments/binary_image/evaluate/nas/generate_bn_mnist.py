@@ -124,7 +124,7 @@ def main():
   rate, dist = generate_hyper_rd(runs, "1j6sneol")
   plt.plot(rate, dist, "-", label="BN", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "uv982a7g")
+  rate, dist = generate_hyper_rd(runs, "l3isjr4n")
   plt.plot(rate, dist, "-", label="Hyper BN", linewidth=1, alpha=0.8)
   #
   # rate, dist = generate_hyper_rd(runs, "p6nk8jfw")

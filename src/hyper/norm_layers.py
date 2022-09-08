@@ -55,11 +55,9 @@ class HyperBatchNormLayer(HyperLayer):
         self.bn = nn.InstanceNorm2d(features, affine=False)
 
       self.hyper_block_scale = initialize_hyper_blocks(self.features,
-                                                       self.hyper_cfg,
-                                                       apply_zero_init=True)
+                                                       self.hyper_cfg)
       self.hyper_block_shift = initialize_hyper_blocks(self.features,
-                                                       self.hyper_cfg,
-                                                       apply_zero_init=True)
+                                                       self.hyper_cfg)
     else:
       if self.hyper_cfg.apply_bn_tracking:
         self.bn = nn.BatchNorm2d(

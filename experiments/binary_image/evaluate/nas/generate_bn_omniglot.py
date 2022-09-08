@@ -121,8 +121,8 @@ def main():
     c=rgb.tue_lightblue
   )
 
-  rate, dist = generate_hyper_rd(runs, "a7kc8otw")
-  plt.plot(rate, dist, "-", label="BN", linewidth=1, alpha=0.8)
+  # rate, dist = generate_hyper_rd(runs, "a7kc8otw")
+  # plt.plot(rate, dist, "-", label="BN", linewidth=1, alpha=0.8)
 
   rate, dist = generate_hyper_rd(runs, "2zfyvgzf")
   plt.plot(rate, dist, "-", label="Hyper BN", linewidth=1, alpha=0.8)
