@@ -8,10 +8,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 import wandb
 
-from experiments.misc.vq_vae.input_pipeline import load_mnist_data
 from experiments.image.input_pipeline import load_data
-from experiments.misc.vq_vae.mnist_models import VQMNISTResNetEncoder, VQMNISTResNetDecoder
-from experiments.misc.vq_vae.celeb_models import VQCelebResNetEncoder, VQCelebResNetDecoder
+from experiments.misc.vq_vae.celeb_models import VQCelebResNetDecoder
+from experiments.misc.vq_vae.celeb_models import VQCelebResNetEncoder
+from experiments.misc.vq_vae.input_pipeline import load_mnist_data
+from experiments.misc.vq_vae.mnist_models import VQMNISTResNetDecoder
+from experiments.misc.vq_vae.mnist_models import VQMNISTResNetEncoder
 from experiments.misc.vq_vae.train_utils import evaluate
 from experiments.misc.vq_vae.train_utils import predict
 from experiments.misc.vq_vae.train_utils import train

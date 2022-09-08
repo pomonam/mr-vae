@@ -1,12 +1,13 @@
 from collections import OrderedDict
-from src.hyper.layers import get_hyper_layer
+
+import texar.torch as tx
 import torch
 import torch.nn as nn
-import texar.torch as tx
 
+from experiments.text.hyper_modules.transformer import TransformerDecoder
 from src.hyper.base_architecture import BaseHyperDecoder
 from src.hyper.base_architecture import BaseHyperEncoder
-from experiments.text.hyper_modules.transformer import TransformerDecoder
+from src.hyper.layers import get_hyper_layer
 
 
 class HyperLstmEncoder(BaseHyperEncoder):

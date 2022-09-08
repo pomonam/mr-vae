@@ -14,26 +14,31 @@
 """
 Transformer decoder.
 """
-import warnings
 from typing import Callable, Dict, NamedTuple, Optional, Tuple, Union
-from src.hyper.layers import get_hyper_ln_layer, get_hyper_layer
-import torch
-from torch import nn
+import warnings
 
 from texar.torch.core import layers
-from texar.torch.modules.decoders.decoder_base import (
-    DecoderBase, TokenEmbedder, TokenPosEmbedder, _make_output_layer)
-from texar.torch.modules.decoders.decoder_helpers import (
-    EmbeddingHelper, Helper)
-from texar.torch.modules.encoders.multihead_attention import (
-    Cache, MultiheadAttentionEncoder)
-from texar.torch.modules.encoders.transformer_encoder import (
-    default_transformer_poswise_net_hparams)
+from texar.torch.modules.decoders.decoder_base import _make_output_layer
+from texar.torch.modules.decoders.decoder_base import DecoderBase
+from texar.torch.modules.decoders.decoder_base import TokenEmbedder
+from texar.torch.modules.decoders.decoder_base import TokenPosEmbedder
+from texar.torch.modules.decoders.decoder_helpers import EmbeddingHelper
+from texar.torch.modules.decoders.decoder_helpers import Helper
+from texar.torch.modules.encoders.multihead_attention import Cache
+from texar.torch.modules.encoders.multihead_attention import \
+    MultiheadAttentionEncoder
+from texar.torch.modules.encoders.transformer_encoder import \
+    default_transformer_poswise_net_hparams
 from texar.torch.modules.networks.networks import FeedForwardNetwork
 from texar.torch.utils import transformer_attentions as attn
 from texar.torch.utils.beam_search import beam_search
 from texar.torch.utils.shapes import mask_sequences
 from texar.torch.utils.utils import sequence_mask
+import torch
+from torch import nn
+
+from src.hyper.layers import get_hyper_layer
+from src.hyper.layers import get_hyper_ln_layer
 
 __all__ = [
     'TransformerDecoderOutput',

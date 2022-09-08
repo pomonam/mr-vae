@@ -1,4 +1,5 @@
 
+import numpy as np
 import torch
 import torch.nn.parallel
 import torch.utils.data
@@ -6,7 +7,6 @@ from torch.utils.data import Dataset
 import torch.utils.data.dataset
 import torch.utils.data.distributed
 from torchvision import transforms
-import numpy as np
 
 
 class DisentangledSpritesDataset(Dataset):

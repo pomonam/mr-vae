@@ -1,7 +1,8 @@
-import urllib
-
 import os
 import pickle as pkl
+import urllib
+from urllib.request import urlretrieve
+
 import numpy as np
 from PIL import Image
 import scipy.io
@@ -12,7 +13,6 @@ from torch.utils.data import Dataset
 import torch.utils.data.dataset
 import torch.utils.data.distributed
 from torchvision import transforms
-from urllib.request import urlretrieve
 
 
 class Binarize(object):

@@ -1,8 +1,8 @@
 from collections import OrderedDict
 
+import texar.torch as tx
 import torch
 import torch.nn as nn
-import texar.torch as tx
 
 from src.base_architecture import BaseDecoder
 from src.base_architecture import BaseEncoder

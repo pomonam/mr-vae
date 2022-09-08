@@ -8,17 +8,20 @@ import torch.nn as nn
 import torch.nn.functional as F
 import tqdm
 import wandb
-from src.config import HyperConfig
-from src.hyper.models.beta_vae import BetaHyperVAE
-from experiments.text.input_pipeline import load_data
+
 # from experiments.text.models import LstmDecoder, TransformerDecoder
-from experiments.text.hyper_models import HyperLstmEncoder, HyperTransformerDecoder, HyperLstmDecoder
+from experiments.text.hyper_models import HyperLstmDecoder
+from experiments.text.hyper_models import HyperLstmEncoder
+from experiments.text.hyper_models import HyperTransformerDecoder
+from experiments.text.input_pipeline import load_data
 from experiments.wandb_utils import init_wandb
+from src.config import HyperConfig
 from src.config import TrainConfig
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
+from src.hyper.models.beta_vae import BetaHyperVAE
 from src.models.beta_vae import BetaVAE
 from src.models.beta_vae import log_sum_exp
 from src.utils import seed_everything

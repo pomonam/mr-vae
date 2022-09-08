@@ -8,19 +8,24 @@ import torch.nn as nn
 import torch.nn.functional as F
 import wandb
 
-from experiments.image.input_pipeline import load_data
-from experiments.image.hyper_models import HyperCelebConvDecoder, HyperCelebResNetDecoder, HyperCelebResNetEncoder, HyperCifarResNetDecoder, HyperCifarResNetEncoder, HyperCifarConvEncoder
 from experiments.hyper_train_utils import hyper_evaluate
-from experiments.image.hyper_models import HyperCifarConvDecoder, HyperCelebConvEncoder, HyperCelebConvDecoder
-
 from experiments.hyper_train_utils import hyper_predict
 from experiments.hyper_train_utils import hyper_train
+from experiments.image.hyper_models import HyperCelebConvDecoder
+from experiments.image.hyper_models import HyperCelebConvEncoder
+from experiments.image.hyper_models import HyperCelebResNetDecoder
+from experiments.image.hyper_models import HyperCelebResNetEncoder
+from experiments.image.hyper_models import HyperCifarConvDecoder
+from experiments.image.hyper_models import HyperCifarConvEncoder
+from experiments.image.hyper_models import HyperCifarResNetDecoder
+from experiments.image.hyper_models import HyperCifarResNetEncoder
+from experiments.image.input_pipeline import load_data
 from experiments.wandb_utils import init_wandb
+from src.config import HyperConfig
 from src.config import TrainConfig
 from src.hyper.models.beta_vae import BetaHyperVAE
 from src.models.beta_vae import log_sum_exp
 from src.utils import seed_everything
-from src.config import HyperConfig
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
