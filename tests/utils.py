@@ -21,7 +21,10 @@ def summary(model, input_size, batch_size=-1, device="cuda"):
         if "embedding" in output:
           output = output["embedding"]
         else:
-          output = output["reconstruction"]
+          try:
+            output = output["reconstruction"]
+          except:
+            output = output["quantized_vector"]
 
       summary[m_key]["output_shape"] = list(output.size())
       summary[m_key]["output_shape"][0] = batch_size
