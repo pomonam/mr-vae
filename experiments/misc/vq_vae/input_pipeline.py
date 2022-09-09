@@ -1,12 +1,6 @@
-import os
-import urllib
-
-from PIL import Image
-import scipy.io
 import torch
 import torch.nn.parallel
 import torch.utils.data
-from torch.utils.data import Dataset
 import torch.utils.data.dataset
 import torch.utils.data.distributed
 from torchvision import transforms
@@ -14,6 +8,7 @@ from torchvision.datasets import MNIST
 
 
 def load_mnist_data(split, batch_size, workers=0, data_path="logs/data"):
+  # Fresh MNIST loader here for MSE loss.
   train_transform = transforms.Compose([
       transforms.ToTensor(),
   ])

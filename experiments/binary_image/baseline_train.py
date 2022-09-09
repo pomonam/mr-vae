@@ -228,9 +228,9 @@ def main():
   #     nll.append(nll_i)
   # wandb.log({"nll_mean": np.mean(nll), "nll_std": np.std(nll)})
 
-  if args.save_final_checkpoint:
+  if args.save_final_checkpoint and args.seed == 0:
     save_checkpoint = \
-      os.path.join("checkpoints", "base_{}_{}_{}_{}_{}.pth".
+      os.path.join("checkpoints", "final_base_{}_{}_{}_{}_{}.pth".
                    format(args.data_name, args.encoder_name,
                           args.decoder_name, args.beta, args.schedule))
     log_info = {
