@@ -19,3 +19,6 @@ jobs:
     - name: Run pytest
       run: |
         pytest -vx tests/test_binary_image.py
+        pytest -vx tests/test_cifar_image.py
+        pytest -vx tests/test_celeba_image.py
+        pytest -vx tests/test_text.py
