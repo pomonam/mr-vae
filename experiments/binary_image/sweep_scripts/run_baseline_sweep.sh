@@ -3,7 +3,7 @@
 #SBATCH -J test
 #SBATCH --gres=gpu:1
 #SBATCH --mem=8GB
-#SBATCH --partition=t4v1,p100,t4v2,rtx6000
+#SBATCH --partition=t4v1,p100,t4v2
 #SBATCH --account=deadline
 #SBATCH --qos=deadline
 #SBATCH --export=ALL
