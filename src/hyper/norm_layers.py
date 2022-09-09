@@ -2,9 +2,8 @@ import torch
 from torch import nn
 
 from src.config import HyperConfig
-from src.hyper.layers import HyperLayer
-from src.hyper.layers import initialize_hyper_blocks
 from src.hyper.blocks import get_block
+from src.hyper.layers import HyperLayer
 
 
 def get_hyper_bn_layer(features: int, hyper_cfg: HyperConfig) -> HyperLayer:
@@ -93,7 +92,7 @@ class HyperBatchNormLayer(HyperLayer):
       inputs = self.bn(inputs)
     except ValueError:
       # InstanceNorm might not work here.
-      inputs = inputs
+      pass
 
     if self.hyper_cfg.norm_type == "scale_shift":
       scale = self.hyper_block_scale(self._net_inputs)

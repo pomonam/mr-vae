@@ -1,10 +1,10 @@
 import torch
 from torch import nn
+import torch.nn.functional as F
 
 from src.base_architecture import BaseDecoder
 from src.base_architecture import BaseEncoder
 from src.base_model import VAE
-import torch.nn.functional as F
 
 
 class VampVAE(VAE):
@@ -61,10 +61,10 @@ class VampVAE(VAE):
 
     log_q_z = (-0.5 *
                (log_var + torch.pow(z - mu, 2) / log_var.exp())).sum(dim=1)
-    KLD = -(log_p_z - log_q_z)
+    kld = -(log_p_z - log_q_z)
 
     return (
-        (recon_loss + beta * KLD).mean(dim=0),
+        (recon_loss + beta * kld).mean(dim=0),
         recon_loss.mean(dim=0),
-        KLD.mean(dim=0),
+        kld.mean(dim=0),
     )
