@@ -18,7 +18,7 @@ class MaskedConv2d(nn.Conv2d):
 
   def reset_parameters(self):
     n = self.kernel_size[0] * self.kernel_size[1] * self.out_channels
-    self.weight.data.normal_(0, math.sqrt(2. / n))
+    self.weight.data.normal_(0, math.sqrt(2.0 / n))
     if self.bias is not None:
       self.bias.data.zero_()
 
@@ -46,7 +46,8 @@ class PixelCNNBlock(nn.Module):
             out_channels,
             kernel_size,
             padding=padding,
-            bias=False),
+            bias=False,
+        ),
         nn.BatchNorm2d(out_channels),
         nn.ELU(),
         nn.Conv2d(out_channels, in_channels, 1, bias=False),
@@ -59,7 +60,7 @@ class PixelCNNBlock(nn.Module):
     for m in self.modules():
       if isinstance(m, nn.Conv2d):
         n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-        m.weight.data.normal_(0, math.sqrt(2. / n))
+        m.weight.data.normal_(0, math.sqrt(2.0 / n))
       elif isinstance(m, nn.BatchNorm2d):
         m.weight.data.fill_(1)
         m.bias.data.zero_()
@@ -83,7 +84,8 @@ class MaskABlock(nn.Module):
             out_channels,
             kernel_size,
             padding=padding,
-            bias=False),
+            bias=False,
+        ),
         nn.BatchNorm2d(out_channels),
         nn.ELU(),
     )

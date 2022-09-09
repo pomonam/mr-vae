@@ -16,17 +16,19 @@ _LOG_RED_A = math.log(0.01)
 _LOG_B = math.log(10)
 _LOG_M = (_LOG_A + _LOG_B) / 2
 _LOG_RED_M = (_LOG_RED_A + _LOG_B) / 2
-_LOG_DIFF = (_LOG_M - _LOG_A)
-_LOG_RED_DIFF = (_LOG_RED_M - _LOG_RED_A)
+_LOG_DIFF = _LOG_M - _LOG_A
+_LOG_RED_DIFF = _LOG_RED_M - _LOG_RED_A
 
 
 class HyperVAE(VAE):
 
-  def __init__(self,
-               hyper_cfg: HyperConfig,
-               encoder: BaseHyperEncoder,
-               decoder: BaseHyperDecoder,
-               reconstruction_loss: str = "mse") -> None:
+  def __init__(
+      self,
+      hyper_cfg: HyperConfig,
+      encoder: BaseHyperEncoder,
+      decoder: BaseHyperDecoder,
+      reconstruction_loss: str = "mse",
+  ) -> None:
     super().__init__(
         encoder=encoder,
         decoder=decoder,
@@ -40,7 +42,8 @@ class HyperVAE(VAE):
           in_features=1,
           out_features=self.hyper_cfg.shared_preprocess_dim,
           # By default, hidden dimension has expansion factor of 4.
-          emd_features=self.hyper_cfg.shared_preprocess_dim * 4)
+          emd_features=self.hyper_cfg.shared_preprocess_dim * 4,
+      )
 
   def set_net_inputs(self, value: torch.Tensor) -> None:
     if self.hyper_cfg.shared_preprocess:
@@ -61,8 +64,8 @@ class HyperVAE(VAE):
       device = x._batch["text_ids"].device
 
     sample_dict = {}
-    sample_dict["net"] = \
-      torch.FloatTensor(batch_size, 1).uniform_(-_SQRT3, _SQRT3).to(device)
+    sample_dict["net"] = (
+        torch.FloatTensor(batch_size, 1).uniform_(-_SQRT3, _SQRT3).to(device))
     beta = sample_dict["net"] * (_SQRT3 / 3)
     if self.hyper_cfg.reduce_range:
       beta = beta * _LOG_RED_DIFF + _LOG_RED_M

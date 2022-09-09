@@ -13,8 +13,7 @@ def prepare_data(data_name):
 
     train_path = os.path.join(data_path, "simple-examples/data/ptb.train.txt")
     vocab_path = os.path.join(data_path, "simple-examples/data/vocab.txt")
-    word_to_id = tx.data.make_vocab(
-      train_path, return_type="dict")
+    word_to_id = tx.data.make_vocab(train_path, return_type="dict")
 
     with open(vocab_path, 'w') as fvocab:
       for word in word_to_id:
@@ -26,8 +25,8 @@ def prepare_data(data_name):
     if not os.path.exists(train_path):
       url = 'https://drive.google.com/file/d/' \
             '13IsiffVjcQ-wrrbBGMwiG3sYf-DFxtXH/view?usp=sharing'
-      tx.data.maybe_download(url, path=data_path, filenames='yahoo.zip',
-                             extract=True)
+      tx.data.maybe_download(
+          url, path=data_path, filenames='yahoo.zip', extract=True)
   else:
     raise ValueError('Unknown data: {}'.format(data_name))
 

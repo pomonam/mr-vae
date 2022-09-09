@@ -39,13 +39,12 @@ class Decoder(BaseDecoder):
         nn.Linear(1200, 1200),
         nn.Tanh(),
         nn.Linear(1200, 4096),
-        nn.Sigmoid()
-    )
+        nn.Sigmoid())
 
   def forward(self, z):
-      h = z.view(z.size(0), -1)
-      h = self.net(h)
-      mu_img = h.view(z.size(0), 1, 64, 64)
-      output = dict()
-      output["reconstruction"] = mu_img
-      return output
+    h = z.view(z.size(0), -1)
+    h = self.net(h)
+    mu_img = h.view(z.size(0), 1, 64, 64)
+    output = dict()
+    output["reconstruction"] = mu_img
+    return output

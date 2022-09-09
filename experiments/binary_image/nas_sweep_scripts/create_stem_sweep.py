@@ -10,7 +10,6 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-
 CONFIG = {
     "lr": [1e-2, 3e-3, 1e-3, 3e-4],
     "total_epochs": [200],

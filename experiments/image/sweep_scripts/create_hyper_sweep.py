@@ -6,9 +6,7 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_sweep")
 parser.add_argument(
-    "--experiment_name",
-    type=str,
-    default="hvae_image_hyper_sweep")
+    "--experiment_name", type=str, default="hvae_image_hyper_sweep")
 
 args = parser.parse_args()
 
@@ -23,11 +21,9 @@ args = parser.parse_args()
 
 RENSET_CONFIG = {
     "lr": [1e-3, 3e-4],
-    "total_epochs": [200],
-    # "data_name": ["cifar", "svhn", "celeba"],
+    "total_epochs": [200],  # "data_name": ["cifar", "svhn", "celeba"],
     "data_name": ["svhn", "celeba"],
-
-  "arch_name": ["resnet"],
+    "arch_name": ["resnet"],
     "include_shift": [0, 1],
     "include_residual_connection": [0, 1],
     "include_sigmoid_activation": [0, 1],

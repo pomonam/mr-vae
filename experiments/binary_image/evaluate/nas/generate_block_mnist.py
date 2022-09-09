@@ -118,8 +118,7 @@ def main():
       label=r"Independent Training",
       edgecolors="k",
       linewidths=0.5,
-      c=rgb.tue_lightblue
-  )
+      c=rgb.tue_lightblue)
 
   rate, dist = generate_hyper_rd(runs, "2zvknwyc")
   plt.plot(rate, dist, "-", label="Linear Block", linewidth=1, alpha=0.8)

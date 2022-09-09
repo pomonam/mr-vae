@@ -10,12 +10,8 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-
 CONFIG = {
-    "lr": [3e-3,
-           1e-3,
-           3e-4,
-           1e-4],
+    "lr": [3e-3, 1e-3, 3e-4, 1e-4],
     "total_epochs": [200],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["conv"],

@@ -17,8 +17,16 @@ class TestTextImage(unittest.TestCase):
 
     cfg = HyperConfig(None)
     cfg.initialize_default_config()
-    self.hyper_conv_model = hyper_build_model(10_000, "ptb", "lstm", cfg, device)
-    self.hyper_resnet_model = hyper_build_model(10_000, "ptb", "lstm", cfg, device)
+    self.hyper_conv_model = hyper_build_model(10_000,
+                                              "ptb",
+                                              "lstm",
+                                              cfg,
+                                              device)
+    self.hyper_resnet_model = hyper_build_model(10_000,
+                                                "ptb",
+                                                "lstm",
+                                                cfg,
+                                                device)
 
   def test_summary(self):
     pass

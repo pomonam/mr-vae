@@ -13,8 +13,15 @@ from src.evaluate import update_metric
 from src.hyper.norm_layers import calibrate_bn
 
 
-def hyper_evaluate(model, loader, criterion, epoch, name, hyper_cfg, device,
-                   delta=0.01, train_loader=None):
+def hyper_evaluate(model,
+                   loader,
+                   criterion,
+                   epoch,
+                   name,
+                   hyper_cfg,
+                   device,
+                   delta=0.01,
+                   train_loader=None):
   model.eval()
 
   with torch.no_grad():
@@ -127,16 +134,24 @@ def hyper_train(model,
     do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
     if do_evaluate:
-      hyper_evaluate(model,
-                     train_loader,
-                     criterion,
-                     epoch,
-                     "train_eval",
-                     hyper_cfg,
-                     device,
-                     train_loader=train_loader)
-      hyper_evaluate(model, test_loader, criterion, epoch, "test", hyper_cfg, device,
-                     train_loader=train_loader)
+      hyper_evaluate(
+          model,
+          train_loader,
+          criterion,
+          epoch,
+          "train_eval",
+          hyper_cfg,
+          device,
+          train_loader=train_loader)
+      hyper_evaluate(
+          model,
+          test_loader,
+          criterion,
+          epoch,
+          "test",
+          hyper_cfg,
+          device,
+          train_loader=train_loader)
 
     if do_checkpoint and do_save:
       slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")

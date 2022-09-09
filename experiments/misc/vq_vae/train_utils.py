@@ -30,9 +30,9 @@ def evaluate(model, loader, epoch, name, device):
     for batch in p_bar:
       output_dict = model(batch)
       loss_dict = {
-        "loss": output_dict["loss"],
-        "vq_loss": output_dict["vq_loss"],
-        "recon_loss": output_dict["recon_loss"],
+          "loss": output_dict["loss"],
+          "vq_loss": output_dict["vq_loss"],
+          "recon_loss": output_dict["recon_loss"],
       }
       metric_dict = update_metric(metric_dict, loss_dict, batch["data"].size(0))
       summ_dict = summarize_metric(metric_dict)
@@ -43,13 +43,7 @@ def evaluate(model, loader, epoch, name, device):
   wandb.log(summ_dict)
 
 
-def train(model,
-          train_loader,
-          test_loader,
-          optimizer,
-          scheduler,
-          device,
-          cfg):
+def train(model, train_loader, test_loader, optimizer, scheduler, device, cfg):
   do_checkpoint = cfg.checkpoint_dir is not None
   if do_checkpoint and os.path.exists(
       os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
@@ -89,9 +83,9 @@ def train(model,
     for batch in p_bar:
       output_dict = model(batch)
       loss_dict = {
-        "loss": output_dict["loss"],
-        "vq_loss": output_dict["vq_loss"],
-        "recon_loss": output_dict["recon_loss"],
+          "loss": output_dict["loss"],
+          "vq_loss": output_dict["vq_loss"],
+          "recon_loss": output_dict["recon_loss"],
       }
       optimizer.zero_grad()
       output_dict["loss"].backward()

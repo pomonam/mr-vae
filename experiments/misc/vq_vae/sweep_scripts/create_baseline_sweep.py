@@ -5,10 +5,7 @@ from experiments.array_utils import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="baseline_sweep")
-parser.add_argument(
-    "--experiment_name",
-    type=str,
-    default="hvqvae_image_sweep")
+parser.add_argument("--experiment_name", type=str, default="hvqvae_image_sweep")
 
 args = parser.parse_args()
 
@@ -17,7 +14,6 @@ CONFIG = {
     "total_epochs": [200],
     "data_name": ["mnist", "celeba"],
 }
-
 
 if __name__ == "__main__":
   jobs = generate_job_strings(

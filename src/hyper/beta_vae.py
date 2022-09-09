@@ -8,10 +8,12 @@ from src.hyper.base_model import HyperVAE
 
 class HyperBetaVAE(HyperVAE):
 
-  def __init__(self,
-               hyper_cfg: HyperConfig,
-               encoder: BaseHyperEncoder,
-               decoder: BaseHyperDecoder) -> None:
+  def __init__(
+      self,
+      hyper_cfg: HyperConfig,
+      encoder: BaseHyperEncoder,
+      decoder: BaseHyperDecoder,
+  ) -> None:
     super().__init__(encoder=encoder, decoder=decoder, hyper_cfg=hyper_cfg)
     self.encoder = encoder
     self.decoder = decoder
@@ -44,7 +46,7 @@ class HyperBetaVAE(HyperVAE):
         "mu": mu,
         "log_var": log_var,
         "z": z,
-        "beta": sample_dict["beta"]
+        "beta": sample_dict["beta"],
     }
 
     return output
@@ -69,6 +71,6 @@ class HyperBetaVAE(HyperVAE):
         "mu": mu,
         "log_var": log_var,
         "z": z,
-        "beta": sample_dict["beta"]
+        "beta": sample_dict["beta"],
     }
     return output

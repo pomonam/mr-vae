@@ -20,8 +20,7 @@ from src.models.beta_tc_vae import BetaTCVAE
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--experiment_name", type=str, default="hvae_tc_debug")
+parser.add_argument("--experiment_name", type=str, default="hvae_tc_debug")
 
 parser.add_argument("--total_epochs", type=int, default=50)
 
@@ -60,8 +59,8 @@ class Criterion(nn.Module):
     M = batch_size - 1
     strat_weight = (N - M) / (N * M)
     W = torch.Tensor(batch_size, batch_size).fill_(1 / M)
-    W.view(-1)[:: M + 1] = 1 / N
-    W.view(-1)[1:: M + 1] = strat_weight
+    W.view(-1)[::M + 1] = 1 / N
+    W.view(-1)[1::M + 1] = strat_weight
     W[M - 1, 0] = strat_weight
     return W.log()
 
@@ -82,41 +81,34 @@ class Criterion(nn.Module):
     # dataset_size = 737280
     dataset_size = recon_x.shape[0]
     recon_loss = F.mse_loss(
-      recon_x.reshape(x.shape[0], -1),
-      x.reshape(x.shape[0], -1),
-      reduction="none",
+        recon_x.reshape(x.shape[0], -1),
+        x.reshape(x.shape[0], -1),
+        reduction="none",
     ).sum(dim=-1)
 
     log_q_z_given_x = Criterion._compute_log_gauss_density(z, mu, log_std).sum(
-      dim=-1
-    )  # [B]
+        dim=-1)  # [B]
 
-    log_prior = Criterion._compute_log_gauss_density(
-      z, torch.zeros_like(z), torch.zeros_like(z)
-    ).sum(
-      dim=-1
-    )  # [B]
+    log_prior = Criterion._compute_log_gauss_density(z,
+                                                     torch.zeros_like(z),
+                                                     torch.zeros_like(z)).sum(
+                                                         dim=-1)  # [B]
 
     log_q_batch_perm = Criterion._compute_log_gauss_density(
-      z.reshape(z.shape[0], 1, -1),
-      mu.reshape(1, z.shape[0], -1),
-      log_std.reshape(1, z.shape[0], -1),
+        z.reshape(z.shape[0], 1, -1),
+        mu.reshape(1, z.shape[0], -1),
+        log_std.reshape(1, z.shape[0], -1),
     )  # [B x B x Latent_dim]
 
-    logiw_mat = Criterion._log_importance_weight_matrix(z.shape[0], dataset_size).to(
-      z.device
-    )
+    logiw_mat = Criterion._log_importance_weight_matrix(z.shape[0],
+                                                        dataset_size).to(
+                                                            z.device)
     log_q_z = torch.logsumexp(
-      logiw_mat + log_q_batch_perm.sum(dim=-1), dim=-1
-    )  # MMS [B]
-    log_prod_q_z = (
-      torch.logsumexp(
+        logiw_mat + log_q_batch_perm.sum(dim=-1), dim=-1)  # MMS [B]
+    log_prod_q_z = (torch.logsumexp(
         logiw_mat.reshape(z.shape[0], z.shape[0], -1) + log_q_batch_perm,
         dim=1,
-      )
-    ).sum(
-      dim=-1
-    )  # MMS [B]
+    )).sum(dim=-1)  # MMS [B]
 
     # log_q_z = torch.logsumexp(log_q_batch_perm.sum(dim=-1), dim=-1) - torch.log(
     #   torch.tensor([z.shape[0] * dataset_size]).to(z.device)
@@ -134,14 +126,11 @@ class Criterion(nn.Module):
     dimension_wise_KL = log_prod_q_z - log_prior
 
     loss_dict = {
-        "loss": (recon_loss
-                + dimension_wise_KL
-                + mutual_info_loss
-                + beta * TC_loss).mean(dim=0),
-        "distortion": recon_loss.mean(dim=0),
-        "rate": (dimension_wise_KL
-                + mutual_info_loss
-                + TC_loss).mean(dim=0)
+        "loss": (recon_loss + dimension_wise_KL + mutual_info_loss +
+                 beta * TC_loss).mean(dim=0),
+        "distortion":
+            recon_loss.mean(dim=0),
+        "rate": (dimension_wise_KL + mutual_info_loss + TC_loss).mean(dim=0)
     }
     return loss_dict
 
@@ -178,8 +167,7 @@ def main():
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr, eps=1e-4)
   criterion = build_criterion(DEVICE)
   scheduler = torch.optim.lr_scheduler.MultiStepLR(
-    optimizer, milestones=[1000], gamma=10 ** (-1 / 7)
-  )
+      optimizer, milestones=[1000], gamma=10**(-1 / 7))
 
   train_loader = load_data(
       "train", cfg.batch_size, workers=2, data_path="../../../logs/data")
@@ -239,7 +227,6 @@ def main():
         "state_dict": model.state_dict(),
     }
     torch.save(log_info, save_checkpoint)
-
 
   wandb.finish()
 

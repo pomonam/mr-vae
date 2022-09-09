@@ -11,10 +11,12 @@ from src.base_architecture import BaseEncoder
 
 class BaseAE(nn.Module):
 
-  def __init__(self,
-               encoder: BaseEncoder,
-               decoder: BaseDecoder,
-               reconstruction_loss: str = "mse") -> None:
+  def __init__(
+      self,
+      encoder: BaseEncoder,
+      decoder: BaseDecoder,
+      reconstruction_loss: str = "mse",
+  ) -> None:
 
     super().__init__()
 
@@ -61,10 +63,12 @@ class BaseAE(nn.Module):
 
 class VAE(BaseAE):
 
-  def __init__(self,
-               encoder: BaseEncoder,
-               decoder: BaseDecoder,
-               reconstruction_loss: str = "mse") -> None:
+  def __init__(
+      self,
+      encoder: BaseEncoder,
+      decoder: BaseDecoder,
+      reconstruction_loss: str = "mse",
+  ) -> None:
 
     super().__init__(
         encoder=encoder,
@@ -106,7 +110,10 @@ class VAE(BaseAE):
         x_rep = torch.cat(batch_size * [x])
 
         encoder_output = self.encoder(x_rep)
-        mu, log_var = encoder_output["embedding"], encoder_output["log_covariance"]
+        mu, log_var = (
+            encoder_output["embedding"],
+            encoder_output["log_covariance"],
+        )
 
         std = torch.exp(0.5 * log_var)
         z, _ = self._sample_gauss(mu, std)

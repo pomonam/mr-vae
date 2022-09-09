@@ -9,9 +9,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="baseline_jobs")
 parser.add_argument("--experiment_name", type=str, default="hvae_image_jobs_v3")
 
-
 args = parser.parse_args()
-
 
 SVHN_CONFIG1 = {
     # "lr": [0.0003],
@@ -32,7 +30,6 @@ SVHN_CONFIG2 = {
     "beta": list(np.logspace(-3, 1, num=20)) + [1],
     "save_final_checkpoint": [1]
 }
-
 
 CIFAR_CONFIG1 = {
     # "lr": [0.001],

@@ -21,7 +21,6 @@ PTB_CONFIG = {
     "save_final_checkpoint": [1]
 }
 
-
 YAH_CONFIG1 = {
     "lr": [0.0003],
     "data_name": ["yahoo"],
@@ -41,7 +40,6 @@ YAH_CONFIG2 = {
     "beta": np.logspace(-3, 1, num=20),
     "save_final_checkpoint": [1]
 }
-
 
 if __name__ == "__main__":
   jobs = generate_job_strings(
