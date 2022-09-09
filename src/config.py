@@ -45,53 +45,78 @@ class HyperConfig:
   def __init__(self, args: Optional[Namespace]) -> None:
     if args is not None:
       self.hyper_config_summary = get_ns(args, "hyper_config_summary")
-      if self.hyper_config_summary == "linear":
-        self.shared_preprocess = 0
-        self.apply_zero_init = 0
-        self.apply_bn_tracking = 1
-        self.apply_bn_calibrate = 0
-        self.apply_bn_replace = 0
-        self.reduce_range = 1
-        self.include_latent_stem = 1
+      if self.hyper_config_summary is not None:
+        if "lin" in self.hyper_config_summary:
+          self.shared_preprocess = 0
+          self.apply_zero_init = 0
+          self.reduce_range = 1
+          self.reduce_range = 1
+          self.include_latent_stem = 1
 
-        self.param_type = "post_act"
-        self.layer_type = "sig_gate"
-        self.block_type = "linear"
-        self.norm_type = "scale_shift"
+          self.param_type = "post_act"
+          self.layer_type = "sig_gate"
+          self.block_type = "linear"
+          self.norm_type = "scale_shift"
 
-      elif self.hyper_config_summary == "mlp_shared":
-        self.shared_preprocess = 1
-        self.apply_zero_init = 0
-        self.apply_bn_tracking = 1
-        self.apply_bn_calibrate = 0
-        self.apply_bn_replace = 0
-        self.reduce_range = 1
-        self.include_latent_stem = 1
+        elif "smlp" in self.hyper_config_summary:
+          self.shared_preprocess = 1
+          self.apply_zero_init = 0
+          self.reduce_range = 1
+          self.reduce_range = 1
+          self.include_latent_stem = 1
 
-        self.param_type = "post_act"
-        self.layer_type = "sig_gate"
-        self.block_type = "mlp"
-        self.norm_type = "scale_shift"
+          self.param_type = "post_act"
+          self.layer_type = "sig_gate"
+          self.block_type = "mlp"
+          self.norm_type = "scale_shift"
+
+        elif "aff" in self.hyper_config_summary:
+          self.shared_preprocess = 1
+          self.apply_zero_init = 0
+          self.reduce_range = 1
+          self.reduce_range = 1
+          self.include_latent_stem = 1
+
+          self.param_type = "post_act"
+          self.layer_type = "affine"
+          self.block_type = "mlp"
+          self.norm_type = "scale_shift"
+
+        else:
+          raise NotImplementedError()
+
+        if "_bn" in self.hyper_config_summary:
+          self.apply_bn_tracking = 1
+          self.apply_bn_calibrate = 0
+          self.apply_bn_replace = 0
+
+        elif "in" in self.hyper_config_summary:
+          self.apply_bn_tracking = 1
+          self.apply_bn_calibrate = 0
+          self.apply_bn_replace = 1
+
+        else:
+          raise NotImplementedError()
       else:
-        self.shared_preprocess = get_ns(args, "shared_preprocess")
-        self.apply_zero_init = get_ns(args, "apply_zero_init")
-        self.apply_bn_tracking = get_ns(args, "apply_bn_tracking")
-        self.apply_bn_calibrate = get_ns(args, "apply_bn_calibrate")
-        self.apply_bn_replace = get_ns(args, "apply_bn_replace")
-        self.reduce_range = get_ns(args, "reduce_range")
-        self.include_latent_stem = get_ns(args, "include_latent_stem")
+       self.shared_preprocess = get_ns(args, "shared_preprocess")
+       self.apply_zero_init = get_ns(args, "apply_zero_init")
+       self.apply_bn_tracking = get_ns(args, "apply_bn_tracking")
+       self.apply_bn_calibrate = get_ns(args, "apply_bn_calibrate")
+       self.apply_bn_replace = get_ns(args, "apply_bn_replace")
+       self.reduce_range = get_ns(args, "reduce_range")
+       self.include_latent_stem = get_ns(args, "include_latent_stem")
 
-        self.param_type = get_ns(args, "param_type")
-        self.layer_type = get_ns(args, "layer_type")
-        self.block_type = get_ns(args, "block_type")
-        self.norm_type = get_ns(args, "norm_type")
+      self.param_type = get_ns(args, "param_type")
+      self.layer_type = get_ns(args, "layer_type")
+      self.block_type = get_ns(args, "block_type")
+      self.norm_type = get_ns(args, "norm_type")
 
   def initialize_default_config(self) -> None:
     self.shared_preprocess = 0
     self.apply_zero_init = 0
     self.apply_bn_tracking = 1
     self.apply_bn_calibrate = 0
-    self.apply_bn_replace = 0
+    self.apply_bn_replace = 1
     self.reduce_range = 1
     self.include_latent_stem = 1
 

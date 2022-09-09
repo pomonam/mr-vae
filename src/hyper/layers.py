@@ -22,6 +22,7 @@ def get_hyper_layer(features: int, hyper_cfg: HyperConfig) -> HyperLayer:
       "sig_gate": HyperSigmoidLayer(features, hyper_cfg),
       "tanh_gate": HyperTanhLayer(features, hyper_cfg),
       "scale_shift": HyperScaleShiftLayer(features, hyper_cfg),
+      "affine": HyperAffineLayer(features, hyper_cfg)
   }
   return hyper_dict[hyper_cfg.layer_type]
 
@@ -71,6 +72,28 @@ class HyperSigmoidLayer(HyperLayer):
       return 2 * scale * inputs
     else:
       return scale * inputs
+
+
+class HyperAffineLayer(HyperLayer):
+
+  def __init__(self, features: int, hyper_cfg: HyperConfig) -> None:
+    super().__init__()
+
+    self.features = features
+    self.hyper_cfg = hyper_cfg
+    self.hyper_block_scale = initialize_hyper_blocks(self.features,
+                                                     self.hyper_cfg)
+
+  def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    scale = self.hyper_block_scale(self._net_inputs)
+
+    if len(inputs.shape) == 4:
+      scale = scale.unsqueeze(-1).unsqueeze(-1)
+
+    if len(inputs.shape) == 3:
+      scale = scale.unsqueeze(1)
+
+    return scale * inputs
 
 
 class HyperTanhLayer(HyperLayer):
