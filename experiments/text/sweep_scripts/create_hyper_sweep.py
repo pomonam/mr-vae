@@ -21,7 +21,7 @@ CONFIG = {
 if __name__ == "__main__":
   jobs = generate_job_strings(
       CONFIG,
-      command_template="python baseline_train.py --experiment_name {} ".format(
+      command_template="python hyper_train.py --experiment_name {} ".format(
           args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
