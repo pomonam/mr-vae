@@ -118,20 +118,21 @@ def main():
       label=r"Independent Training",
       edgecolors="k",
       linewidths=0.5,
-      c=rgb.tue_lightblue
-  )
+      c=rgb.tue_lightblue)
 
   rate, dist = generate_hyper_rd(runs, "2cf4kfjq")
   plt.plot(rate, dist, "-", label="Sigmoid Gate", linewidth=1, alpha=0.8)
 
   rate, dist = generate_hyper_rd(runs, "3qtmd6au")
-  plt.plot(rate, dist, "-", label="Sigmoid Gate (Zero-Init)", linewidth=1, alpha=0.8)
+  plt.plot(
+      rate, dist, "-", label="Sigmoid Gate (Zero-Init)", linewidth=1, alpha=0.8)
 
   rate, dist = generate_hyper_rd(runs, "1irp6ilp")
   plt.plot(rate, dist, "-", label="Tanh Gate", linewidth=1, alpha=0.8)
 
   rate, dist = generate_hyper_rd(runs, "2p1m0l9a")
-  plt.plot(rate, dist, "-", label="Tanh Gate (Zero-Init)", linewidth=1, alpha=0.8)
+  plt.plot(
+      rate, dist, "-", label="Tanh Gate (Zero-Init)", linewidth=1, alpha=0.8)
 
   rate, dist = generate_hyper_rd(runs, "39h40551")
   plt.plot(rate, dist, "-", label="Scale \& Shift", linewidth=1, alpha=0.8)

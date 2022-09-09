@@ -10,7 +10,7 @@ from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_bimage_jobs_v1"
-HYPER_NAME = "hvae_bimage_nas_sweep_bn_type_v3"
+HYPER_NAME = "hvae_bimage_nas_sweep_bn_type_v4"
 
 
 def get_summary(summary, test=True):
@@ -118,17 +118,16 @@ def main():
       label=r"Independent Training",
       edgecolors="k",
       linewidths=0.5,
-      c=rgb.tue_lightblue
-  )
+      c=rgb.tue_lightblue)
 
-  rate, dist = generate_hyper_rd(runs, "1j6sneol")
+  rate, dist = generate_hyper_rd(runs, "xsohq8fo")
   plt.plot(rate, dist, "-", label="BN", linewidth=1, alpha=0.8)
 
-  rate, dist = generate_hyper_rd(runs, "l3isjr4n")
+  rate, dist = generate_hyper_rd(runs, "1vernapb")
   plt.plot(rate, dist, "-", label="Hyper BN", linewidth=1, alpha=0.8)
-  #
-  # rate, dist = generate_hyper_rd(runs, "p6nk8jfw")
-  # plt.plot(rate, dist, "-", label="MLP Block (Shared)", linewidth=1, alpha=0.8)
+
+  rate, dist = generate_hyper_rd(runs, "3m5hulfi")
+  plt.plot(rate, dist, "-", label="Hyper (Instance Norm)", linewidth=1, alpha=0.8)
   #
   # rate, dist = generate_hyper_rd(runs, "1ni26qv1")
   # plt.plot(rate, dist, "-", label="Large MLP Block", linewidth=1, alpha=0.8)

@@ -41,4 +41,3 @@ def load_mnist_data(split, batch_size, workers=0, data_path="logs/data"):
       sampler=None)
 
   return loader
-

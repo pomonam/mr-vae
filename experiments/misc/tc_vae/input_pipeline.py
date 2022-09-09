@@ -1,4 +1,3 @@
-
 import numpy as np
 import torch
 import torch.nn.parallel
@@ -10,6 +9,7 @@ from torchvision import transforms
 
 
 class DisentangledSpritesDataset(Dataset):
+
   def __init__(self, root_dir, transform=None):
     self.root_dir = root_dir
     self.filename = "dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz"
@@ -33,10 +33,15 @@ class DisentangledSpritesDataset(Dataset):
     return sample, []
 
 
-def load_data(split, batch_size, workers=0, data_path="../../logs/", shuffle=True):
+def load_data(split,
+              batch_size,
+              workers=0,
+              data_path="../../logs/",
+              shuffle=True):
   del split
 
-  dataset = DisentangledSpritesDataset(data_path, transform=transforms.ToTensor())
+  dataset = DisentangledSpritesDataset(
+      data_path, transform=transforms.ToTensor())
 
   loader = torch.utils.data.DataLoader(
       dataset,

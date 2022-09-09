@@ -41,26 +41,26 @@ class HyperBinaryImageCriterion(nn.Module):
   @staticmethod
   def forward(recon_x, x, mu, log_var, z, beta):
     recon_loss = F.binary_cross_entropy(
-      recon_x.reshape(x.shape[0], -1),
-      x.reshape(x.shape[0], -1),
-      reduction="none",
+        recon_x.reshape(x.shape[0], -1),
+        x.reshape(x.shape[0], -1),
+        reduction="none",
     ).sum(dim=-1)
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
     loss_dict = {
-      "loss": (recon_loss + beta.squeeze(-1) * kld).mean(dim=0),
-      "distortion": recon_loss.mean(dim=0),
-      "rate": kld.mean(dim=0)
+        "loss": (recon_loss + beta.squeeze(-1) * kld).mean(dim=0),
+        "distortion": recon_loss.mean(dim=0),
+        "rate": kld.mean(dim=0)
     }
     return loss_dict
 
   @staticmethod
   def eval_forward(recon_x, x, mu, log_var, z, beta):
     recon_loss = F.binary_cross_entropy(
-      recon_x.reshape(x.shape[0], -1),
-      x.reshape(x.shape[0], -1),
-      reduction="none",
+        recon_x.reshape(x.shape[0], -1),
+        x.reshape(x.shape[0], -1),
+        reduction="none",
     ).sum(dim=-1)
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
@@ -78,10 +78,10 @@ class HyperBinaryImageCriterion(nn.Module):
     mi = neg_entropy - log_qz.mean(-1)
 
     loss_dict = {
-      "loss": (recon_loss + beta * kld).mean(dim=0),
-      "distortion": recon_loss.mean(dim=0),
-      "rate": kld.mean(dim=0),
-      "mi": mi
+        "loss": (recon_loss + beta * kld).mean(dim=0),
+        "distortion": recon_loss.mean(dim=0),
+        "rate": kld.mean(dim=0),
+        "mi": mi
     }
     return loss_dict
 
@@ -114,7 +114,7 @@ def build_model(encoder_name, decoder_name, hyper_cfg, device):
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument(
-    "--experiment_name", type=str, default="hvae_bimage_debug")
+      "--experiment_name", type=str, default="hvae_bimage_debug")
 
   parser.add_argument("--data_name", type=str, default="mnist")
   parser.add_argument("--encoder_name", type=str, default="conv")
@@ -146,7 +146,7 @@ def main():
   args = parser.parse_args()
 
   init_wandb(
-    args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
+      args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
   hyper_cfg = HyperConfig(args)
 
@@ -159,28 +159,28 @@ def main():
   criterion = build_criterion(DEVICE)
 
   scheduler1 = torch.optim.lr_scheduler.LinearLR(
-    optimizer,
-    start_factor=1e-10,
-    end_factor=1.,
-    total_iters=cfg.warmup_epochs)
+      optimizer,
+      start_factor=1e-10,
+      end_factor=1.,
+      total_iters=cfg.warmup_epochs)
   cosine_epochs = max(cfg.total_epochs - cfg.warmup_epochs, 1)
   scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
-    optimizer, T_max=cosine_epochs, eta_min=1e-6)
+      optimizer, T_max=cosine_epochs, eta_min=1e-6)
   scheduler = torch.optim.lr_scheduler.SequentialLR(
-    optimizer,
-    schedulers=[scheduler1, scheduler2],
-    milestones=[cfg.warmup_epochs])
+      optimizer,
+      schedulers=[scheduler1, scheduler2],
+      milestones=[cfg.warmup_epochs])
 
   if args.data_name == "mnist":
     train_loader = load_mnist_data(
-      "train", cfg.batch_size, workers=2, data_path="../../logs/data")
+        "train", cfg.batch_size, workers=2, data_path="../../logs/data")
     test_loader = load_mnist_data(
-      "test", cfg.batch_size, workers=2, data_path="../../logs/data")
+        "test", cfg.batch_size, workers=2, data_path="../../logs/data")
   elif args.data_name == "omniglot":
     train_loader = load_omniglot_data(
-      "train", cfg.batch_size, workers=2, data_path="../../logs/data")
+        "train", cfg.batch_size, workers=2, data_path="../../logs/data")
     test_loader = load_omniglot_data(
-      "test", cfg.batch_size, workers=2, data_path="../../logs/data")
+        "test", cfg.batch_size, workers=2, data_path="../../logs/data")
   else:
     raise NotImplementedError
 
@@ -193,22 +193,24 @@ def main():
               DEVICE,
               cfg,
               hyper_cfg)
-  hyper_evaluate(model,
-                 train_loader,
-                 criterion,
-                 cfg.total_epochs,
-                 "train_eval",
-                 hyper_cfg,
-                 DEVICE,
-                 train_loader=train_loader)
-  hyper_evaluate(model,
-                 test_loader,
-                 criterion,
-                 cfg.total_epochs,
-                 "test",
-                 hyper_cfg,
-                 DEVICE,
-                 train_loader=train_loader)
+  hyper_evaluate(
+      model,
+      train_loader,
+      criterion,
+      cfg.total_epochs,
+      "train_eval",
+      hyper_cfg,
+      DEVICE,
+      train_loader=train_loader)
+  hyper_evaluate(
+      model,
+      test_loader,
+      criterion,
+      cfg.total_epochs,
+      "test",
+      hyper_cfg,
+      DEVICE,
+      train_loader=train_loader)
 
   for sample in model.get_log_uniform_samples(4):
     true_data, reconstructions, generations = hyper_predict(model, test_loader, sample, DEVICE)
@@ -216,20 +218,20 @@ def main():
     data_to_log = []
     for i in range(len(true_data)):
       data_to_log.append([
-        f"img_{i}",
-        wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
-        wandb.Image(
-          np.clip(
-            np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
-            0,
-            255.0,
-          )),
-        wandb.Image(
-          np.clip(
-            np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
-            0,
-            255.0,
-          )),
+          f"img_{i}",
+          wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
+          wandb.Image(
+              np.clip(
+                  np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
+                  0,
+                  255.0,
+              )),
+          wandb.Image(
+              np.clip(
+                  np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
+                  0,
+                  255.0,
+              )),
       ])
 
     val_table = wandb.Table(data=data_to_log, columns=column_names)
@@ -241,7 +243,7 @@ def main():
                                                               args.encoder_name,
                                                               args.decoder_name))
     log_info = {
-      "state_dict": model.state_dict(),
+        "state_dict": model.state_dict(),
     }
     torch.save(log_info, save_checkpoint)
 

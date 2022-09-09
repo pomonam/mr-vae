@@ -14,15 +14,13 @@ class MlpEncoder(BaseEncoder):
 
     layers = nn.ModuleList()
     layers.append(
-      nn.Sequential(
-        nn.Linear(784, 1024),
-        nn.ReLU(),
-        nn.Linear(1024, 1024),
-        nn.ReLU(),
-        nn.Linear(1024, 1024),
-        nn.ReLU()
-      )
-    )
+        nn.Sequential(
+            nn.Linear(784, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 1024),
+            nn.ReLU()))
 
     self.layers = layers
     self.depth = len(layers)

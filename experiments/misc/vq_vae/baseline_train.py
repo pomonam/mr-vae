@@ -23,8 +23,7 @@ from src.models.vq_vae import VQVAE
 from src.utils import seed_everything
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--experiment_name", type=str, default="hvq_image_debug")
+parser.add_argument("--experiment_name", type=str, default="hvq_image_debug")
 
 parser.add_argument("--data_name", type=str, default="mnist")
 
@@ -49,41 +48,39 @@ DEVICE = torch.device("cuda" if cuda else "cpu")
 def build_model(data_name, device):
   if data_name == "mnist":
     model_config = {
-      "commitment_loss_factor": 0.25,
-      "quantization_loss_factor": 1.00,
-      "num_embeddings": 256,
-      "use_ema": False,
-      "decay": 0.99,
-      "input_dim": (1, 28, 28)
+        "commitment_loss_factor": 0.25,
+        "quantization_loss_factor": 1.00,
+        "num_embeddings": 256,
+        "use_ema": False,
+        "decay": 0.99,
+        "input_dim": (1, 28, 28)
     }
     model = VQVAE(
-      model_config,
-      encoder=VQMNISTResNetEncoder(),
-      decoder=VQMNISTResNetDecoder(),
-      lamb=args.lamb
-    )
+        model_config,
+        encoder=VQMNISTResNetEncoder(),
+        decoder=VQMNISTResNetDecoder(),
+        lamb=args.lamb)
   else:
     model_config = {
-      "commitment_loss_factor": 0.25,
-      "quantization_loss_factor": 1.00,
-      "num_embeddings": 1024,
-      "use_ema": False,
-      "decay": 0.99,
-      "input_dim": (3, 64, 64)
+        "commitment_loss_factor": 0.25,
+        "quantization_loss_factor": 1.00,
+        "num_embeddings": 1024,
+        "use_ema": False,
+        "decay": 0.99,
+        "input_dim": (3, 64, 64)
     }
     model = VQVAE(
-      model_config,
-      encoder=VQCelebResNetEncoder(),
-      decoder=VQCelebResNetDecoder(),
-      lamb=args.lamb
-    )
+        model_config,
+        encoder=VQCelebResNetEncoder(),
+        decoder=VQCelebResNetDecoder(),
+        lamb=args.lamb)
 
   return model.to(device)
 
 
 def main():
   init_wandb(
-    args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
+      args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
 
   seed_everything(cfg.seed)
@@ -95,8 +92,7 @@ def main():
       start_factor=1e-10,
       end_factor=1.,
       total_iters=cfg.warmup_epochs)
-  cosine_epochs = max(
-      cfg.total_epochs - cfg.warmup_epochs, 1)
+  cosine_epochs = max(cfg.total_epochs - cfg.warmup_epochs, 1)
   scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
       optimizer, T_max=cosine_epochs)
   scheduler = torch.optim.lr_scheduler.SequentialLR(
@@ -106,43 +102,33 @@ def main():
 
   if args.data_name == "mnist":
     train_loader = load_mnist_data(
-      "train",
-      cfg.batch_size,
-      workers=4,
-      data_path="../../../logs/data")
+        "train", cfg.batch_size, workers=4, data_path="../../../logs/data")
     test_loader = load_mnist_data(
-      "test",
-      cfg.batch_size,
-      workers=2,
-      data_path="../../../logs/data")
+        "test", cfg.batch_size, workers=2, data_path="../../../logs/data")
   else:
     train_loader = load_data(
-      "celeba",
-      "train",
-      cfg.batch_size,
-      workers=4,
-      data_path="../../../logs/data")
+        "celeba",
+        "train",
+        cfg.batch_size,
+        workers=4,
+        data_path="../../../logs/data")
     test_loader = load_data(
-      "celeba",
-      "test",
-      cfg.batch_size,
-      workers=4,
-      data_path="../../../logs/data")
+        "celeba",
+        "test",
+        cfg.batch_size,
+        workers=4,
+        data_path="../../../logs/data")
 
-  train(model,
-        train_loader,
-        test_loader,
-        optimizer,
-        scheduler,
-        DEVICE,
-        cfg,
-        # valid_loader
-        )
-  evaluate(model,
-           train_loader,
-           cfg.total_epochs,
-           "train_eval",
-           DEVICE)
+  train(
+      model,
+      train_loader,
+      test_loader,
+      optimizer,
+      scheduler,
+      DEVICE,
+      cfg,  # valid_loader
+  )
+  evaluate(model, train_loader, cfg.total_epochs, "train_eval", DEVICE)
   evaluate(model, test_loader, cfg.total_epochs, "test", DEVICE)
 
   true_data, reconstructions, generations = predict(model, test_loader, DEVICE)
@@ -150,20 +136,20 @@ def main():
   data_to_log = []
   for i in range(len(true_data)):
     data_to_log.append([
-      f"img_{i}",
-      wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
-      wandb.Image(
-        np.clip(
-          np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
-          0,
-          255.0,
-        )),
-      wandb.Image(
-        np.clip(
-          np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
-          0,
-          255.0,
-        )),
+        f"img_{i}",
+        wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
+        wandb.Image(
+            np.clip(
+                np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
+                0,
+                255.0,
+            )),
+        wandb.Image(
+            np.clip(
+                np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
+                0,
+                255.0,
+            )),
     ])
 
   val_table = wandb.Table(data=data_to_log, columns=column_names)
@@ -174,7 +160,7 @@ def main():
     save_checkpoint = \
       os.path.join("checkpoints", "base_{}_{}.pth".format(args.data_name, args.lamb))
     log_info = {
-      "state_dict": model.state_dict(),
+        "state_dict": model.state_dict(),
     }
     torch.save(log_info, save_checkpoint)
 

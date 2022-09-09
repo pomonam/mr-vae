@@ -104,16 +104,14 @@ class VQCelebResNetDecoder(BaseDecoder):
         ))
 
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(128, 64, 5, 2, padding=1, output_padding=1),
-        nn.BatchNorm2d(64),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.ConvTranspose2d(128, 64, 5, 2, padding=1, output_padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+        ))
     layers.append(
         nn.Sequential(
-            nn.ConvTranspose2d(
-                64, self.n_channels, 4, 2, padding=1),
+            nn.ConvTranspose2d(64, self.n_channels, 4, 2, padding=1),
             nn.Sigmoid()))
     self.layers = layers
     self.depth = len(layers)

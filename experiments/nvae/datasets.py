@@ -171,8 +171,10 @@ def get_loaders_eval(dataset, args):
     #     root=args.data, train=True, download=True, transform=train_transform)
     # valid_data = dset.MNIST(
     #     root=args.data, train=False, download=True, transform=valid_transform)
-    train_data = load_mnist_data("train", args.batch_size, workers=4, data_path=args.data)
-    valid_data = load_mnist_data("test", args.batch_size, workers=4, data_path=args.data)
+    train_data = load_mnist_data(
+        "train", args.batch_size, workers=4, data_path=args.data)
+    valid_data = load_mnist_data(
+        "test", args.batch_size, workers=4, data_path=args.data)
 
   elif dataset == 'stacked_mnist':
     num_classes = 1000
@@ -183,8 +185,10 @@ def get_loaders_eval(dataset, args):
         root=args.data, train=False, download=True, transform=valid_transform)
   elif dataset == 'omniglot':
     num_classes = 0
-    train_data = load_omniglot_data("train", args.batch_size, workers=4, data_path=args.data)
-    valid_data = load_omniglot_data("test", args.batch_size, workers=4, data_path=args.data)
+    train_data = load_omniglot_data(
+        "train", args.batch_size, workers=4, data_path=args.data)
+    valid_data = load_omniglot_data(
+        "test", args.batch_size, workers=4, data_path=args.data)
 
   elif dataset.startswith('celeba'):
     if dataset == 'celeba_64':
@@ -198,8 +202,7 @@ def get_loaders_eval(dataset, args):
       valid_data = dset.CelebA(
           "/scratch/ssd002/datasets/celeba_pytorch",
           split="test",
-          transform=valid_transform
-      )
+          transform=valid_transform)
     elif dataset in {'celeba_256'}:
       num_classes = 1
       resize = int(dataset.split('_')[1])

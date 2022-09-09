@@ -46,19 +46,20 @@ def load_mnist_binarized(data_path):
   if not os.path.isfile(dataset):
 
     datafiles = {
-      "train": "http://www.cs.toronto.edu/~larocheh/public/"
-               "datasets/binarized_mnist/binarized_mnist_train.amat",
-      "valid": "http://www.cs.toronto.edu/~larocheh/public/datasets/"
-               "binarized_mnist/binarized_mnist_valid.amat",
-      "test": "http://www.cs.toronto.edu/~larocheh/public/datasets/"
-              "binarized_mnist/binarized_mnist_test.amat"
+        "train": "http://www.cs.toronto.edu/~larocheh/public/"
+                 "datasets/binarized_mnist/binarized_mnist_train.amat",
+        "valid": "http://www.cs.toronto.edu/~larocheh/public/datasets/"
+                 "binarized_mnist/binarized_mnist_valid.amat",
+        "test": "http://www.cs.toronto.edu/~larocheh/public/datasets/"
+                "binarized_mnist/binarized_mnist_test.amat"
     }
     datasplits = {}
     for split in datafiles.keys():
       print("Downloading %s data..." % (split))
       datasplits[split] = np.loadtxt(urlretrieve(datafiles[split])[0])
 
-    pkl.dump([datasplits["train"], datasplits["valid"], datasplits["test"]], open(dataset, "wb"))
+    pkl.dump([datasplits["train"], datasplits["valid"], datasplits["test"]],
+             open(dataset, "wb"))
 
   x_train, x_valid, x_test = pkl.load(open(dataset, "rb"))
   return x_train, x_valid, x_test
@@ -105,18 +106,18 @@ def load_omniglot_data(split, batch_size, workers=0, data_path="../../logs/"):
 
   is_train = split == "train"
   train_transform = transforms.Compose([
-    transforms.ToTensor(),
-    # For training, dynamically binarize the dataset.
-    Binarize(),
+      transforms.ToTensor(),
+      # For training, dynamically binarize the dataset.
+      Binarize(),
   ])
 
   test_transform = transforms.Compose([
-    transforms.ToTensor(),
+      transforms.ToTensor(),
   ])
 
   if split == "train" or split == "train_eval":
-    data = dataset["data"].astype("float32").reshape(
-        (28, 28, -1)).transpose((2, 1, 0))
+    data = dataset["data"].astype("float32").reshape((28, 28, -1)).transpose(
+        (2, 1, 0))
 
     if is_train:
       dataset = Omniglot(data, train_transform)

@@ -21,7 +21,7 @@ def get_hyper_layer(features: int, hyper_cfg: HyperConfig) -> HyperLayer:
   hyper_dict = {
       "sig_gate": HyperSigmoidLayer(features, hyper_cfg),
       "tanh_gate": HyperTanhLayer(features, hyper_cfg),
-      "scale_shift": HyperScaleShiftLayer(features, hyper_cfg)
+      "scale_shift": HyperScaleShiftLayer(features, hyper_cfg),
   }
   return hyper_dict[hyper_cfg.layer_type]
 
@@ -38,7 +38,8 @@ def initialize_hyper_blocks(features: int,
     block = get_block(hyper_cfg.block_type)(
         in_features=1,
         out_features=features,
-        emd_features=hyper_cfg.non_shared_emd_dim)
+        emd_features=hyper_cfg.non_shared_emd_dim,
+    )
     if hyper_cfg.apply_zero_init or apply_zero_init:
       block.layers[-1].weight.data.fill_(0)
       block.layers[-1].bias.data.fill_(0)

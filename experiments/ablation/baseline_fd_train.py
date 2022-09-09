@@ -39,9 +39,9 @@ class ImageCriterion(nn.Module):
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
     loss_dict = {
-      "loss": (recon_loss + beta * kld).mean(dim=0),
-      "distortion": recon_loss.mean(dim=0),
-      "rate": kld.mean(dim=0)
+        "loss": (recon_loss + beta * kld).mean(dim=0),
+        "distortion": recon_loss.mean(dim=0),
+        "rate": kld.mean(dim=0)
     }
     return loss_dict
 
@@ -63,10 +63,10 @@ class ImageCriterion(nn.Module):
     mi = neg_entropy - log_qz.mean(-1)
 
     loss_dict = {
-      "loss": (recon_loss + beta * kld).mean(dim=0),
-      "distortion": recon_loss.mean(dim=0),
-      "rate": kld.mean(dim=0),
-      "mi": mi
+        "loss": (recon_loss + beta * kld).mean(dim=0),
+        "distortion": recon_loss.mean(dim=0),
+        "rate": kld.mean(dim=0),
+        "mi": mi
     }
     return loss_dict
 

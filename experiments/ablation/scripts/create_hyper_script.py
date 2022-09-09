@@ -45,8 +45,7 @@ CONV_CONFIG = {
     "block_type": ["mlp"],
     "param_type": ["pre_bn"],
     "layer_type": ["sig_gate"],
-    "include_latent_stem": [1],
-    # "include_hyper_bn": [0, 1],
+    "include_latent_stem": [1],  # "include_hyper_bn": [0, 1],
 }
 
 # RENSET_CONFIG = {

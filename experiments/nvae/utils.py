@@ -125,6 +125,7 @@ class Logger(object):
         logging.info(elapsed_time)
       logging.info(string, *args)
 
+
 #
 # class Writer(object):
 #

@@ -13,11 +13,13 @@ from src.base_model import BaseAE
 
 class VQVAE(BaseAE):
 
-  def __init__(self,
-               model_config: dict,
-               encoder: BaseEncoder,
-               decoder: BaseDecoder,
-               lamb: float = 1.) -> None:
+  def __init__(
+      self,
+      model_config: dict,
+      encoder: BaseEncoder,
+      decoder: BaseDecoder,
+      lamb: float = 1.0,
+  ) -> None:
     super().__init__(encoder=encoder, decoder=decoder)
 
     self.model_config = model_config
@@ -79,7 +81,7 @@ class VQVAE(BaseAE):
         "loss": loss,
         "recon_x": recon_x,
         "z": quantized_embed,
-        "quantized_indices": quantized_indices
+        "quantized_indices": quantized_indices,
     }
 
     return output
@@ -164,7 +166,7 @@ class Quantizer(nn.Module):
     output = {
         "quantized_vector": quantized,
         "quantized_indices": quantized_indices.unsqueeze(1),
-        "loss": loss
+        "loss": loss,
     }
 
     return output
@@ -246,7 +248,7 @@ class QuantizerEMA(nn.Module):
     output = {
         "quantized_vector": quantized,
         "quantized_indices": quantized_indices.unsqueeze(1),
-        "loss": loss
+        "loss": loss,
     }
 
     return output

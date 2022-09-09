@@ -20,30 +20,29 @@ class CifarConvEncoder(BaseEncoder):
     layers = nn.ModuleList()
 
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
-        nn.BatchNorm2d(128),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+        ))
 
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(128, 256, 4, 2, padding=1), nn.BatchNorm2d(256), nn.ReLU()
-      )
-    )
+        nn.Sequential(
+            nn.Conv2d(128, 256, 4, 2, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU()))
 
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(256, 512, 4, 2, padding=1), nn.BatchNorm2d(512), nn.ReLU()
-      )
-    )
+        nn.Sequential(
+            nn.Conv2d(256, 512, 4, 2, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU()))
 
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(512, 1024, 4, 2, padding=1), nn.BatchNorm2d(1024), nn.ReLU()
-      )
-    )
+        nn.Sequential(
+            nn.Conv2d(512, 1024, 4, 2, padding=1),
+            nn.BatchNorm2d(1024),
+            nn.ReLU()))
 
     self.layers = layers
     self.depth = len(layers)
@@ -80,26 +79,23 @@ class CifarConvDecoder(BaseDecoder):
     layers.append(nn.Linear(self.latent_dim, 1024 * 8 * 8))
 
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(1024, 512, 4, 2, padding=1),
-        nn.BatchNorm2d(512),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.ConvTranspose2d(1024, 512, 4, 2, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
+        ))
 
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(512, 256, 4, 2, padding=1, output_padding=1),
-        nn.BatchNorm2d(256),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.ConvTranspose2d(512, 256, 4, 2, padding=1, output_padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+        ))
 
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(256, self.n_channels, 4, 1, padding=2), nn.Sigmoid()
-      )
-    )
+        nn.Sequential(
+            nn.ConvTranspose2d(256, self.n_channels, 4, 1, padding=2),
+            nn.Sigmoid()))
     self.layers = layers
     self.depth = len(layers)
 
@@ -134,30 +130,30 @@ class CifarResNetEncoder(BaseEncoder):
     layers = nn.ModuleList()
 
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
-        nn.ReLU(),
-      ))
+        nn.Sequential(
+            nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
+            nn.ReLU(),
+        ))
 
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(64, 128, 4, 2, padding=1),
-        nn.ReLU(),
-      ))
+        nn.Sequential(
+            nn.Conv2d(64, 128, 4, 2, padding=1),
+            nn.ReLU(),
+        ))
 
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(128, 128, 3, 1, padding=1),
-        nn.ReLU(),
-      ))
+        nn.Sequential(
+            nn.Conv2d(128, 128, 3, 1, padding=1),
+            nn.ReLU(),
+        ))
 
     layers.append(
-      nn.Sequential(
-        ResBlock(channels=128),
-        nn.ReLU(),
-        ResBlock(channels=128),
-        nn.ReLU(),
-      ))
+        nn.Sequential(
+            ResBlock(channels=128),
+            nn.ReLU(),
+            ResBlock(channels=128),
+            nn.ReLU(),
+        ))
 
     self.layers = layers
     self.depth = len(layers)
@@ -194,23 +190,23 @@ class CifarResNetDecoder(BaseDecoder):
     layers.append(nn.Linear(self.latent_dim, 128 * 8 * 8))
 
     layers.append(
-      nn.Sequential(
-        ResBlock(channels=128),
-        nn.ReLU(),
-        ResBlock(channels=128),
-        nn.ReLU(),
-      ))
+        nn.Sequential(
+            ResBlock(channels=128),
+            nn.ReLU(),
+            ResBlock(channels=128),
+            nn.ReLU(),
+        ))
 
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(128, 64, 4, 2, padding=1),
-        nn.ReLU(),
-      ))
+        nn.Sequential(
+            nn.ConvTranspose2d(128, 64, 4, 2, padding=1),
+            nn.ReLU(),
+        ))
 
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(64, self.n_channels, 4, 2, padding=1),
-        nn.Sigmoid()))
+        nn.Sequential(
+            nn.ConvTranspose2d(64, self.n_channels, 4, 2, padding=1),
+            nn.Sigmoid()))
     self.layers = layers
     self.depth = len(layers)
 
@@ -245,28 +241,27 @@ class CelebConvEncoder(BaseEncoder):
     layers = nn.ModuleList()
 
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
-        nn.BatchNorm2d(128),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.Conv2d(self.n_channels, 128, 4, 2, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+        ))
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(128, 256, 4, 2, padding=1), nn.BatchNorm2d(256), nn.ReLU()
-      )
-    )
+        nn.Sequential(
+            nn.Conv2d(128, 256, 4, 2, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU()))
 
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(256, 512, 4, 2, padding=1), nn.BatchNorm2d(512), nn.ReLU()
-      )
-    )
+        nn.Sequential(
+            nn.Conv2d(256, 512, 4, 2, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU()))
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(512, 1024, 4, 2, padding=1), nn.BatchNorm2d(1024), nn.ReLU()
-      )
-    )
+        nn.Sequential(
+            nn.Conv2d(512, 1024, 4, 2, padding=1),
+            nn.BatchNorm2d(1024),
+            nn.ReLU()))
     self.layers = layers
     self.depth = len(layers)
 
@@ -302,33 +297,29 @@ class CelebConvDecoder(BaseDecoder):
     layers.append(nn.Linear(self.latent_dim, 1024 * 8 * 8))
 
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(1024, 512, 5, 2, padding=2),
-        nn.BatchNorm2d(512),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.ConvTranspose2d(1024, 512, 5, 2, padding=2),
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
+        ))
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(512, 256, 5, 2, padding=1, output_padding=0),
-        nn.BatchNorm2d(256),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.ConvTranspose2d(512, 256, 5, 2, padding=1, output_padding=0),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+        ))
 
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(256, 128, 5, 2, padding=2, output_padding=1),
-        nn.BatchNorm2d(128),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.ConvTranspose2d(256, 128, 5, 2, padding=2, output_padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+        ))
 
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(128, self.n_channels, 5, 1, padding=1), nn.Sigmoid()
-      )
-    )
+        nn.Sequential(
+            nn.ConvTranspose2d(128, self.n_channels, 5, 1, padding=1),
+            nn.Sigmoid()))
     self.layers = layers
     self.depth = len(layers)
 
@@ -363,38 +354,32 @@ class CelebResNetEncoder(BaseEncoder):
     layers = nn.ModuleList()
 
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
+            nn.ReLU(),
+        ))
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(64, 128, 4, 2, padding=1),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.Conv2d(64, 128, 4, 2, padding=1),
+            nn.ReLU(),
+        ))
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(128, 128, 3, 2, padding=1),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.Conv2d(128, 128, 3, 2, padding=1),
+            nn.ReLU(),
+        ))
     layers.append(
-      nn.Sequential(
-        nn.Conv2d(128, 128, 3, 2, padding=1),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.Conv2d(128, 128, 3, 2, padding=1),
+            nn.ReLU(),
+        ))
 
     layers.append(
-      nn.Sequential(
-        ResBlock(channels=128),
-        nn.ReLU(),
-        ResBlock(channels=128),
-        nn.ReLU()
-
-      ))
+        nn.Sequential(
+            ResBlock(channels=128),
+            nn.ReLU(),
+            ResBlock(channels=128),
+            nn.ReLU()))
 
     self.layers = layers
     self.depth = len(layers)
@@ -431,37 +416,39 @@ class CelebResNetDecoder(BaseDecoder):
     layers.append(nn.Linear(self.latent_dim, 128 * 4 * 4))
 
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(128, 128, 3, 2, padding=1),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.ConvTranspose2d(128, 128, 3, 2, padding=1),
+            nn.ReLU(),
+        ))
     layers.append(
-      nn.Sequential(
-        ResBlock(channels=128),
-        nn.ReLU(),
-        ResBlock(channels=128),
-        nn.ReLU(),
-      ))
+        nn.Sequential(
+            ResBlock(channels=128),
+            nn.ReLU(),
+            ResBlock(channels=128),
+            nn.ReLU(),
+        ))
 
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(128, 128, 5, 2, padding=1, ),
-        nn.Sigmoid(),
-      )
-    )
+        nn.Sequential(
+            nn.ConvTranspose2d(
+                128,
+                128,
+                5,
+                2,
+                padding=1,
+            ),
+            nn.Sigmoid(),
+        ))
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(128, 64, 5, 2, padding=1, output_padding=1),
-        nn.ReLU(),
-      )
-    )
+        nn.Sequential(
+            nn.ConvTranspose2d(128, 64, 5, 2, padding=1, output_padding=1),
+            nn.ReLU(),
+        ))
 
     layers.append(
-      nn.Sequential(
-        nn.ConvTranspose2d(64, self.n_channels, 4, 2, padding=1), nn.Sigmoid()
-      )
-    )
+        nn.Sequential(
+            nn.ConvTranspose2d(64, self.n_channels, 4, 2, padding=1),
+            nn.Sigmoid()))
     self.layers = layers
     self.depth = len(layers)
 

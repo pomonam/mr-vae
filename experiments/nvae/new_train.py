@@ -420,7 +420,6 @@ def _test_vae_fid(model, args, total_fid_samples):
 # def cleanup():
 #   dist.destroy_process_group()
 
-
 if __name__ == '__main__':
   parser = argparse.ArgumentParser('encoder decoder examiner')
   # experimental results

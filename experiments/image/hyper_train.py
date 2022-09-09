@@ -27,7 +27,6 @@ from src.hyper.beta_vae import HyperBetaVAE
 from src.utils import log_sum_exp
 from src.utils import seed_everything
 
-
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
@@ -102,15 +101,17 @@ def build_model(data_name, arch_name, hyper_cfg, device):
     else:
       latent_dim = 32
     model = HyperBetaVAE(
-        encoder=HyperCifarConvEncoder(latent_dim, hyper_cfg) if arch_name == "conv"
-          else HyperCifarResNetEncoder(latent_dim, hyper_cfg),
-        decoder=HyperCifarConvDecoder(latent_dim, hyper_cfg) if arch_name == "conv"
-          else HyperCifarResNetDecoder(latent_dim, hyper_cfg),
+        encoder=HyperCifarConvEncoder(latent_dim, hyper_cfg) if arch_name
+        == "conv" else HyperCifarResNetEncoder(latent_dim, hyper_cfg),
+        decoder=HyperCifarConvDecoder(latent_dim, hyper_cfg) if arch_name
+        == "conv" else HyperCifarResNetDecoder(latent_dim, hyper_cfg),
         hyper_cfg=hyper_cfg)
   else:
     model = HyperBetaVAE(
-        encoder=HyperCelebConvEncoder(hyper_cfg) if arch_name == "conv" else HyperCelebResNetEncoder(hyper_cfg),
-        decoder=HyperCelebConvDecoder(hyper_cfg) if arch_name == "conv" else HyperCelebResNetDecoder(hyper_cfg),
+        encoder=HyperCelebConvEncoder(hyper_cfg)
+        if arch_name == "conv" else HyperCelebResNetEncoder(hyper_cfg),
+        decoder=HyperCelebConvDecoder(hyper_cfg)
+        if arch_name == "conv" else HyperCelebResNetDecoder(hyper_cfg),
         hyper_cfg=hyper_cfg)
   model.reconstruction_loss = "mse"
   return model.to(device)
@@ -118,8 +119,7 @@ def build_model(data_name, arch_name, hyper_cfg, device):
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument(
-    "--experiment_name", type=str, default="hvae_image_debug")
+  parser.add_argument("--experiment_name", type=str, default="hvae_image_debug")
 
   parser.add_argument("--data_name", type=str, default="cifar")
   parser.add_argument("--arch_name", type=str, default="resnet")
@@ -152,17 +152,17 @@ def main():
   criterion = build_criterion(DEVICE)
 
   scheduler1 = torch.optim.lr_scheduler.LinearLR(
-    optimizer,
-    start_factor=1e-10,
-    end_factor=1.,
-    total_iters=cfg.warmup_epochs)
+      optimizer,
+      start_factor=1e-10,
+      end_factor=1.,
+      total_iters=cfg.warmup_epochs)
   cosine_epochs = max(cfg.total_epochs - cfg.warmup_epochs, 1)
   scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
-    optimizer, T_max=cosine_epochs, eta_min=1e-6)
+      optimizer, T_max=cosine_epochs, eta_min=1e-6)
   scheduler = torch.optim.lr_scheduler.SequentialLR(
-    optimizer,
-    schedulers=[scheduler1, scheduler2],
-    milestones=[cfg.warmup_epochs])
+      optimizer,
+      schedulers=[scheduler1, scheduler2],
+      milestones=[cfg.warmup_epochs])
 
   train_loader = load_data(
       args.data_name,
@@ -186,22 +186,24 @@ def main():
               DEVICE,
               cfg,
               hyper_cfg)
-  hyper_evaluate(model,
-                 train_loader,
-                 criterion,
-                 cfg.total_epochs,
-                 "train_eval",
-                 hyper_cfg,
-                 DEVICE,
-                 train_loader=train_loader)
-  hyper_evaluate(model,
-                 test_loader,
-                 criterion,
-                 cfg.total_epochs,
-                 "test",
-                 hyper_cfg,
-                 DEVICE,
-                 train_loader=train_loader)
+  hyper_evaluate(
+      model,
+      train_loader,
+      criterion,
+      cfg.total_epochs,
+      "train_eval",
+      hyper_cfg,
+      DEVICE,
+      train_loader=train_loader)
+  hyper_evaluate(
+      model,
+      test_loader,
+      criterion,
+      cfg.total_epochs,
+      "test",
+      hyper_cfg,
+      DEVICE,
+      train_loader=train_loader)
 
   for sample in model.get_test_samples(4):
     true_data, reconstructions, generations = hyper_predict(model, test_loader, sample, DEVICE)

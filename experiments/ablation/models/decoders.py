@@ -21,17 +21,15 @@ class MlpDecoder(BaseDecoder):
 
     layers = nn.ModuleList()
     layers.append(
-      nn.Sequential(
-        nn.Linear(self.latent_dim, 1024),
-        nn.ReLU(),
-        nn.Linear(1024, 1024),
-        nn.ReLU(),
-        nn.Linear(1024, 1024),
-        nn.ReLU(),
-        nn.Linear(1024, 784),
-        nn.Sigmoid()
-      )
-    )
+        nn.Sequential(
+            nn.Linear(self.latent_dim, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 784),
+            nn.Sigmoid()))
     self.layers = layers
 
   def forward(self, inputs: torch.Tensor) -> dict:
@@ -50,18 +48,21 @@ class PixelCnnDecoder(BaseDecoder):
     self.img_latent = 28 * 28 * self.fm_latent
 
     self.z_transform = nn.Sequential(
-      nn.Linear(self.latent_size, self.img_latent),
-    )
+        nn.Linear(self.latent_size, self.img_latent),)
 
     kernal_sizes = [7, 7, 7, 5, 5, 3, 3]
     hidden_channels = 64
     self.layers = nn.Sequential(
-      PixelCNN(self.num_channels + self.fm_latent, hidden_channels, len(kernal_sizes), kernal_sizes, self.latent_size),
-      nn.Conv2d(hidden_channels, hidden_channels, 1, bias=False),
-      nn.BatchNorm2d(hidden_channels),
-      nn.ELU(),
-      nn.Conv2d(hidden_channels, self.num_channels, 1, bias=False),
-      nn.Sigmoid(),
+        PixelCNN(self.num_channels + self.fm_latent,
+                 hidden_channels,
+                 len(kernal_sizes),
+                 kernal_sizes,
+                 self.latent_size),
+        nn.Conv2d(hidden_channels, hidden_channels, 1, bias=False),
+        nn.BatchNorm2d(hidden_channels),
+        nn.ELU(),
+        nn.Conv2d(hidden_channels, self.num_channels, 1, bias=False),
+        nn.Sigmoid(),
     )
 
   def forward(self, inputs):
@@ -93,7 +94,8 @@ class PixelCnnDecoder(BaseDecoder):
     for i in range(H):
       for j in range(W):
         recon_img = self.layers(img)
-        img[:, :self.num_channels, i, j] = torch.ge(recon_img[:, :, i, j], 0.5).float()
+        img[:, :self.num_channels, i, j] = torch.ge(recon_img[:, :, i, j],
+                                                    0.5).float()
 
     img_probs = self.layers(img)
     return img_probs

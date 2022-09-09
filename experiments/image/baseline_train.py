@@ -43,26 +43,26 @@ class ImageCriterion(nn.Module):
   @staticmethod
   def forward(recon_x, x, mu, log_var, z, beta):
     recon_loss = F.mse_loss(
-      recon_x.reshape(x.shape[0], -1),
-      x.reshape(x.shape[0], -1),
-      reduction="none",
+        recon_x.reshape(x.shape[0], -1),
+        x.reshape(x.shape[0], -1),
+        reduction="none",
     ).sum(dim=-1)
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
     loss_dict = {
-      "loss": (recon_loss + beta * kld).mean(dim=0),
-      "distortion": recon_loss.mean(dim=0),
-      "rate": kld.mean(dim=0)
+        "loss": (recon_loss + beta * kld).mean(dim=0),
+        "distortion": recon_loss.mean(dim=0),
+        "rate": kld.mean(dim=0)
     }
     return loss_dict
 
   @staticmethod
   def eval_forward(recon_x, x, mu, log_var, z, beta):
     recon_loss = F.mse_loss(
-      recon_x.reshape(x.shape[0], -1),
-      x.reshape(x.shape[0], -1),
-      reduction="none",
+        recon_x.reshape(x.shape[0], -1),
+        x.reshape(x.shape[0], -1),
+        reduction="none",
     ).sum(dim=-1)
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
@@ -80,10 +80,10 @@ class ImageCriterion(nn.Module):
     mi = neg_entropy - log_qz.mean(-1)
 
     loss_dict = {
-      "loss": (recon_loss + beta * kld).mean(dim=0),
-      "distortion": recon_loss.mean(dim=0),
-      "rate": kld.mean(dim=0),
-      "mi": mi
+        "loss": (recon_loss + beta * kld).mean(dim=0),
+        "distortion": recon_loss.mean(dim=0),
+        "rate": kld.mean(dim=0),
+        "mi": mi
     }
     return loss_dict
 
@@ -100,13 +100,17 @@ def build_model(data_name, arch_name, device):
     else:
       latent_dim = 32
     model = BetaVAE(
-      encoder=CifarConvEncoder(latent_dim) if arch_name == "conv" else CifarResNetEncoder(latent_dim),
-      decoder=CifarConvDecoder(latent_dim) if arch_name == "conv" else CifarResNetDecoder(latent_dim),
+        encoder=CifarConvEncoder(latent_dim)
+        if arch_name == "conv" else CifarResNetEncoder(latent_dim),
+        decoder=CifarConvDecoder(latent_dim)
+        if arch_name == "conv" else CifarResNetDecoder(latent_dim),
     )
   else:
     model = BetaVAE(
-      encoder=CelebConvEncoder() if arch_name == "conv" else CelebResNetEncoder(),
-      decoder=CelebConvDecoder() if arch_name == "conv" else CelebResNetDecoder(),
+        encoder=CelebConvEncoder()
+        if arch_name == "conv" else CelebResNetEncoder(),
+        decoder=CelebConvDecoder()
+        if arch_name == "conv" else CelebResNetDecoder(),
     )
   model.reconstruction_loss = "mse"
   return model.to(device)
@@ -114,8 +118,7 @@ def build_model(data_name, arch_name, device):
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument(
-    "--experiment_name", type=str, default="hvae_image_debug")
+  parser.add_argument("--experiment_name", type=str, default="hvae_image_debug")
 
   parser.add_argument("--data_name", type=str, default="cifar")
   parser.add_argument("--arch_name", type=str, default="resnet")
@@ -136,7 +139,7 @@ def main():
   args = parser.parse_args()
 
   init_wandb(
-    args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
+      args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
 
   seed_everything(cfg.seed)
@@ -160,17 +163,17 @@ def main():
       milestones=[cfg.warmup_epochs])
 
   train_loader = load_data(
-    args.data_name,
-    "train",
-    cfg.batch_size,
-    workers=4,
-    data_path="../../logs/data")
+      args.data_name,
+      "train",
+      cfg.batch_size,
+      workers=4,
+      data_path="../../logs/data")
   test_loader = load_data(
-    args.data_name,
-    "test",
-    cfg.batch_size,
-    workers=4,
-    data_path="../../logs/data")
+      args.data_name,
+      "test",
+      cfg.batch_size,
+      workers=4,
+      data_path="../../logs/data")
 
   train(model,
         train_loader,
@@ -193,20 +196,20 @@ def main():
   data_to_log = []
   for i in range(len(true_data)):
     data_to_log.append([
-      f"img_{i}",
-      wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
-      wandb.Image(
-        np.clip(
-          np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
-          0,
-          255.0,
-        )),
-      wandb.Image(
-        np.clip(
-          np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
-          0,
-          255.0,
-        )),
+        f"img_{i}",
+        wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
+        wandb.Image(
+            np.clip(
+                np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
+                0,
+                255.0,
+            )),
+        wandb.Image(
+            np.clip(
+                np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
+                0,
+                255.0,
+            )),
     ])
   val_table = wandb.Table(data=data_to_log, columns=column_names)
   wandb.log({"image": val_table})
@@ -216,7 +219,7 @@ def main():
       os.path.join("checkpoints", "base_{}_{}_{}_{}.pth".format(args.data_name, args.arch_name,
                                                                 args.beta, args.schedule))
     log_info = {
-      "state_dict": model.state_dict(),
+        "state_dict": model.state_dict(),
     }
     torch.save(log_info, save_checkpoint)
 

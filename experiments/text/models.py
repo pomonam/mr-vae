@@ -18,34 +18,30 @@ class LstmEncoder(BaseEncoder):
 
     embed_dim = 512 if v1 else 256
     enc_emb_hparams = {
-      'name': 'lookup_table',
-      "dim": embed_dim,
-      "dropout_rate": 0.,
-      'initializer': {
-        'type': 'normal_',
-        'kwargs': {
-          'mean': 0.0,
-          'std': embed_dim ** -0.5,
-        },
-      }
+        'name': 'lookup_table',
+        "dim": embed_dim,
+        "dropout_rate": 0.,
+        'initializer': {
+            'type': 'normal_',
+            'kwargs': {
+                'mean': 0.0,
+                'std': embed_dim**-0.5,
+            },
+        }
     }
     self.embed = tx.modules.WordEmbedder(
-      vocab_size=vocab_size, hparams=enc_emb_hparams)
+        vocab_size=vocab_size, hparams=enc_emb_hparams)
 
     hidden_size = 550 if v1 else 256
     enc_cell_hparams = {
-      "type": "LSTMCell",
-      "kwargs": {
-        "num_units": hidden_size,
-        "bias": 0.
-      },
-      "num_layers": 1
+        "type": "LSTMCell",
+        "kwargs": {"num_units": hidden_size, "bias": 0.},
+        "num_layers": 1
     }
     self.encoder = tx.modules.UnidirectionalRNNEncoder[tx.core.LSTMState](
-      input_size=self.embed.dim,
-      hparams={
-        "rnn_cell": enc_cell_hparams,
-      })
+        input_size=self.embed.dim, hparams={
+            "rnn_cell": enc_cell_hparams,
+        })
 
     self.embedding = nn.Linear(hidden_size * 2, self.latent_dim)
     self.log_var = nn.Linear(hidden_size * 2, self.latent_dim)
@@ -71,36 +67,33 @@ class LstmDecoder(BaseDecoder):
 
     embed_dim = 512 if v1 else 256
     dec_emb_hparams = {
-      'name': 'lookup_table',
-      "dim": embed_dim,
-      "dropout_rate": 0.5,
-      'initializer': {
-        'type': 'normal_',
-        'kwargs': {
-          'mean': 0.0,
-          'std': embed_dim ** -0.5,
-        },
-      }
+        'name': 'lookup_table',
+        "dim": embed_dim,
+        "dropout_rate": 0.5,
+        'initializer': {
+            'type': 'normal_',
+            'kwargs': {
+                'mean': 0.0,
+                'std': embed_dim**-0.5,
+            },
+        }
     }
     self.decoder_w_embedder = tx.modules.WordEmbedder(
-      vocab_size=vocab_size, hparams=dec_emb_hparams)
+        vocab_size=vocab_size, hparams=dec_emb_hparams)
 
     hidden_size = 550 if v1 else 256
     self.hidden_size = hidden_size
     dec_cell_hparams = {
-      "type": "LSTMCell",
-      "kwargs": {
-        "num_units": hidden_size,
-        "bias": 0.
-      },
-      "dropout": {"output_keep_prob": 1. - 0.5},
-      "num_layers": 1
+        "type": "LSTMCell",
+        "kwargs": {"num_units": hidden_size, "bias": 0.},
+        "dropout": {"output_keep_prob": 1. - 0.5},
+        "num_layers": 1
     }
     self.lstm_decoder = tx.modules.BasicRNNDecoder(
-      input_size=(self.decoder_w_embedder.dim + 32),
-      vocab_size=vocab_size,
-      token_embedder=self._embed_fn_rnn,
-      hparams={"rnn_cell": dec_cell_hparams})
+        input_size=(self.decoder_w_embedder.dim + 32),
+        vocab_size=vocab_size,
+        token_embedder=self._embed_fn_rnn,
+        hparams={"rnn_cell": dec_cell_hparams})
 
     self.mlp_linear_layer = nn.Linear(32, hidden_size * 2)
 
@@ -136,22 +129,24 @@ class LstmDecoder(BaseDecoder):
     self._latent_z = z
 
     helper = self.lstm_decoder.create_helper(
-      decoding_strategy="train_greedy",
-      start_tokens=batch["start_tokens"],
-      end_token=batch["end_token"]
-    )
+        decoding_strategy="train_greedy",
+        start_tokens=batch["start_tokens"],
+        end_token=batch["end_token"])
 
     seq_lengths = data_batch["length"] - 1
     outputs = self.decode(
-      helper=helper, latent_z=z,
-      text_ids=data_batch["text_ids"][:, :-1], seq_lengths=seq_lengths)
+        helper=helper,
+        latent_z=z,
+        text_ids=data_batch["text_ids"][:, :-1],
+        seq_lengths=seq_lengths)
 
     logits = outputs.logits
 
     # Losses & train ops
     rc_loss = tx.losses.sequence_sparse_softmax_cross_entropy(
-      labels=data_batch["text_ids"][:, 1:], logits=logits,
-      sequence_length=seq_lengths)
+        labels=data_batch["text_ids"][:, 1:],
+        logits=logits,
+        sequence_length=seq_lengths)
 
     return rc_loss
 
@@ -165,26 +160,25 @@ class TransformerDecoder(BaseDecoder):
     hidden_size = 512 if v1 else 256
     self.hidden_size = hidden_size
     dec_emb_hparams = {
-      'name': 'lookup_table',
-      "dim": embd_dim,
-      "dropout_rate": 0.,
-      'initializer': {
-        'type': 'normal_',
-        'kwargs': {
-          'mean': 0.0,
-          'std': embd_dim ** -0.5,
-        },
-      }
+        'name': 'lookup_table',
+        "dim": embd_dim,
+        "dropout_rate": 0.,
+        'initializer': {
+            'type': 'normal_',
+            'kwargs': {
+                'mean': 0.0,
+                'std': embd_dim**-0.5,
+            },
+        }
     }
     self.decoder_w_embedder = tx.modules.WordEmbedder(
-      vocab_size=vocab_size, hparams=dec_emb_hparams)
+        vocab_size=vocab_size, hparams=dec_emb_hparams)
 
     dec_pos_emb_hparams = {
-      'dim': hidden_size,
+        'dim': hidden_size,
     }
     self.decoder_p_embedder = tx.modules.SinusoidsPositionEmbedder(
-      position_size=300,
-      hparams=dec_pos_emb_hparams)
+        position_size=300, hparams=dec_pos_emb_hparams)
 
     relu_dropout = 0.2
     embedding_dropout = 0.2
@@ -192,62 +186,54 @@ class TransformerDecoder(BaseDecoder):
     residual_dropout = 0.2
     num_blocks = 3
     trans_hparams = {
-      'output_layer_bias': False,
-      'embedding_dropout': embedding_dropout,
-      'residual_dropout': residual_dropout,
-      'num_blocks': num_blocks,
-      'dim': hidden_size,
-      'initializer': {
-        'type': 'variance_scaling_initializer',
-        'kwargs': {
-          'factor': 1.0,
-          'mode': 'FAN_AVG',
-          'uniform': True,
-        },
-      },
-      'multihead_attention': {
-        'dropout_rate': attention_dropout,
-        'num_heads': 8,
-        'num_units': hidden_size,
-        'output_dim': hidden_size
-      },
-      'poswise_feedforward': {
-        'name': 'fnn',
-        'layers': [
-          {
-            'type': 'Linear',
+        'output_layer_bias': False,
+        'embedding_dropout': embedding_dropout,
+        'residual_dropout': residual_dropout,
+        'num_blocks': num_blocks,
+        'dim': hidden_size,
+        'initializer': {
+            'type': 'variance_scaling_initializer',
             'kwargs': {
-              "in_features": hidden_size,
-              "out_features": hidden_size * 4,
-              "bias": True,
+                'factor': 1.0,
+                'mode': 'FAN_AVG',
+                'uniform': True,
             },
-          },
-          {
-            'type': 'ReLU',
-          },
-          {
-            'type': 'Dropout',
-            'kwargs': {
-              'p': relu_dropout,
-            }
-          },
-          {
-            'type': 'Linear',
-            'kwargs': {
-              "in_features": hidden_size * 4,
-              "out_features": hidden_size,
-              "bias": True,
-            }
-          }
-        ],
-      }
+        },
+        'multihead_attention': {
+            'dropout_rate': attention_dropout,
+            'num_heads': 8,
+            'num_units': hidden_size,
+            'output_dim': hidden_size
+        },
+        'poswise_feedforward': {
+            'name':
+                'fnn',
+            'layers': [{
+                'type': 'Linear',
+                'kwargs': {
+                    "in_features": hidden_size,
+                    "out_features": hidden_size * 4,
+                    "bias": True,
+                },
+            }, {
+                'type': 'ReLU',
+            }, {'type': 'Dropout', 'kwargs': {'p': relu_dropout,}},
+                       {
+                           'type': 'Linear',
+                           'kwargs': {
+                               "in_features": hidden_size * 4,
+                               "out_features": hidden_size,
+                               "bias": True,
+                           }
+                       }],
+        }
     }
 
     self.transformer_decoder = tx.modules.TransformerDecoder(
-      # tie word embedding with output layer
-      output_layer=self.decoder_w_embedder.embedding,
-      token_pos_embedder=self._embed_fn_transformer,
-      hparams=trans_hparams)
+        # tie word embedding with output layer
+        output_layer=self.decoder_w_embedder.embedding,
+        token_pos_embedder=self._embed_fn_transformer,
+        hparams=trans_hparams)
 
     self.mlp_linear_layer = nn.Linear(32, hidden_size, bias=True)
 
@@ -256,7 +242,7 @@ class TransformerDecoder(BaseDecoder):
                             positions: torch.LongTensor):
     output_p_embed = self.decoder_p_embedder(positions)
     output_w_embed = self.decoder_w_embedder(tokens)
-    output_w_embed = output_w_embed * self.hidden_size ** 0.5
+    output_w_embed = output_w_embed * self.hidden_size**0.5
     output_embed = output_w_embed + output_p_embed
     return output_embed
 
@@ -274,11 +260,11 @@ class TransformerDecoder(BaseDecoder):
 
     transformer_states = fc_output.unsqueeze(1)
     outputs = self.transformer_decoder(
-      inputs=text_ids,
-      memory=transformer_states,
-      memory_sequence_length=torch.ones(transformer_states.size(0)),
-      helper=helper,
-      max_decoding_length=max_decoding_length)
+        inputs=text_ids,
+        memory=transformer_states,
+        memory_sequence_length=torch.ones(transformer_states.size(0)),
+        helper=helper,
+        max_decoding_length=max_decoding_length)
     return outputs
 
   def ar_forward(self, x, z, batch):
@@ -287,14 +273,17 @@ class TransformerDecoder(BaseDecoder):
 
     seq_lengths = data_batch["length"] - 1
     outputs = self.decode(
-      helper=None, latent_z=z,
-      text_ids=data_batch["text_ids"][:, :-1], seq_lengths=seq_lengths)
+        helper=None,
+        latent_z=z,
+        text_ids=data_batch["text_ids"][:, :-1],
+        seq_lengths=seq_lengths)
 
     logits = outputs.logits
 
     # Losses & train ops
     rc_loss = tx.losses.sequence_sparse_softmax_cross_entropy(
-      labels=data_batch["text_ids"][:, 1:], logits=logits,
-      sequence_length=seq_lengths)
+        labels=data_batch["text_ids"][:, 1:],
+        logits=logits,
+        sequence_length=seq_lengths)
 
     return rc_loss
