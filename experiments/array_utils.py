@@ -46,9 +46,11 @@ def generate_sh_file(file_name: str,
     lines += "#SBATCH -J test\n"
     lines += "#SBATCH --gres=gpu:1\n"
     lines += "#SBATCH --mem={}GB\n".format(mem)
-    lines += "#SBATCH --partition=t4v1,p100,t4v2,rtx6000\n"
     if qos == "deadline":
+      lines += "#SBATCH --partition=t4v1,p100,t4v2\n"
       lines += "#SBATCH --account=deadline\n"
+    else:
+      lines += "#SBATCH --partition=t4v1,p100,t4v2,rtx6000\n"
     lines += "#SBATCH --qos={}\n".format(qos)
     lines += "#SBATCH --export=ALL\n"
     lines += "#SBATCH --array=0-{0}%{0}\n".format(num_jobs)
