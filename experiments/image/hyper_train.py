@@ -205,7 +205,7 @@ def main():
       DEVICE,
       train_loader=train_loader)
 
-  for sample in model.get_test_samples(4):
+  for sample in model.get_log_uniform_samples(4):
     true_data, reconstructions, generations = hyper_predict(model, test_loader, sample, DEVICE)
     column_names = ["images_id", "truth", "reconstruction", "normal_generation"]
     data_to_log = []
