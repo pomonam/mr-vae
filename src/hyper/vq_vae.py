@@ -1,30 +1,31 @@
-# Code adapted from:
-# https://github.com/clementchadebec/benchmark_VAE/blob/main/src/pythae/models/vq_vae/vq_vae_model.py
 from typing import Tuple
 
 import torch
 from torch import nn
 import torch.nn.functional as F
 
-from src.base_architecture import BaseDecoder
-from src.base_architecture import BaseEncoder
-from src.base_model import BaseAE
+from src.hyper.base_architecture import BaseHyperDecoder
+from src.hyper.base_architecture import BaseHyperEncoder
+from src.hyper.base_model import HyperVAE
+from src.config import HyperConfig
 
 
-class VQVAE(BaseAE):
+class HyperVQVAE(HyperVAE):
 
   def __init__(
       self,
       model_config: dict,
-      encoder: BaseEncoder,
-      decoder: BaseDecoder,
-      lamb: float = 1.0,
+      hyper_cfg: HyperConfig,
+      encoder: BaseHyperEncoder,
+      decoder: BaseHyperDecoder,
   ) -> None:
-    super().__init__(encoder=encoder, decoder=decoder)
+    super().__init__(encoder=encoder, decoder=decoder, hyper_cfg=hyper_cfg)
 
     self.model_config = model_config
-    self.model_name = "VQVAE"
-    self.lamb = lamb
+    self.model_name = "HyperVQVAE"
+
+    sample_dict = self.sample_inverse(torch.Tensor((1, 1)), 1)
+    self.set_net_inputs(sample_dict["net"])
 
     self._set_quantizer(model_config)
 
@@ -44,17 +45,19 @@ class VQVAE(BaseAE):
     z = z.permute(0, 2, 3, 1)
 
     self.model_config["embedding_dim"] = z.shape[-1]
-    if model_config["use_ema"]:
-      self.quantizer = QuantizerEMA(model_config=model_config)
+    self.quantizer = HyperQuantizer(model_config=model_config, hyper_cfg=self.hyper_cfg)
 
-    else:
-      self.quantizer = Quantizer(model_config=model_config)
+  def forward(self, inputs: dict, **kwargs) -> dict:
+    # Default behaviour is to sample betas.
+    return self.sample_forward(inputs)
 
-  def forward(self, inputs: torch.Tensor, **kwargs) -> dict:
+  def sample_forward(self, inputs: dict, **kwargs) -> dict:
     if isinstance(inputs, torch.Tensor):
       x = inputs
     else:
       x = inputs["data"]
+    sample_dict = self.sample(x)
+    self.set_net_inputs(sample_dict["net"])
 
     encoder_output = self.encoder(x)
     embeddings = encoder_output["embedding"]
@@ -76,7 +79,7 @@ class VQVAE(BaseAE):
 
     recon_x = self.decoder(quantized_embed)["reconstruction"]
 
-    loss, recon_loss, vq_loss = self.loss_function(recon_x, x, quantizer_output)
+    loss, recon_loss, vq_loss = self.loss_function(recon_x, x, quantizer_output, sample_dict["beta"])
 
     output = {
         "recon_loss": recon_loss,
@@ -89,8 +92,46 @@ class VQVAE(BaseAE):
 
     return output
 
+  def fixed_forward(self, inputs: dict, value:float, **kwargs) -> dict:
+    x = inputs["data"]
+    sample_dict = self.sample_inverse(x, value)
+    self.set_net_inputs(sample_dict["net"])
+
+    encoder_output = self.encoder(x)
+    embeddings = encoder_output["embedding"]
+    reshape_for_decoding = False
+
+    if len(embeddings.shape) == 2:
+      embeddings = embeddings.reshape(embeddings.shape[0], 1, 1, -1)
+      reshape_for_decoding = True
+
+    embeddings = embeddings.permute(0, 2, 3, 1)
+
+    quantizer_output = self.quantizer(embeddings)
+
+    quantized_embed = quantizer_output["quantized_vector"]
+    quantized_indices = quantizer_output["quantized_indices"]
+
+    if reshape_for_decoding:
+      quantized_embed = quantized_embed.reshape(embeddings.shape[0], -1)
+
+    recon_x = self.decoder(quantized_embed)["reconstruction"]
+
+    loss, recon_loss, vq_loss = self.loss_function(recon_x, x, quantizer_output, sample_dict["beta"])
+
+    output = {
+      "recon_loss": recon_loss,
+      "vq_loss": vq_loss,
+      "loss": loss,
+      "recon_x": recon_x,
+      "z": quantized_embed,
+      "quantized_indices": quantized_indices,
+    }
+
+    return output
+
   def loss_function(
-      self, recon_x: torch.Tensor, x: torch.Tensor, quantizer_output: dict
+      self, recon_x: torch.Tensor, x: torch.Tensor, quantizer_output: dict, lambdas: torch.Tensor
   ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
 
     recon_loss = F.mse_loss(
@@ -101,18 +142,19 @@ class VQVAE(BaseAE):
     vq_loss = quantizer_output["loss"]
 
     return (
-        (recon_loss + self.lamb * vq_loss).mean(dim=0),
+        (recon_loss + lambdas.squeeze(-1) * vq_loss).mean(dim=0),
         recon_loss.mean(dim=0),
         vq_loss.mean(dim=0),
     )
 
 
-class Quantizer(nn.Module):
+class HyperQuantizer(nn.Module):
 
-  def __init__(self, model_config):
+  def __init__(self, model_config, hyper_cfg):
     nn.Module.__init__(self)
 
     self.model_config = model_config
+    self.hyper_cfg = hyper_cfg
 
     self.embedding_dim = model_config["embedding_dim"]
     self.num_embeddings = model_config["num_embeddings"]
@@ -120,7 +162,6 @@ class Quantizer(nn.Module):
     self.quantization_loss_factor = model_config["quantization_loss_factor"]
 
     self.embeddings = nn.Embedding(self.num_embeddings, self.embedding_dim)
-
     self.embeddings.weight.data.uniform_(-1 / self.num_embeddings,
                                          1 / self.num_embeddings)
 
@@ -166,88 +207,6 @@ class Quantizer(nn.Module):
     #   quantized_indices=quantized_indices.unsqueeze(1),
     #   loss=loss,
     # )
-    output = {
-        "quantized_vector": quantized,
-        "quantized_indices": quantized_indices.unsqueeze(1),
-        "loss": loss,
-    }
-
-    return output
-
-
-class QuantizerEMA(nn.Module):
-
-  def __init__(self, model_config):
-    nn.Module.__init__(self)
-
-    self.model_config = model_config
-
-    self.embedding_dim = model_config.embedding_dim
-    self.num_embeddings = model_config.num_embeddings
-    self.commitment_loss_factor = model_config.commitment_loss_factor
-    self.decay = model_config.decay
-
-    self.embeddings = nn.Embedding(self.num_embeddings, self.embedding_dim)
-
-    self.embeddings.weight.data.uniform_(-1 / self.num_embeddings,
-                                         1 / self.num_embeddings)
-
-    self.register_buffer("cluster_size", torch.zeros(self.num_embeddings))
-
-    self.ema_embed = nn.Parameter(
-        torch.Tensor(self.num_embeddings, self.embedding_dim))
-
-    self.ema_embed.data.uniform_(-1 / self.num_embeddings,
-                                 1 / self.num_embeddings)
-
-  def forward(self, z: torch.Tensor):
-    distances = (
-        (z.reshape(-1, self.embedding_dim)**2).sum(dim=-1, keepdim=True) +
-        (self.embeddings.weight**2).sum(dim=-1) -
-        2 * z.reshape(-1, self.embedding_dim) @ self.embeddings.weight.T)
-
-    closest = distances.argmin(-1).unsqueeze(-1)
-
-    quantized_indices = closest.reshape(z.shape[0], z.shape[1], z.shape[2])
-
-    one_hot_encoding = (
-        F.one_hot(closest,
-                  num_classes=self.num_embeddings).type(torch.float).squeeze(1))
-
-    # quantization
-    quantized = one_hot_encoding @ self.embeddings.weight
-    quantized = quantized.reshape_as(z)
-
-    if self.training:
-      n_i = torch.sum(one_hot_encoding, dim=0)
-
-      self.cluster_size = self.cluster_size * self.decay + n_i * (1 -
-                                                                  self.decay)
-
-      dw = one_hot_encoding.T @ z.reshape(-1, self.embedding_dim)
-
-      self.ema_embed = nn.Parameter(self.ema_embed * self.decay + dw *
-                                    (1 - self.decay))
-
-      n = torch.sum(self.cluster_size)
-
-      self.cluster_size = ((self.cluster_size + 1e-5) /
-                           (n + self.num_embeddings * 1e-5) * n)
-
-      self.embeddings.weight = nn.Parameter(self.ema_embed /
-                                            self.cluster_size.unsqueeze(-1))
-
-    commitment_loss = F.mse_loss(
-        quantized.detach().reshape(-1, self.embedding_dim),
-        z.reshape(-1, self.embedding_dim),
-        reduction="mean",
-    )
-
-    quantized = z + (quantized - z).detach()
-
-    loss = commitment_loss * self.commitment_loss_factor
-    quantized = quantized.permute(0, 3, 1, 2)
-
     output = {
         "quantized_vector": quantized,
         "quantized_indices": quantized_indices.unsqueeze(1),
