@@ -5,12 +5,12 @@ from experiments.array_utils import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="baseline_sweep")
-parser.add_argument("--experiment_name", type=str, default="hvae_text_sweep_v2")
+parser.add_argument("--experiment_name", type=str, default="hvae_text_sweep_v9")
 
 args = parser.parse_args()
 
 CONFIG = {
-    "lr": [3e-3, 1e-3, 3e-4],
+    "lr": [1e-2, 3e-3, 1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
     "data_name": ["yahoo", "ptb"],
     "total_epochs": [100],
     "decoder_name": ["lstm", "trans"],
@@ -25,4 +25,4 @@ if __name__ == "__main__":
           args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
-  generate_sh_file(args.file_name, len(jobs))
+  generate_sh_file(args.file_name, len(jobs), qos="deadline")

@@ -97,19 +97,20 @@ class HyperConfig:
 
         else:
           raise NotImplementedError()
-      else:
-       self.shared_preprocess = get_ns(args, "shared_preprocess")
-       self.apply_zero_init = get_ns(args, "apply_zero_init")
-       self.apply_bn_tracking = get_ns(args, "apply_bn_tracking")
-       self.apply_bn_calibrate = get_ns(args, "apply_bn_calibrate")
-       self.apply_bn_replace = get_ns(args, "apply_bn_replace")
-       self.reduce_range = get_ns(args, "reduce_range")
-       self.include_latent_stem = get_ns(args, "include_latent_stem")
 
-      self.param_type = get_ns(args, "param_type")
-      self.layer_type = get_ns(args, "layer_type")
-      self.block_type = get_ns(args, "block_type")
-      self.norm_type = get_ns(args, "norm_type")
+      else:
+        self.shared_preprocess = get_ns(args, "shared_preprocess")
+        self.apply_zero_init = get_ns(args, "apply_zero_init")
+        self.apply_bn_tracking = get_ns(args, "apply_bn_tracking")
+        self.apply_bn_calibrate = get_ns(args, "apply_bn_calibrate")
+        self.apply_bn_replace = get_ns(args, "apply_bn_replace")
+        self.reduce_range = get_ns(args, "reduce_range")
+        self.include_latent_stem = get_ns(args, "include_latent_stem")
+
+        self.param_type = get_ns(args, "param_type")
+        self.layer_type = get_ns(args, "layer_type")
+        self.block_type = get_ns(args, "block_type")
+        self.norm_type = get_ns(args, "norm_type")
 
   def initialize_default_config(self) -> None:
     self.shared_preprocess = 0

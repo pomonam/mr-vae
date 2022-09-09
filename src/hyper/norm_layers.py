@@ -37,9 +37,9 @@ def initialize_norm_hyper_blocks(features: int,
       block.bias.data.fill_(0)
   else:
     block = get_block("mlp")(
-      in_features=1,
-      out_features=features,
-      emd_features=hyper_cfg.non_shared_emd_dim,
+        in_features=1,
+        out_features=features,
+        emd_features=hyper_cfg.non_shared_emd_dim,
     )
     if hyper_cfg.apply_zero_init or apply_zero_init:
       block.layers[-1].weight.data.fill_(0)
@@ -65,27 +65,27 @@ class HyperBatchNormLayer(HyperLayer):
       if not self.hyper_cfg.apply_bn_replace:
         if self.hyper_cfg.apply_bn_tracking:
           self.bn = nn.BatchNorm2d(
-            features, affine=False, track_running_stats=True)
+              features, affine=False, track_running_stats=True)
         else:
           self.bn = nn.BatchNorm2d(
-            features, affine=False, track_running_stats=True)
+              features, affine=False, track_running_stats=True)
           # We need to initialize the statistics
           self.bn.track_running_stats = False
       else:
         # If replace flag is up, replace with InstanceNorm.
         self.bn = nn.InstanceNorm2d(features, affine=False)
 
-      self.hyper_block_scale = initialize_norm_hyper_blocks(self.features,
-                                                            self.hyper_cfg)
-      self.hyper_block_shift = initialize_norm_hyper_blocks(self.features,
-                                                            self.hyper_cfg)
+      self.hyper_block_scale = initialize_norm_hyper_blocks(
+          self.features, self.hyper_cfg)
+      self.hyper_block_shift = initialize_norm_hyper_blocks(
+          self.features, self.hyper_cfg)
     else:
       if self.hyper_cfg.apply_bn_tracking:
         self.bn = nn.BatchNorm2d(
-          features, affine=True, track_running_stats=True)
+            features, affine=True, track_running_stats=True)
       else:
         self.bn = nn.BatchNorm2d(
-          features, affine=True, track_running_stats=True)
+            features, affine=True, track_running_stats=True)
         self.bn.track_running_stats = False
 
   def forward(self, inputs: torch.Tensor) -> torch.Tensor:
@@ -130,10 +130,10 @@ class HyperLayerNormLayer(HyperLayer):
       torch.nn.init.zeros_(self.bias)
 
       self.ln = nn.LayerNorm(features, elementwise_affine=False, eps=eps)
-      self.hyper_block_scale = initialize_norm_hyper_blocks(self.features,
-                                                            self.hyper_cfg)
-      self.hyper_block_shift = initialize_norm_hyper_blocks(self.features,
-                                                            self.hyper_cfg)
+      self.hyper_block_scale = initialize_norm_hyper_blocks(
+          self.features, self.hyper_cfg)
+      self.hyper_block_shift = initialize_norm_hyper_blocks(
+          self.features, self.hyper_cfg)
     else:
       self.ln = nn.LayerNorm(features, elementwise_affine=True, eps=eps)
 
