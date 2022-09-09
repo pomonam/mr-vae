@@ -109,13 +109,18 @@ class HyperConvEncoder(BaseHyperEncoder):
     self.layers = layers
     self.depth = len(layers)
 
-    self.embedding = nn.Linear(1024, self.latent_dim)
-    self.hyper_embedding = get_hyper_layer(self.latent_dim, hyper_cfg)
-    self.embedding_proj = nn.Linear(self.latent_dim, self.latent_dim)
+    if self.hyper_cfg.include_latent_stem:
+      self.embedding = nn.Linear(1024, 784)
+      self.hyper_embedding = get_hyper_layer(784, hyper_cfg)
+      self.embedding_proj = nn.Linear(784, self.latent_dim)
 
-    self.log_var = nn.Linear(1024, self.latent_dim)
-    self.hyper_log_var = get_hyper_layer(self.latent_dim, hyper_cfg)
-    self.log_var_proj = nn.Linear(self.latent_dim, self.latent_dim)
+      self.log_var = nn.Linear(1024, 784)
+      self.hyper_log_var = get_hyper_layer(784, hyper_cfg)
+      self.log_var_proj = nn.Linear(784, self.latent_dim)
+
+    else:
+      self.embedding = nn.Linear(1024, self.latent_dim)
+      self.log_var = nn.Linear(1024, self.latent_dim)
 
   def forward(self, x: torch.Tensor):
     max_depth = self.depth
@@ -128,11 +133,13 @@ class HyperConvEncoder(BaseHyperEncoder):
       if i + 1 == self.depth:
         if self.hyper_cfg.include_latent_stem:
           emb = self.embedding(out.reshape(x.shape[0], -1))
+          emb = torch.relu(emb)
           emb = self.hyper_embedding(emb)
           emb = self.embedding_proj(emb)
           output["embedding"] = emb
 
           lv = self.log_var(out.reshape(x.shape[0], -1))
+          lv = torch.relu(lv)
           lv = self.hyper_log_var(lv)
           lv = self.log_var_proj(lv)
           output["log_covariance"] = lv
@@ -333,13 +340,17 @@ class HyperResNetEncoder(BaseHyperEncoder):
     self.layers = layers
     self.depth = len(layers)
 
-    self.embedding = nn.Linear(128 * 4 * 4, self.latent_dim)
-    self.hyper_embedding = get_hyper_layer(self.latent_dim, hyper_cfg)
-    self.embedding_proj = nn.Linear(self.latent_dim, self.latent_dim)
+    if self.hyper_cfg.include_latent_stem:
+      self.embedding = nn.Linear(128 * 4 * 4, 784)
+      self.hyper_embedding = get_hyper_layer(784, hyper_cfg)
+      self.embedding_proj = nn.Linear(784, self.latent_dim)
 
-    self.log_var = nn.Linear(128 * 4 * 4, self.latent_dim)
-    self.hyper_log_var = get_hyper_layer(self.latent_dim, hyper_cfg)
-    self.log_var_proj = nn.Linear(self.latent_dim, self.latent_dim)
+      self.log_var = nn.Linear(128 * 4 * 4, 784)
+      self.hyper_log_var = get_hyper_layer(784, hyper_cfg)
+      self.log_var_proj = nn.Linear(784, self.latent_dim)
+    else:
+      self.embedding = nn.Linear(128 * 4 * 4, self.latent_dim)
+      self.log_var = nn.Linear(128 * 4 * 4, self.latent_dim)
 
   def forward(self, inputs: torch.Tensor):
     max_depth = self.depth
@@ -352,10 +363,12 @@ class HyperResNetEncoder(BaseHyperEncoder):
       if i + 1 == self.depth:
         if self.hyper_cfg.include_latent_stem:
           emb = self.embedding(out.reshape(inputs.shape[0], -1))
+          emb = torch.relu(emb)
           emb = self.hyper_embedding(emb)
           emb = self.embedding_proj(emb)
           output["embedding"] = emb
           lv = self.log_var(out.reshape(inputs.shape[0], -1))
+          lv = torch.relu(lv)
           lv = self.hyper_log_var(lv)
           lv = self.log_var_proj(lv)
           output["log_covariance"] = lv
