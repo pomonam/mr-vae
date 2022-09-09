@@ -126,9 +126,14 @@ class HyperLstmDecoder(BaseHyperDecoder):
     self.mlp_linear_layer = nn.Linear(32, hidden_size * 2)
     self.hyper_mlp_linear_layer = get_hyper_layer(hidden_size * 2, hyper_cfg)
 
+  def forward(self, inputs: torch.Tensor):
+    raise LookupError()
+
   def _embed_fn_rnn(self, tokens: torch.LongTensor):
     embedding = self.decoder_w_embedder(tokens)
+    embedding = torch.transpose(embedding, 0, 1)
     embedding = self.hyper_decoder_w_embedder(embedding)
+    embedding = torch.transpose(embedding, 0, 1)
     latent_z = self._latent_z
     if len(embedding.size()) > 2:
       latent_z = latent_z.unsqueeze(0).repeat(tokens.size(0), 1, 1)
@@ -285,7 +290,7 @@ class HyperTransformerDecoder(BaseHyperDecoder):
     return output_embed
 
   def forward(self, z: torch.Tensor):
-    raise LookupError
+    raise LookupError()
 
   def decode(self,
              helper,

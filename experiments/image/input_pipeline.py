@@ -78,6 +78,7 @@ def load_data(data_name,
         transforms.Resize(64),
         transforms.ToTensor(),
     ])
+    # Feed in default paths.
     train_data = CelebA(
         "/scratch/ssd002/datasets/celeba_pytorch",
         split="train",
