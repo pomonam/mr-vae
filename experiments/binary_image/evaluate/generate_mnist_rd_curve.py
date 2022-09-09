@@ -11,7 +11,7 @@ from experiments.wandb_utils import init_api
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_bimage_jobs_v1"
 HYPER_NAME = "hvae_bimage_nas_sweep_layer_type_v3"
-ID = "3qtmd6au"
+ID = "3mk3svzo"
 
 
 def get_summary(summary, test=True):

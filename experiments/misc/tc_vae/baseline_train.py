@@ -1,235 +1,400 @@
-import argparse
 import os
-
-import numpy as np
+import time
+import math
+from numbers import Number
+import argparse
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import wandb
+import torch.optim as optim
+from torch.autograd import Variable
+from torch.utils.data import DataLoader
 
-from experiments.misc.tc_vae.input_pipeline import load_data
-from experiments.misc.tc_vae.metrics import mutual_info_metric_shapes
-from experiments.misc.tc_vae.model import Decoder
-from experiments.misc.tc_vae.model import Encoder
-from experiments.train_utils import evaluate
-from experiments.train_utils import predict
-from experiments.train_utils import train
-from experiments.wandb_utils import init_wandb
-from src.config import TrainConfig
-from src.models.beta_tc_vae import BetaTCVAE
-from src.utils import seed_everything
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--experiment_name", type=str, default="hvae_tc_debug")
-
-parser.add_argument("--total_epochs", type=int, default=50)
-
-parser.add_argument("--lr", type=float, default=1e-3)
-parser.add_argument("--batch_size", type=int, default=2048)
-parser.add_argument("--beta", type=float, default=6.)
-parser.add_argument("--schedule", type=str, default="monotonic")
-
-parser.add_argument("--seed", type=int, default=0)
-parser.add_argument("--checkpoint_dir", type=str, default=None)
-parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=50)
-parser.add_argument("--eval_freq", type=int, default=10)
-args = parser.parse_args()
-
-cuda = torch.cuda.is_available()
-DEVICE = torch.device("cuda" if cuda else "cpu")
+import experiments.misc.tc_vae.lib.dist as dist
+import experiments.misc.tc_vae.lib.utils as utils
+import experiments.misc.tc_vae.lib.datasets as dset
+from experiments.misc.tc_vae.metrics import compute_metric_shapes
+from experiments.misc.tc_vae.elbo_decomposition import elbo_decomposition
+# from plot_latent_vs_true import plot_vs_gt_shapes, plot_vs_gt_faces  # noqa: F401
 
 
-class Criterion(nn.Module):
+class MLPEncoder(nn.Module):
+    def __init__(self, output_dim):
+        super(MLPEncoder, self).__init__()
+        self.output_dim = output_dim
 
-  @staticmethod
-  def _compute_log_gauss_density(z, mu, log_std):
-    """element-wise computation"""
-    c = torch.log(torch.tensor([2 * np.pi]).to(z.device))
-    inv_sigma = torch.exp(-log_std)
-    tmp = (z - mu) * inv_sigma
-    return -0.5 * (tmp * tmp + 2 * log_std + c)
+        self.fc1 = nn.Linear(4096, 1200)
+        self.fc2 = nn.Linear(1200, 1200)
+        self.fc3 = nn.Linear(1200, output_dim)
 
-  @staticmethod
-  def _log_importance_weight_matrix(batch_size, dataset_size):
-    """Compute importance weigth matrix for MSS
-    Code from (https://github.com/rtqichen/beta-tcvae/blob/master/vae_quant.py)
+        self.conv_z = nn.Conv2d(64, output_dim, 4, 1, 0)
+
+        # setup the non-linearity
+        self.act = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        h = x.view(-1, 64 * 64)
+        h = self.act(self.fc1(h))
+        h = self.act(self.fc2(h))
+        h = self.fc3(h)
+        z = h.view(x.size(0), self.output_dim)
+        return z
+
+
+class MLPDecoder(nn.Module):
+    def __init__(self, input_dim):
+        super(MLPDecoder, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, 1200),
+            nn.Tanh(),
+            nn.Linear(1200, 1200),
+            nn.Tanh(),
+            nn.Linear(1200, 1200),
+            nn.Tanh(),
+            nn.Linear(1200, 4096)
+        )
+
+    def forward(self, z):
+        h = z.view(z.size(0), -1)
+        h = self.net(h)
+        mu_img = h.view(z.size(0), 1, 64, 64)
+        return mu_img
+
+
+class VAE(nn.Module):
+    def __init__(self, z_dim, use_cuda=False, prior_dist=dist.Normal(), q_dist=dist.Normal(),
+                 include_mutinfo=True, tcvae=False, conv=False, mss=False):
+        super(VAE, self).__init__()
+
+        self.use_cuda = use_cuda
+        self.z_dim = z_dim
+        self.include_mutinfo = include_mutinfo
+        self.tcvae = tcvae
+        self.lamb = 0
+        self.beta = 1
+        self.mss = mss
+        self.x_dist = dist.Bernoulli()
+
+        # Model-specific
+        # distribution family of p(z)
+        self.prior_dist = prior_dist
+        self.q_dist = q_dist
+        # hyperparameters for prior p(z)
+        self.register_buffer('prior_params', torch.zeros(self.z_dim, 2))
+
+        # create the encoder and decoder networks
+        self.encoder = MLPEncoder(z_dim * self.q_dist.nparams)
+        self.decoder = MLPDecoder(z_dim)
+
+        # if use_cuda:
+        #     # calling cuda() here will put all the parameters of
+        #     # the encoder and decoder networks into gpu memory
+        #     self.cuda()
+
+    # return prior parameters wrapped in a suitable Variable
+    def _get_prior_params(self, batch_size=1):
+        expanded_size = (batch_size,) + self.prior_params.size()
+        prior_params = Variable(self.prior_params.expand(expanded_size))
+        return prior_params
+
+    # samples from the model p(x|z)p(z)
+    def model_sample(self, batch_size=1):
+        # sample from prior (value will be sampled by guide when computing the ELBO)
+        prior_params = self._get_prior_params(batch_size)
+        zs = self.prior_dist.sample(params=prior_params)
+        # decode the latent code z
+        x_params = self.decoder.forward(zs)
+        return x_params
+
+    # define the guide (i.e. variational distribution) q(z|x)
+    def encode(self, x):
+        x = x.view(x.size(0), 1, 64, 64)
+        # use the encoder to get the parameters used to define q(z|x)
+        z_params = self.encoder.forward(x).view(x.size(0), self.z_dim, self.q_dist.nparams)
+        # sample the latent code z
+        zs = self.q_dist.sample(params=z_params)
+        return zs, z_params
+
+    def decode(self, z):
+        x_params = self.decoder.forward(z).view(z.size(0), 1, 64, 64)
+        xs = self.x_dist.sample(params=x_params)
+        return xs, x_params
+
+    # define a helper function for reconstructing images
+    def reconstruct_img(self, x):
+        zs, z_params = self.encode(x)
+        xs, x_params = self.decode(zs)
+        return xs, x_params, zs, z_params
+
+    def _log_importance_weight_matrix(self, batch_size, dataset_size):
+        N = dataset_size
+        M = batch_size - 1
+        strat_weight = (N - M) / (N * M)
+        W = torch.Tensor(batch_size, batch_size).fill_(1 / M)
+        W.view(-1)[::M+1] = 1 / N
+        W.view(-1)[1::M+1] = strat_weight
+        W[M-1, 0] = strat_weight
+        return W.log()
+
+    def elbo(self, x, dataset_size):
+        # log p(x|z) + log p(z) - log q(z|x)
+        batch_size = x.size(0)
+        x = x.view(batch_size, 1, 64, 64)
+        prior_params = self._get_prior_params(batch_size)
+        x_recon, x_params, zs, z_params = self.reconstruct_img(x)
+        logpx = self.x_dist.log_density(x, params=x_params).view(batch_size, -1).sum(1)
+        logpz = self.prior_dist.log_density(zs, params=prior_params).view(batch_size, -1).sum(1)
+        logqz_condx = self.q_dist.log_density(zs, params=z_params).view(batch_size, -1).sum(1)
+
+        elbo = logpx + logpz - logqz_condx
+
+        if self.beta == 1 and self.include_mutinfo and self.lamb == 0:
+            return elbo, elbo.detach()
+
+        # compute log q(z) ~= log 1/(NM) sum_m=1^M q(z|x_m) = - log(MN) + logsumexp_m(q(z|x_m))
+        _logqz = self.q_dist.log_density(
+            zs.view(batch_size, 1, self.z_dim),
+            z_params.view(1, batch_size, self.z_dim, self.q_dist.nparams)
+        )
+
+        if not self.mss:
+            # minibatch weighted sampling
+            logqz_prodmarginals = (logsumexp(_logqz, dim=1, keepdim=False) - math.log(batch_size * dataset_size)).sum(1)
+            logqz = (logsumexp(_logqz.sum(2), dim=1, keepdim=False) - math.log(batch_size * dataset_size))
+        else:
+            # minibatch stratified sampling
+            logiw_matrix = Variable(self._log_importance_weight_matrix(batch_size, dataset_size).type_as(_logqz.data))
+            logqz = logsumexp(logiw_matrix + _logqz.sum(2), dim=1, keepdim=False)
+            logqz_prodmarginals = logsumexp(
+                logiw_matrix.view(batch_size, batch_size, 1) + _logqz, dim=1, keepdim=False).sum(1)
+
+        if not self.tcvae:
+            if self.include_mutinfo:
+                modified_elbo = logpx - self.beta * (
+                    (logqz_condx - logpz) -
+                    self.lamb * (logqz_prodmarginals - logpz)
+                )
+            else:
+                modified_elbo = logpx - self.beta * (
+                    (logqz - logqz_prodmarginals) +
+                    (1 - self.lamb) * (logqz_prodmarginals - logpz)
+                )
+        else:
+            if self.include_mutinfo:
+                modified_elbo = logpx - \
+                    (logqz_condx - logqz) - \
+                    self.beta * (logqz - logqz_prodmarginals) - \
+                    (1 - self.lamb) * (logqz_prodmarginals - logpz)
+            else:
+                modified_elbo = logpx - \
+                    self.beta * (logqz - logqz_prodmarginals) - \
+                    (1 - self.lamb) * (logqz_prodmarginals - logpz)
+
+        return modified_elbo, elbo.detach()
+
+
+def logsumexp(value, dim=None, keepdim=False):
+    """Numerically stable implementation of the operation
+    value.exp().sum(dim, keepdim).log()
     """
-    N = dataset_size
-    M = batch_size - 1
-    strat_weight = (N - M) / (N * M)
-    W = torch.Tensor(batch_size, batch_size).fill_(1 / M)
-    W.view(-1)[::M + 1] = 1 / N
-    W.view(-1)[1::M + 1] = strat_weight
-    W[M - 1, 0] = strat_weight
-    return W.log()
-
-  @staticmethod
-  def get_metric_lst():
-    return ["loss", "rate", "distortion"]
-
-  @staticmethod
-  def get_eval_metric_lst():
-    return Criterion.get_metric_lst()
-
-  @staticmethod
-  def forward(recon_x, x, mu, log_var, z, beta):
-    log_std = log_var
-    # This is bad practice, but log_var means log_std for TC-VAE.
-    del log_var
-
-    # dataset_size = 737280
-    dataset_size = recon_x.shape[0]
-    recon_loss = F.mse_loss(
-        recon_x.reshape(x.shape[0], -1),
-        x.reshape(x.shape[0], -1),
-        reduction="none",
-    ).sum(dim=-1)
-
-    log_q_z_given_x = Criterion._compute_log_gauss_density(z, mu, log_std).sum(
-        dim=-1)  # [B]
-
-    log_prior = Criterion._compute_log_gauss_density(z,
-                                                     torch.zeros_like(z),
-                                                     torch.zeros_like(z)).sum(
-                                                         dim=-1)  # [B]
-
-    log_q_batch_perm = Criterion._compute_log_gauss_density(
-        z.reshape(z.shape[0], 1, -1),
-        mu.reshape(1, z.shape[0], -1),
-        log_std.reshape(1, z.shape[0], -1),
-    )  # [B x B x Latent_dim]
-
-    logiw_mat = Criterion._log_importance_weight_matrix(z.shape[0],
-                                                        dataset_size).to(
-                                                            z.device)
-    log_q_z = torch.logsumexp(
-        logiw_mat + log_q_batch_perm.sum(dim=-1), dim=-1)  # MMS [B]
-    log_prod_q_z = (torch.logsumexp(
-        logiw_mat.reshape(z.shape[0], z.shape[0], -1) + log_q_batch_perm,
-        dim=1,
-    )).sum(dim=-1)  # MMS [B]
-
-    # log_q_z = torch.logsumexp(log_q_batch_perm.sum(dim=-1), dim=-1) - torch.log(
-    #   torch.tensor([z.shape[0] * dataset_size]).to(z.device)
-    # )  # MWS [B]
-    #
-    # log_prod_q_z = (
-    #     torch.logsumexp(log_q_batch_perm, dim=1)
-    #     - torch.log(torch.tensor([z.shape[0] * dataset_size]).to(z.device))
-    # ).sum(
-    #   dim=-1
-    # )  # MWS [B]
-
-    mutual_info_loss = log_q_z_given_x - log_q_z
-    TC_loss = log_q_z - log_prod_q_z
-    dimension_wise_KL = log_prod_q_z - log_prior
-
-    loss_dict = {
-        "loss": (recon_loss + dimension_wise_KL + mutual_info_loss +
-                 beta * TC_loss).mean(dim=0),
-        "distortion":
-            recon_loss.mean(dim=0),
-        "rate": (dimension_wise_KL + mutual_info_loss + TC_loss).mean(dim=0)
-    }
-    return loss_dict
-
-  @staticmethod
-  def eval_forward(recon_x, x, mu, log_var, z, beta):
-    return Criterion.forward(recon_x, x, mu, log_var, z, beta=1.)
+    if dim is not None:
+        m, _ = torch.max(value, dim=dim, keepdim=True)
+        value0 = value - m
+        if keepdim is False:
+            m = m.squeeze(dim)
+        return m + torch.log(torch.sum(torch.exp(value0),
+                                       dim=dim, keepdim=keepdim))
+    else:
+        m = torch.max(value)
+        sum_exp = torch.sum(torch.exp(value - m))
+        if isinstance(sum_exp, Number):
+            return m + math.log(sum_exp)
+        else:
+            return m + torch.log(sum_exp)
 
 
-def build_criterion(device):
-  loss_fnc = Criterion()
-  return loss_fnc.to(device)
+# for loading and batching datasets
+def setup_data_loaders(args):
+    if args.dataset == 'shapes':
+        train_set = dset.Shapes()
+    elif args.dataset == 'faces':
+        train_set = dset.Faces()
+    else:
+        raise ValueError('Unknown dataset ' + str(args.dataset))
+
+    kwargs = {'num_workers': 4, 'pin_memory': True}
+    train_loader = DataLoader(dataset=train_set,
+        batch_size=args.batch_size, shuffle=True, **kwargs)
+    return train_loader
 
 
-def build_model(device):
-  encoder = Encoder()
-  decoder = Decoder()
+win_samples = None
+win_test_reco = None
+win_latent_walk = None
+win_train_elbo = None
 
-  model = BetaTCVAE(
-      encoder=encoder,
-      decoder=decoder,
-  )
-  model.reconstruction_loss = "mse"
-  return model.to(device)
+
+def display_samples(model, x, vis):
+    global win_samples, win_test_reco, win_latent_walk
+
+    # plot random samples
+    sample_mu = model.model_sample(batch_size=100).sigmoid()
+    sample_mu = sample_mu
+    images = list(sample_mu.view(-1, 1, 64, 64).data.cpu())
+    win_samples = vis.images(images, 10, 2, opts={'caption': 'samples'}, win=win_samples)
+
+    # plot the reconstructed distribution for the first 50 test images
+    test_imgs = x[:50, :]
+    _, reco_imgs, zs, _ = model.reconstruct_img(test_imgs)
+    reco_imgs = reco_imgs.sigmoid()
+    test_reco_imgs = torch.cat([
+        test_imgs.view(1, -1, 64, 64), reco_imgs.view(1, -1, 64, 64)], 0).transpose(0, 1)
+    win_test_reco = vis.images(
+        list(test_reco_imgs.contiguous().view(-1, 1, 64, 64).data.cpu()), 10, 2,
+        opts={'caption': 'test reconstruction image'}, win=win_test_reco)
+
+    # plot latent walks (change one variable while all others stay the same)
+    zs = zs[0:3]
+    batch_size, z_dim = zs.size()
+    xs = []
+    delta = torch.autograd.Variable(torch.linspace(-2, 2, 7), volatile=True).type_as(zs)
+    for i in range(z_dim):
+        vec = Variable(torch.zeros(z_dim)).view(1, z_dim).expand(7, z_dim).contiguous().type_as(zs)
+        vec[:, i] = 1
+        vec = vec * delta[:, None]
+        zs_delta = zs.clone().view(batch_size, 1, z_dim)
+        zs_delta[:, :, i] = 0
+        zs_walk = zs_delta + vec[None]
+        xs_walk = model.decoder.forward(zs_walk.view(-1, z_dim)).sigmoid()
+        xs.append(xs_walk)
+
+    xs = list(torch.cat(xs, 0).data.cpu())
+    win_latent_walk = vis.images(xs, 7, 2, opts={'caption': 'latent walk'}, win=win_latent_walk)
+
+
+def plot_elbo(train_elbo, vis):
+    global win_train_elbo
+    win_train_elbo = vis.line(torch.Tensor(train_elbo), opts={'markers': True}, win=win_train_elbo)
+
+
+def anneal_kl(args, vae, iteration):
+    if args.dataset == 'shapes':
+        warmup_iter = 7000
+    elif args.dataset == 'faces':
+        warmup_iter = 2500
+
+    if args.lambda_anneal:
+        vae.lamb = max(0, 0.95 - 1 / warmup_iter * iteration)  # 1 --> 0
+    else:
+        vae.lamb = 0
+    if args.beta_anneal:
+        vae.beta = min(args.beta, args.beta / warmup_iter * iteration)  # 0 --> 1
+    else:
+        vae.beta = args.beta
 
 
 def main():
-  init_wandb(
-      args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
-  cfg = TrainConfig(args)
+    # parse command line arguments
+    parser = argparse.ArgumentParser(description="parse args")
+    parser.add_argument('-d', '--dataset', default='shapes', type=str, help='dataset name',
+        choices=['shapes', 'faces'])
+    parser.add_argument('-dist', default='normal', type=str, choices=['normal', 'laplace', 'flow'])
+    parser.add_argument('-n', '--num-epochs', default=1, type=int, help='number of training epochs')
+    parser.add_argument('-b', '--batch-size', default=2048, type=int, help='batch size')
+    parser.add_argument('-l', '--learning-rate', default=1e-3, type=float, help='learning rate')
+    parser.add_argument('-z', '--latent-dim', default=10, type=int, help='size of latent dimension')
+    parser.add_argument('--beta', default=1, type=float, help='ELBO penalty term')
+    parser.add_argument('--tcvae', action='store_true')
+    parser.add_argument('--exclude-mutinfo', action='store_true')
+    parser.add_argument('--beta-anneal', action='store_true')
+    parser.add_argument('--lambda-anneal', action='store_true')
+    parser.add_argument('--mss', action='store_true', help='use the improved minibatch estimator')
+    parser.add_argument('--conv', action='store_true')
+    parser.add_argument('--gpu', type=int, default=0)
+    parser.add_argument('--visdom', action='store_true', help='whether plotting in visdom is desired')
+    parser.add_argument('--save', default='test1')
+    parser.add_argument('--log_freq', default=200, type=int, help='num iterations per log')
+    args = parser.parse_args()
 
-  seed_everything(cfg.seed)
-  model = build_model(DEVICE)
+    # torch.cuda.set_device(args.gpu)
 
-  optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr, eps=1e-4)
-  criterion = build_criterion(DEVICE)
-  scheduler = torch.optim.lr_scheduler.MultiStepLR(
-      optimizer, milestones=[1000], gamma=10**(-1 / 7))
-
-  train_loader = load_data(
-      "train", cfg.batch_size, workers=2, data_path="../../../logs/data")
-  # Note that this is the same as train.
-  test_loader = load_data(
-      "test", cfg.batch_size, workers=2, data_path="../../../logs/data")
-
-  train(model,
-        train_loader,
-        test_loader,
-        criterion,
-        optimizer,
-        scheduler,
-        DEVICE,
-        cfg)
-  evaluate(model,
-           train_loader,
-           criterion,
-           cfg.total_epochs,
-           "train_eval",
-           DEVICE)
-  evaluate(model, test_loader, criterion, cfg.total_epochs, "test", DEVICE)
-
-  train_loader = load_data(
-      "train", 1000, workers=0, data_path="../../../logs/data", shuffle=False)
-  metric, marginal_entropies, cond_entropies = mutual_info_metric_shapes(model, train_loader)
-  wandb.log({"metric": metric})
-
-  true_data, reconstructions, generations = predict(model, test_loader, DEVICE)
-  column_names = ["images_id", "truth", "reconstruction", "normal_generation"]
-  data_to_log = []
-  for i in range(len(true_data)):
-    data_to_log.append([
-        f"img_{i}",
-        wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
-        wandb.Image(
-            np.clip(
-                np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
-                0,
-                255.0,
-            )),
-        wandb.Image(
-            np.clip(
-                np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
-                0,
-                255.0,
-            )),
-    ])
-  val_table = wandb.Table(data=data_to_log, columns=column_names)
-  wandb.log({"image": val_table})
-
-  if args.save_final_checkpoint:
-    save_checkpoint = \
-      os.path.join("checkpoints", "base_{}.pth".
-                   format(args.beta))
-    log_info = {
-        "state_dict": model.state_dict(),
-    }
-    torch.save(log_info, save_checkpoint)
-
-  wandb.finish()
+    # data loader
+    train_loader = setup_data_loaders(args)
 
 
-if __name__ == "__main__":
-  main()
+    prior_dist = dist.Normal()
+    q_dist = dist.Normal()
+
+    vae = VAE(z_dim=args.latent_dim, use_cuda=True, prior_dist=prior_dist, q_dist=q_dist,
+        include_mutinfo=not args.exclude_mutinfo, tcvae=args.tcvae, conv=args.conv, mss=args.mss)
+
+    # setup the optimizer
+    optimizer = optim.Adam(vae.parameters(), lr=args.learning_rate)
+
+    train_elbo = []
+
+    # training loop
+    dataset_size = len(train_loader.dataset)
+    num_iterations = len(train_loader) * args.num_epochs
+    iteration = 0
+    # initialize loss accumulator
+    elbo_running_mean = utils.RunningAverageMeter()
+    while iteration < num_iterations:
+        for i, x in enumerate(train_loader):
+            iteration += 1
+            batch_time = time.time()
+            vae.train()
+            anneal_kl(args, vae, iteration)
+            optimizer.zero_grad()
+            # transfer to GPU
+            # x = x.cuda()
+
+            # wrap the mini-batch in a PyTorch Variable
+            x = Variable(x)
+            # do ELBO gradient and accumulate loss
+            obj, elbo = vae.elbo(x, dataset_size)
+            if utils.isnan(obj).any():
+                raise ValueError('NaN spotted in objective.')
+            obj.mean().mul(-1).backward()
+            elbo_running_mean.update(elbo.mean().item())
+            optimizer.step()
+
+            # report training diagnostics
+            if iteration % args.log_freq == 0:
+                train_elbo.append(elbo_running_mean.avg)
+                print('[iteration %03d] time: %.2f \tbeta %.2f \tlambda %.2f training ELBO: %.4f (%.4f)' % (
+                    iteration, time.time() - batch_time, vae.beta, vae.lamb,
+                    elbo_running_mean.val, elbo_running_mean.avg))
+
+                vae.eval()
+                utils.save_checkpoint({
+                    'state_dict': vae.state_dict(),
+                    'args': args}, args.save, 0)
+                # eval('plot_vs_gt_' + args.dataset)(vae, train_loader.dataset,
+                #     os.path.join(args.save, 'gt_vs_latent_{:05d}.png'.format(iteration)))
+
+    # Report statistics after training
+    vae.eval()
+    utils.save_checkpoint({
+        'state_dict': vae.state_dict(),
+        'args': args}, args.save, 0)
+    dataset_loader = DataLoader(train_loader.dataset, batch_size=1000, num_workers=1, shuffle=False)
+    logpx, dependence, information, dimwise_kl, analytical_cond_kl, marginal_entropies, joint_entropy = \
+        elbo_decomposition(vae, dataset_loader)
+    metrics = compute_metric_shapes(vae, dataset_loader)
+    print(metrics)
+
+    torch.save({
+        'logpx': logpx,
+        'dependence': dependence,
+        'information': information,
+        'dimwise_kl': dimwise_kl,
+        'analytical_cond_kl': analytical_cond_kl,
+        'marginal_entropies': marginal_entropies,
+        'joint_entropy': joint_entropy
+    }, os.path.join(args.save, 'elbo_decomposition.pth'))
+    eval('plot_vs_gt_' + args.dataset)(vae, dataset_loader.dataset, os.path.join(args.save, 'gt_vs_latent.png'))
+    return vae
+
+
+if __name__ == '__main__':
+    model = main()

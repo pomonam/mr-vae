@@ -22,8 +22,8 @@ class TestBinaryImage(unittest.TestCase):
     self.hyper_resnet_model = hyper_build_model("resnet", "resnet", cfg, device)
 
   def test_summary(self):
-    print(summary(self.resnet_model, (1, 28, 28), device="cpu"))
-    print(summary(self.hyper_resnet_model, (1, 28, 28), device="cpu"))
+    print(summary(self.conv_model, (1, 28, 28), device="cpu"))
+    print(summary(self.hyper_conv_model, (1, 28, 28), device="cpu"))
 
   def test_forward(self):
     x = torch.randn(2, 1, 28, 28)
