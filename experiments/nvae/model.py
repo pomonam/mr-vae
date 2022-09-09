@@ -33,6 +33,8 @@ from utils import get_stride_for_cell_type
 from utils import groups_per_scale
 
 CHANNEL_MULT = 2
+cuda = torch.cuda.is_available()
+DEVICE = torch.device("cuda" if cuda else "cpu")
 
 
 class Cell(nn.Module):
@@ -537,8 +539,8 @@ class AutoEncoder(nn.Module):
     scale_ind = 0
     z0_size = [num_samples] + self.z0_size
     dist = Normal(
-        mu=torch.zeros(z0_size).cuda(),
-        log_sigma=torch.zeros(z0_size).cuda(),
+        mu=torch.zeros(z0_size).to(DEVICE),
+        log_sigma=torch.zeros(z0_size).to(DEVICE),
         temp=t)
     z, _ = dist.sample()
 
@@ -617,9 +619,9 @@ class AutoEncoder(nn.Module):
         if i not in self.sr_u:
           num_w, row, col = weights[i].shape
           self.sr_u[i] = F.normalize(
-              torch.ones(num_w, row).normal_(0, 1).cuda(), dim=1, eps=1e-3)
+              torch.ones(num_w, row).normal_(0, 1).to(DEVICE), dim=1, eps=1e-3)
           self.sr_v[i] = F.normalize(
-              torch.ones(num_w, col).normal_(0, 1).cuda(), dim=1, eps=1e-3)
+              torch.ones(num_w, col).normal_(0, 1).to(DEVICE), dim=1, eps=1e-3)
           # increase the number of iterations for the first time
           num_iter = 10 * self.num_power_iter
 

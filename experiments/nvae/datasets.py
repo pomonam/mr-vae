@@ -9,7 +9,7 @@
 import os
 import urllib
 
-from lmdb_datasets import LMDBDataset
+# from lmdb_datasets import LMDBDataset
 import numpy as np
 from PIL import Image
 from scipy.io import loadmat
@@ -157,12 +157,17 @@ def get_loaders_eval(dataset, args):
 
   if dataset == 'cifar10':
     num_classes = 10
-    train_transform, valid_transform = _data_transforms_cifar10(args)
-    train_data = dset.CIFAR10(
-        root=args.data, train=True, download=True, transform=train_transform)
-    valid_data = dset.CIFAR10(
-        root=args.data, train=False, download=True, transform=valid_transform)
-    # train_data = lo
+    # train_transform, valid_transform = _data_transforms_cifar10(args)
+    # train_data = dset.CIFAR10(
+    #     root=args.data, train=True, download=True, transform=train_transform)
+    # valid_data = dset.CIFAR10(
+    #     root=args.data, train=False, download=True, transform=valid_transform)
+    train_data = load_data("cifar", "train", args.batch_size, workers=4, data_path=args.data)
+    valid_data = load_data("cifar", "test", args.batch_size, workers=4, data_path=args.data)
+
+  elif dataset == "svhn":
+    train_data = load_data("svhn", "train", args.batch_size, workers=4, data_path=args.data)
+    valid_data = load_data("svhn", "test", args.batch_size, workers=4, data_path=args.data)
 
   elif dataset == 'mnist':
     num_classes = 10
@@ -192,17 +197,20 @@ def get_loaders_eval(dataset, args):
 
   elif dataset.startswith('celeba'):
     if dataset == 'celeba_64':
-      resize = 64
-      num_classes = 40
-      train_transform, valid_transform = _data_transforms_celeba64(resize)
-      train_data = dset.CelebA(
-          "/scratch/ssd002/datasets/celeba_pytorch",
-          split="train",
-          transform=train_transform)
-      valid_data = dset.CelebA(
-          "/scratch/ssd002/datasets/celeba_pytorch",
-          split="test",
-          transform=valid_transform)
+      # resize = 64
+      # num_classes = 40
+      # train_transform, valid_transform = _data_transforms_celeba64(resize)
+      # train_data = dset.CelebA(
+      #     "/scratch/ssd002/datasets/celeba_pytorch",
+      #     split="train",
+      #     transform=train_transform)
+      # valid_data = dset.CelebA(
+      #     "/scratch/ssd002/datasets/celeba_pytorch",
+      #     split="test",
+      #     transform=valid_transform)
+      # elif dataset == "svhn":
+      train_data = load_data("celeba", "train", args.batch_size, workers=4, data_path=args.data)
+      valid_data = load_data("celeba", "test", args.batch_size, workers=4, data_path=args.data)
     elif dataset in {'celeba_256'}:
       num_classes = 1
       resize = int(dataset.split('_')[1])
@@ -275,25 +283,25 @@ def get_loaders_eval(dataset, args):
     train_sampler = torch.utils.data.distributed.DistributedSampler(train_data)
     valid_sampler = torch.utils.data.distributed.DistributedSampler(valid_data)
 
-  train_queue = torch.utils.data.DataLoader(
-      train_data,
-      batch_size=args.batch_size,
-      shuffle=(train_sampler is None),
-      sampler=train_sampler,
-      pin_memory=True,
-      num_workers=8,
-      drop_last=True)
+  # train_queue = torch.utils.data.DataLoader(
+  #     train_data,
+  #     batch_size=args.batch_size,
+  #     shuffle=(train_sampler is None),
+  #     sampler=train_sampler,
+  #     pin_memory=True,
+  #     num_workers=8,
+  #     drop_last=True)
+  #
+  # valid_queue = torch.utils.data.DataLoader(
+  #     valid_data,
+  #     batch_size=args.batch_size,
+  #     shuffle=(valid_sampler is None),
+  #     sampler=valid_sampler,
+  #     pin_memory=True,
+  #     num_workers=1,
+  #     drop_last=False)
 
-  valid_queue = torch.utils.data.DataLoader(
-      valid_data,
-      batch_size=args.batch_size,
-      shuffle=(valid_sampler is None),
-      sampler=valid_sampler,
-      pin_memory=True,
-      num_workers=1,
-      drop_last=False)
-
-  return train_queue, valid_queue, num_classes
+  return train_data, valid_data, num_classes
 
 
 def _data_transforms_cifar10(args):

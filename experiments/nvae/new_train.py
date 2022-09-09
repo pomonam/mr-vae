@@ -25,6 +25,9 @@ from fid.fid_score import load_statistics
 from fid.inception import InceptionV3
 import utils
 
+cuda = torch.cuda.is_available()
+DEVICE = torch.device("cuda" if cuda else "cpu")
+
 
 def main(args):
   init_wandb(args.save, project_name=args.experiment_name, config=vars(args))
@@ -46,7 +49,7 @@ def main(args):
   arch_instance = utils.get_arch_cells(args.arch_instance)
 
   model = AutoEncoder(args, None, arch_instance)
-  model = model.cuda()
+  model = model.to(DEVICE)
 
   logging.info('args = %s', args)
   logging.info('param size = %fM ', utils.count_parameters_in_M(model))
@@ -178,7 +181,7 @@ def train(train_queue,
   model.train()
   for step, x in enumerate(train_queue):
     x = x[0] if len(x) > 1 else x
-    x = x.cuda()
+    x = x.to(DEVICE)
 
     # change bit length
     x = utils.pre_process(x, args.num_x_bits)
@@ -427,7 +430,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--root',
       type=str,
-      default='/checkpoints',
+      default='checkpoints',
       help='location of the results')
   parser.add_argument(
       '--save',
@@ -438,9 +441,10 @@ if __name__ == '__main__':
   parser.add_argument(
       '--dataset',
       type=str,
-      default='mnist',
+      default='omniglot',
       choices=[
           'cifar10',
+          'svhn',
           'mnist',
           'omniglot',
           'svhn',
@@ -457,7 +461,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--data',
       type=str,
-      default='../../../logs/data',
+      default='../../logs/data',
       help='location of the data corpus')
   # optimization
   parser.add_argument(

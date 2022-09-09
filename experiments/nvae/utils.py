@@ -19,6 +19,9 @@ import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 
+cuda = torch.cuda.is_available()
+DEVICE = torch.device("cuda" if cuda else "cpu")
+
 
 class AvgrageMeter(object):
 
@@ -213,7 +216,7 @@ def kl_balancer_coeff(num_scales, groups_per_scale, fun):
         torch.ones(groups_per_scale[num_scales - i - 1])
         for i in range(num_scales)
     ],
-                      dim=0).cuda()
+                      dim=0).to(DEVICE)
   else:
     raise NotImplementedError
   # convert min to 1.
