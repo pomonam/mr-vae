@@ -5,11 +5,9 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import tqdm
 import wandb
 
-# from experiments.text.models import LstmDecoder, TransformerDecoder
 from experiments.text.hyper_models import HyperLstmDecoder
 from experiments.text.hyper_models import HyperLstmEncoder
 from experiments.text.hyper_models import HyperTransformerDecoder
@@ -22,7 +20,6 @@ from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
 from src.hyper.beta_vae import HyperBetaVAE
-from src.models.beta_vae import BetaVAE
 from src.utils import log_sum_exp
 from src.utils import seed_everything
 
@@ -229,7 +226,7 @@ def hyper_single_evaluate(
 
 def hyper_train(
     model,
-    iterator,  # test_loader,
+    iterator,
     criterion,
     optimizer,
     scheduler,
@@ -342,7 +339,7 @@ def main():
   parser.add_argument("--decoder_name", type=str, default="trans")
   parser.add_argument("--data_name", type=str, default="ptb")
 
-  parser.add_argument("--hyper_config_summary", type=str, default="linear")
+  parser.add_argument("--hyper_config_summary", type=str, default="lin_bn")
 
   parser.add_argument("--total_epochs", type=int, default=10)
   parser.add_argument("--lr", type=float, default=0.001)

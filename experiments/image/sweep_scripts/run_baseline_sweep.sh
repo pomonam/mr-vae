@@ -3,10 +3,11 @@
 #SBATCH -J test
 #SBATCH --gres=gpu:1
 #SBATCH --mem=8GB
-#SBATCH --partition=t4v1,p100,t4v2,rtx6000
-#SBATCH --qos=normal
+#SBATCH --partition=t4v1,p100,t4v2
+#SBATCH --account=deadline
+#SBATCH --qos=deadline
 #SBATCH --export=ALL
-#SBATCH --array=0-15%15
+#SBATCH --array=0-21%21
 #SBATCH --output=temp/array-%A_%a.out
 #SBATCH -c 4
 
