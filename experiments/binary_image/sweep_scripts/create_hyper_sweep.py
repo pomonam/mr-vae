@@ -26,7 +26,7 @@ RENSET_CONFIG = {
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
-    "hyper_config_summary": ["lin_bn", "smlp_bn", "aff_bn", "lin_in", "smlp_in", "aff_in"],
+    "hyper_config_summary": ["lin_bn", "smlp_bn", "aff_bn"],
 }
 
 if __name__ == "__main__":
