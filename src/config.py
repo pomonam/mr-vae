@@ -51,7 +51,6 @@ class HyperConfig:
           self.apply_zero_init = 0
           self.reduce_range = 1
           self.reduce_range = 1
-          self.include_latent_stem = 1
 
           self.param_type = "post_act"
           self.layer_type = "sig_gate"
@@ -63,7 +62,6 @@ class HyperConfig:
           self.apply_zero_init = 0
           self.reduce_range = 1
           self.reduce_range = 1
-          self.include_latent_stem = 1
 
           self.param_type = "post_act"
           self.layer_type = "sig_gate"
@@ -75,7 +73,6 @@ class HyperConfig:
           self.apply_zero_init = 0
           self.reduce_range = 1
           self.reduce_range = 1
-          self.include_latent_stem = 1
 
           self.param_type = "post_act"
           self.layer_type = "affine"
@@ -98,6 +95,14 @@ class HyperConfig:
         else:
           raise NotImplementedError()
 
+        if "_stem" in self.hyper_config_summary:
+          self.include_encoder_stem = 1
+          self.include_decoder_stem = 1
+
+        else:
+          self.include_encoder_stem = 0
+          self.include_decoder_stem = 0
+
       else:
         self.shared_preprocess = get_ns(args, "shared_preprocess")
         self.apply_zero_init = get_ns(args, "apply_zero_init")
@@ -105,7 +110,8 @@ class HyperConfig:
         self.apply_bn_calibrate = get_ns(args, "apply_bn_calibrate")
         self.apply_bn_replace = get_ns(args, "apply_bn_replace")
         self.reduce_range = get_ns(args, "reduce_range")
-        self.include_latent_stem = get_ns(args, "include_latent_stem")
+        self.include_encoder_stem = get_ns(args, "include_encoder_stem")
+        self.include_decoder_stem = get_ns(args, "include_decoder_stem")
 
         self.param_type = get_ns(args, "param_type")
         self.layer_type = get_ns(args, "layer_type")
@@ -119,8 +125,8 @@ class HyperConfig:
     self.apply_bn_calibrate = 0
     self.apply_bn_replace = 1
     self.reduce_range = 1
-    self.include_latent_stem = 1
-
+    self.include_encoder_stem = 1
+    self.include_decoder_stem = 1
     self.param_type = "post_act"
     self.layer_type = "sig_gate"
     self.block_type = "linear"
