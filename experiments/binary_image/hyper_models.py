@@ -109,7 +109,7 @@ class HyperConvEncoder(BaseHyperEncoder):
     self.layers = layers
     self.depth = len(layers)
 
-    if self.hyper_cfg.include_latent_stem:
+    if self.hyper_cfg.include_encoder_stem:
       self.embedding = nn.Linear(1024, 784)
       self.hyper_embedding = get_hyper_layer(784, hyper_cfg)
       self.embedding_proj = nn.Linear(784, self.latent_dim)
@@ -131,7 +131,7 @@ class HyperConvEncoder(BaseHyperEncoder):
       out = self.layers[i](out)
 
       if i + 1 == self.depth:
-        if self.hyper_cfg.include_latent_stem:
+        if self.hyper_cfg.include_encoder_stem:
           emb = self.embedding(out.reshape(x.shape[0], -1))
           emb = torch.relu(emb)
           emb = self.hyper_embedding(emb)
@@ -163,8 +163,12 @@ class HyperConvDecoder(BaseHyperDecoder):
 
     layers = nn.ModuleList()
 
-    layers.append(nn.Linear(self.latent_dim, 1024 * 4 * 4))
-    layers.append(get_hyper_layer(1024 * 4 * 4, hyper_cfg))
+    if not self.hyper_cfg.include_decoder_stem:
+      layers.append(nn.Linear(self.latent_dim, 1024 * 4 * 4))
+    else:
+      layers.append(nn.Linear(self.latent_dim, 1024 * 4 * 4))
+      layers.append(nn.ReLU())
+      layers.append(get_hyper_layer(1024 * 4 * 4, hyper_cfg))
 
     if self.hyper_cfg.param_type == "pre_bn":
       layers.append(
@@ -251,8 +255,12 @@ class HyperConvDecoder(BaseHyperDecoder):
     for i in range(max_depth):
       out = self.layers[i](out)
 
-      if i == 1:
-        out = out.reshape(inputs.shape[0], 1024, 4, 4)
+      if self.hyper_cfg.include_decoder_stem:
+        if i == 2:
+          out = out.reshape(inputs.shape[0], 1024, 4, 4)
+      else:
+        if i == 0:
+          out = out.reshape(inputs.shape[0], 1024, 4, 4)
 
       if i + 1 == self.depth:
         output["reconstruction"] = out
@@ -340,7 +348,7 @@ class HyperResNetEncoder(BaseHyperEncoder):
     self.layers = layers
     self.depth = len(layers)
 
-    if self.hyper_cfg.include_latent_stem:
+    if self.hyper_cfg.include_encoder_stem:
       self.embedding = nn.Linear(128 * 4 * 4, 784)
       self.hyper_embedding = get_hyper_layer(784, hyper_cfg)
       self.embedding_proj = nn.Linear(784, self.latent_dim)
@@ -361,7 +369,7 @@ class HyperResNetEncoder(BaseHyperEncoder):
       out = self.layers[i](out)
 
       if i + 1 == self.depth:
-        if self.hyper_cfg.include_latent_stem:
+        if self.hyper_cfg.include_encoder_stem:
           emb = self.embedding(out.reshape(inputs.shape[0], -1))
           emb = torch.relu(emb)
           emb = self.hyper_embedding(emb)
@@ -392,8 +400,12 @@ class HyperResNetDecoder(BaseHyperDecoder):
 
     layers = nn.ModuleList()
 
-    layers.append(nn.Linear(self.latent_dim, 128 * 4 * 4))
-    layers.append(get_hyper_layer(128 * 4 * 4, hyper_cfg))
+    if not self.hyper_cfg.include_decoder_stem:
+      layers.append(nn.Linear(self.latent_dim, 128 * 4 * 4))
+    else:
+      layers.append(nn.Linear(self.latent_dim, 128 * 4 * 4))
+      layers.append(nn.ReLU())
+      layers.append(get_hyper_layer(128 * 4 * 4, hyper_cfg))
 
     if self.hyper_cfg.param_type in ["pre_bn", "post_bn"]:
       layers.append(
@@ -464,8 +476,12 @@ class HyperResNetDecoder(BaseHyperDecoder):
     for i in range(max_depth):
       out = self.layers[i](out)
 
-      if i == 1:
-        out = out.reshape(z.shape[0], 128, 4, 4)
+      if self.hyper_cfg.include_decoder_stem:
+        if i == 2:
+          out = out.reshape(z.shape[0], 128, 4, 4)
+      else:
+        if i == 0:
+          out = out.reshape(z.shape[0], 128, 4, 4)
 
       if i + 1 == self.depth:
         output["reconstruction"] = out
