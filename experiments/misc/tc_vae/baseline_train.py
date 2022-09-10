@@ -12,9 +12,13 @@ from torch.utils.data import DataLoader
 import experiments.misc.tc_vae.lib.dist as dist
 import experiments.misc.tc_vae.lib.utils as utils
 import experiments.misc.tc_vae.lib.datasets as dset
-from experiments.misc.tc_vae.metrics import compute_metric_shapes
+from experiments.misc.tc_vae.metrics import mutual_info_metric_shapes
 from experiments.misc.tc_vae.elbo_decomposition import elbo_decomposition
 # from plot_latent_vs_true import plot_vs_gt_shapes, plot_vs_gt_faces  # noqa: F401
+
+
+cuda = torch.cuda.is_available()
+DEVICE = torch.device("cuda" if cuda else "cpu")
 
 
 class MLPEncoder(nn.Module):
@@ -28,7 +32,6 @@ class MLPEncoder(nn.Module):
 
         self.conv_z = nn.Conv2d(64, output_dim, 4, 1, 0)
 
-        # setup the non-linearity
         self.act = nn.ReLU(inplace=True)
 
     def forward(self, x):
@@ -298,11 +301,11 @@ def main():
     parser.add_argument('-d', '--dataset', default='shapes', type=str, help='dataset name',
         choices=['shapes', 'faces'])
     parser.add_argument('-dist', default='normal', type=str, choices=['normal', 'laplace', 'flow'])
-    parser.add_argument('-n', '--num-epochs', default=1, type=int, help='number of training epochs')
+    parser.add_argument('-n', '--num-epochs', default=50, type=int, help='number of training epochs')
     parser.add_argument('-b', '--batch-size', default=2048, type=int, help='batch size')
     parser.add_argument('-l', '--learning-rate', default=1e-3, type=float, help='learning rate')
     parser.add_argument('-z', '--latent-dim', default=10, type=int, help='size of latent dimension')
-    parser.add_argument('--beta', default=1, type=float, help='ELBO penalty term')
+    parser.add_argument('--beta', default=6, type=float, help='ELBO penalty term')
     parser.add_argument('--tcvae', action='store_true')
     parser.add_argument('--exclude-mutinfo', action='store_true')
     parser.add_argument('--beta-anneal', action='store_true')
@@ -326,6 +329,7 @@ def main():
 
     vae = VAE(z_dim=args.latent_dim, use_cuda=True, prior_dist=prior_dist, q_dist=q_dist,
         include_mutinfo=not args.exclude_mutinfo, tcvae=args.tcvae, conv=args.conv, mss=args.mss)
+    vae = vae.to(DEVICE)
 
     # setup the optimizer
     optimizer = optim.Adam(vae.parameters(), lr=args.learning_rate)
@@ -346,7 +350,7 @@ def main():
             anneal_kl(args, vae, iteration)
             optimizer.zero_grad()
             # transfer to GPU
-            # x = x.cuda()
+            x = x.to(DEVICE)
 
             # wrap the mini-batch in a PyTorch Variable
             x = Variable(x)
@@ -377,10 +381,10 @@ def main():
     utils.save_checkpoint({
         'state_dict': vae.state_dict(),
         'args': args}, args.save, 0)
-    dataset_loader = DataLoader(train_loader.dataset, batch_size=1000, num_workers=1, shuffle=False)
+    dataset_loader = DataLoader(train_loader.dataset, batch_size=1000, num_workers=0, shuffle=False)
     logpx, dependence, information, dimwise_kl, analytical_cond_kl, marginal_entropies, joint_entropy = \
         elbo_decomposition(vae, dataset_loader)
-    metrics = compute_metric_shapes(vae, dataset_loader)
+    metrics, _, _ = mutual_info_metric_shapes(vae, train_loader.dataset)
     print(metrics)
 
     torch.save({
@@ -392,7 +396,7 @@ def main():
         'marginal_entropies': marginal_entropies,
         'joint_entropy': joint_entropy
     }, os.path.join(args.save, 'elbo_decomposition.pth'))
-    eval('plot_vs_gt_' + args.dataset)(vae, dataset_loader.dataset, os.path.join(args.save, 'gt_vs_latent.png'))
+    # eval('plot_vs_gt_' + args.dataset)(vae, dataset_loader.dataset, os.path.join(args.save, 'gt_vs_latent.png'))
     return vae
 
 
