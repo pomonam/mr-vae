@@ -91,7 +91,7 @@ def estimate_entropies(qz_samples, qz_params, q_dist, n_samples=10000, weights=N
 
 
 def mutual_info_metric_shapes(vae, shapes_dataset):
-    dataset_loader = DataLoader(shapes_dataset, batch_size=1000, num_workers=1, shuffle=False)
+    dataset_loader = DataLoader(shapes_dataset, batch_size=1000, num_workers=0, shuffle=False)
 
     N = len(dataset_loader.dataset)  # number of data samples
     K = vae.z_dim                    # number of latent variables
