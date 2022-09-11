@@ -34,7 +34,9 @@ def hyper_evaluate(model, loader, epoch, name, device):
             "vq_loss": output_dict["vq_loss"],
             "recon_loss": output_dict["recon_loss"],
         }
-        metric_dict = update_metric(metric_dict, loss_dict, batch["data"].size(0))
+        metric_dict = update_metric(metric_dict,
+                                    loss_dict,
+                                    batch["data"].size(0))
         summ_dict = summarize_metric(metric_dict)
         summ_str = generate_metric_str(name, epoch, summ_dict)
         p_bar.set_description(summ_str)
@@ -44,21 +46,27 @@ def hyper_evaluate(model, loader, epoch, name, device):
       dist_lst.append(summ_dict["recon_loss"])
 
     wandb.log({
-      f"{name}/loss_lst": loss_lst,
-      f"{name}/rate_lst": rate_lst,
-      f"{name}/dist_lst": dist_lst,
-      f"{name}/sample_lst": sample_lst,
+        f"{name}/loss_lst": loss_lst,
+        f"{name}/rate_lst": rate_lst,
+        f"{name}/dist_lst": dist_lst,
+        f"{name}/sample_lst": sample_lst,
     })
 
     rd_data = [[x, y] for (x, y) in zip(rate_lst, dist_lst)]
     table = wandb.Table(data=rd_data, columns=["rate", "distortion"])
     wandb.log({
-      f"{name}/rd_curve":
-        wandb.plot.line(table, "rate", "distortion", title="RD Curve")
+        f"{name}/rd_curve":
+            wandb.plot.line(table, "rate", "distortion", title="RD Curve")
     })
 
 
-def hyper_train(model, train_loader, test_loader, optimizer, scheduler, device, cfg):
+def hyper_train(model,
+                train_loader,
+                test_loader,
+                optimizer,
+                scheduler,
+                device,
+                cfg):
   do_checkpoint = cfg.checkpoint_dir is not None
   if do_checkpoint and os.path.exists(
       os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):

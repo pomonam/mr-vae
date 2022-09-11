@@ -120,7 +120,7 @@ def main():
   parser.add_argument("--encoder_name", type=str, default="conv")
   parser.add_argument("--decoder_name", type=str, default="conv")
 
-  parser.add_argument("--hyper_config_summary", type=str, default="affine_bn")
+  parser.add_argument("--hyper_config_summary", type=str, default=None)
 
   # hyper_config_summary overrides below options
   parser.add_argument("--block_type", type=str, default="mlp")

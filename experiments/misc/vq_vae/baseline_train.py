@@ -19,7 +19,6 @@ from src.config import TrainConfig
 from src.models.vq_vae import VQVAE
 from src.utils import seed_everything
 
-
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 

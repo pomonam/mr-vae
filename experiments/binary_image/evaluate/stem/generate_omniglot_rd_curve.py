@@ -25,12 +25,12 @@ def main():
                                schedule="monotonic", arc_name="resnet", test=True)
   plt.plot([0], [0])
   plt.scatter(
-    rate,
-    dist,
-    label=r"Independent Training",
-    edgecolors="k",
-    linewidths=0.5,
-    c=rgb.tue_lightblue)
+      rate,
+      dist,
+      label=r"Independent Training",
+      edgecolors="k",
+      linewidths=0.5,
+      c=rgb.tue_lightblue)
 
   # rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
   #                              schedule="monotonic", arc_name="conv", test=True)

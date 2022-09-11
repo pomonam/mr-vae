@@ -20,7 +20,6 @@ from src.hyper.vq_vae import HyperVQVAE
 from src.utils import seed_everything
 from src.config import HyperConfig
 
-
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 

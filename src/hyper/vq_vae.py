@@ -4,10 +4,10 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+from src.config import HyperConfig
 from src.hyper.base_architecture import BaseHyperDecoder
 from src.hyper.base_architecture import BaseHyperEncoder
 from src.hyper.base_model import HyperVAE
-from src.config import HyperConfig
 
 
 class HyperVQVAE(HyperVAE):
@@ -45,7 +45,8 @@ class HyperVQVAE(HyperVAE):
     z = z.permute(0, 2, 3, 1)
 
     self.model_config["embedding_dim"] = z.shape[-1]
-    self.quantizer = HyperQuantizer(model_config=model_config, hyper_cfg=self.hyper_cfg)
+    self.quantizer = HyperQuantizer(
+        model_config=model_config, hyper_cfg=self.hyper_cfg)
 
   def forward(self, inputs: dict, **kwargs) -> dict:
     # Default behaviour is to sample betas.
@@ -92,7 +93,7 @@ class HyperVQVAE(HyperVAE):
 
     return output
 
-  def fixed_forward(self, inputs: dict, value:float, **kwargs) -> dict:
+  def fixed_forward(self, inputs: dict, value: float, **kwargs) -> dict:
     x = inputs["data"]
     sample_dict = self.sample_inverse(x, value)
     self.set_net_inputs(sample_dict["net"])
@@ -120,19 +121,22 @@ class HyperVQVAE(HyperVAE):
     loss, recon_loss, vq_loss = self.loss_function(recon_x, x, quantizer_output, sample_dict["beta"])
 
     output = {
-      "recon_loss": recon_loss,
-      "vq_loss": vq_loss,
-      "loss": loss,
-      "recon_x": recon_x,
-      "z": quantized_embed,
-      "quantized_indices": quantized_indices,
+        "recon_loss": recon_loss,
+        "vq_loss": vq_loss,
+        "loss": loss,
+        "recon_x": recon_x,
+        "z": quantized_embed,
+        "quantized_indices": quantized_indices,
     }
 
     return output
 
   def loss_function(
-      self, recon_x: torch.Tensor, x: torch.Tensor, quantizer_output: dict, lambdas: torch.Tensor
-  ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+      self,
+      recon_x: torch.Tensor,
+      x: torch.Tensor,
+      quantizer_output: dict,
+      lambdas: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
 
     recon_loss = F.mse_loss(
         recon_x.reshape(x.shape[0], -1),
