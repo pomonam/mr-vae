@@ -9,7 +9,7 @@ from src.config import HyperConfig
 from tests.utils import summary
 
 
-class TestCifarImage(unittest.TestCase):
+class TestVQImage(unittest.TestCase):
 
   def setUp(self) -> None:
     device = torch.device("cpu")
