@@ -94,7 +94,8 @@ def main():
   api = init_api()
   runs = api.runs(ENTITY + "/" + HYPER_NAME)
 
-  rate, dist = get_baseline_rd(BASELINE_NAME, schedule="monotonic", test=True)
+  rate, dist = get_baseline_rd(BASELINE_NAME,
+                               schedule="monotonic", arc_name="resnet", test=True)
   # plt.plot([0], [0])
   plt.plot(
       rate,
