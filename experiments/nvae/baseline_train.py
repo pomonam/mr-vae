@@ -200,7 +200,8 @@ def train(train_queue,
       kl_coeff = utils.kl_coeff(global_step,
                                 args.kl_anneal_portion * args.num_total_iter,
                                 args.kl_const_portion * args.num_total_iter,
-                                args.kl_const_coeff)
+                                args.kl_const_coeff,
+                                args.beta)
 
       recon_loss = utils.reconstruction_loss(output, x, crop=model.crop_output)
       balanced_kl, kl_coeffs, kl_vals = utils.kl_balancer(kl_all, kl_coeff, kl_balance=True, alpha_i=alpha_i)
@@ -464,6 +465,10 @@ if __name__ == '__main__':
       default='res_mbconv',
       help='path to the architecture instance')
   # KL annealing
+  parser.add_argument(
+      '--beta',
+      type=float,
+      default=1.0)
   parser.add_argument(
       '--kl_anneal_portion',
       type=float,
