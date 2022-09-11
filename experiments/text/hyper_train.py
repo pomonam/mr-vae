@@ -219,7 +219,7 @@ def hyper_single_evaluate(
           log_var=output_dict["log_var"],
           z=output_dict["z"],
           beta=1.)
-      metric_dict = update_metric(metric_dict, loss_dict, batch["data"].size(0))
+      metric_dict = update_metric(metric_dict, loss_dict, batch["data"]["text_ids"].size(0))
       summ_dict = summarize_metric(metric_dict)
       summ_str = generate_metric_str(name, epoch, summ_dict)
       p_bar.set_description(summ_str)

@@ -10,7 +10,6 @@ import torch
 import numpy as np
 import os
 
-import torch.distributed as dist
 from torch.cuda.amp import autocast, GradScaler
 
 from model import AutoEncoder
@@ -40,13 +39,14 @@ def main(args):
   # writer = utils.Writer(args.global_rank, args.save)
 
   # Get data loaders.
-  train_queue, valid_queue, num_classes = datasets.get_loaders(args)
+  train_queue, valid_queue, num_classes = datasets.get_custom_loaders(args)
   args.num_total_iter = len(train_queue) * args.epochs
   warmup_iters = len(train_queue) * args.warmup_epochs
 
   arch_instance = utils.get_arch_cells(args.arch_instance)
 
   model = AutoEncoder(args, None, arch_instance)
+  print(sum(p.numel() for p in model.parameters()))
   model = model.cuda()
 
   logging.info('args = %s', args)
@@ -120,7 +120,7 @@ def main(args):
           # writer.add_image('generated_%0.1f' % t, output_tiled, global_step)
           wandb.log({'generated_%0.1f' % t: wandb.Image(output_tiled)})
 
-      valid_neg_log_p, valid_nelbo = test(valid_queue, model, num_samples=10, args=args, logging=logging)
+      valid_neg_log_p, valid_nelbo, valid_recon, valid_kl = test(valid_queue, model, num_samples=10, args=args, logging=logging)
       logging.info('valid_nelbo %f', valid_nelbo)
       logging.info('valid neg log p %f', valid_neg_log_p)
       logging.info('valid bpd elbo %f', valid_nelbo * bpd_coeff)
@@ -129,6 +129,8 @@ def main(args):
       log_dict["val/nelbo"] = valid_nelbo
       log_dict["val/bpd_log_p"] = valid_neg_log_p * bpd_coeff
       log_dict["val/bpd_elbo"] = valid_nelbo * bpd_coeff
+      log_dict["val/dist"] = valid_kl
+      log_dict["val/rate"] = valid_recon
 
     save_freq = int(np.ceil(args.epochs / 100))
     if epoch % save_freq == 0 or epoch == (args.epochs - 1):
@@ -148,7 +150,7 @@ def main(args):
     wandb.log(log_dict)
 
   # Final validation
-  valid_neg_log_p, valid_nelbo = test(valid_queue, model, num_samples=1000, args=args, logging=logging)
+  valid_neg_log_p, valid_nelbo, _, _ = test(valid_queue, model, num_samples=1000, args=args, logging=logging)
   logging.info('final valid nelbo %f', valid_nelbo)
   logging.info('final valid neg log p %f', valid_neg_log_p)
   # writer.add_scalar('val/neg_log_p', valid_neg_log_p, epoch + 1)
@@ -300,6 +302,8 @@ def train(train_queue,
 def test(valid_queue, model, num_samples, args, logging):
   nelbo_avg = utils.AvgrageMeter()
   neg_log_p_avg = utils.AvgrageMeter()
+  recon_avg = utils.AvgrageMeter()
+  kl_avg = utils.AvgrageMeter()
   model.eval()
   for step, x in enumerate(valid_queue):
     x = x[0] if len(x) > 1 else x
@@ -310,6 +314,7 @@ def test(valid_queue, model, num_samples, args, logging):
 
     with torch.no_grad():
       nelbo, log_iw = [], []
+      recon_lst, kl_lst = [], []
       for k in range(num_samples):
         logits, log_q, log_p, kl_all, _ = model(x)
         output = model.decoder_output(logits)
@@ -317,28 +322,34 @@ def test(valid_queue, model, num_samples, args, logging):
             output, x, crop=model.crop_output)
         balanced_kl, _, _ = utils.kl_balancer(kl_all, kl_balance=False)
         nelbo_batch = recon_loss + balanced_kl
+        recon_lst.append(recon_loss)
+        kl_lst.append(balanced_kl)
         nelbo.append(nelbo_batch)
         log_iw.append(
             utils.log_iw(output, x, log_q, log_p, crop=model.crop_output))
 
+      recon_lst = torch.mean(torch.stack(recon_lst, dim=1))
+      kl_lst = torch.mean(torch.stack(kl_lst, dim=1))
       nelbo = torch.mean(torch.stack(nelbo, dim=1))
       log_p = torch.mean(
           torch.logsumexp(torch.stack(log_iw, dim=1), dim=1) -
           np.log(num_samples))
 
+    recon_avg.update(recon_lst.data, x.size[0])
+    kl_avg.update(kl_lst.data, x.size[0])
     nelbo_avg.update(nelbo.data, x.size(0))
     neg_log_p_avg.update(-log_p.data, x.size(0))
 
   utils.average_tensor(nelbo_avg.avg, args.distributed)
   utils.average_tensor(neg_log_p_avg.avg, args.distributed)
-  if args.distributed:
-    # block to sync
-    dist.barrier()
+  # if args.distributed:
+  #   # block to sync
+  #   dist.barrier()
   logging.info('val, step: %d, NELBO: %f, neg Log p %f',
                step,
                nelbo_avg.avg,
                neg_log_p_avg.avg)
-  return neg_log_p_avg.avg, nelbo_avg.avg
+  return neg_log_p_avg.avg, nelbo_avg.avg, recon_avg.avg, kl_avg.avg
 
 
 def create_generator_vae(model, batch_size, num_total_samples):
@@ -402,7 +413,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--dataset',
       type=str,
-      default='mnist',
+      default='omniglot',
       choices=[
           'cifar10',
           'mnist',
@@ -448,7 +459,7 @@ if __name__ == '__main__':
       help='This flag enables annealing the lambda coefficient from '
       '--weight_decay_norm_init to --weight_decay_norm.')
   parser.add_argument(
-      '--epochs', type=int, default=200, help='num of training epochs')
+      '--epochs', type=int, default=300, help='num of training epochs')
   parser.add_argument(
       '--warmup_epochs',
       type=int,
