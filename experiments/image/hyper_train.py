@@ -229,7 +229,7 @@ def main():
     val_table = wandb.Table(data=data_to_log, columns=column_names)
     wandb.log({"image_at_{}".format(sample): val_table})
 
-  if args.save_final_checkpoint is not None:
+  if args.save_final_checkpoint is not None and args.seed == 0:
     save_checkpoint = \
       os.path.join("checkpoints", "hyper_{}_{}.pth".format(args.data_name, args.arch_name))
     log_info = {

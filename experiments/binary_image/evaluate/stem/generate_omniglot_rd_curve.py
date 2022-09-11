@@ -21,19 +21,8 @@ def main():
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.inverted())
 
-  # rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
-  #                              schedule="monotonic", arc_name="resnet", test=True)
-  # plt.plot([0], [0])
-  # plt.scatter(
-  #   rate,
-  #   dist,
-  #   label=r"Independent Training",
-  #   edgecolors="k",
-  #   linewidths=0.5,
-  #   c=rgb.tue_lightblue)
-
   rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
-                               schedule="monotonic", arc_name="conv", test=True)
+                               schedule="monotonic", arc_name="resnet", test=True)
   plt.plot([0], [0])
   plt.scatter(
     rate,
@@ -43,11 +32,22 @@ def main():
     linewidths=0.5,
     c=rgb.tue_lightblue)
 
+  # rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
+  #                              schedule="monotonic", arc_name="conv", test=True)
+  # plt.plot([0], [0])
+  # plt.scatter(
+  #   rate,
+  #   dist,
+  #   label=r"Independent Training",
+  #   edgecolors="k",
+  #   linewidths=0.5,
+  #   c=rgb.tue_lightblue)
+
   rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, RESNET_ID)
   plt.plot(rate, dist, "o-", label="Hypernetwork", linewidth=2, c=rgb.tue_ocre)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, CONV_ID)
-  plt.plot(rate, dist, "o-", label="Hypernetwork", linewidth=2, c=rgb.tue_ocre)
+  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, CONV_ID)
+  # plt.plot(rate, dist, "o-", label="Hypernetwork", linewidth=2, c=rgb.tue_ocre)
 
   plt.xlim(0, 140)
   plt.ylim(0, 140)

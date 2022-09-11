@@ -14,7 +14,6 @@ import experiments.misc.tc_vae.lib.utils as utils
 import experiments.misc.tc_vae.lib.datasets as dset
 from experiments.misc.tc_vae.metrics import mutual_info_metric_shapes
 from experiments.misc.tc_vae.elbo_decomposition import elbo_decomposition
-# from plot_latent_vs_true import plot_vs_gt_shapes, plot_vs_gt_faces  # noqa: F401
 
 
 cuda = torch.cuda.is_available()
