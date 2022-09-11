@@ -7,7 +7,7 @@ from experiments.array_utils import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="baseline_jobs")
-parser.add_argument("--experiment_name", type=str, default="hv_text_baseline")
+parser.add_argument("--experiment_name", type=str, default="hv_text_jobs_final")
 
 args = parser.parse_args()
 
@@ -16,9 +16,10 @@ PTB_CONFIG = {
     "data_name": ["ptb"],
     "total_epochs": [100],
     "decoder_name": ["lstm", "trans"],
-    "schedule": ["monotonic", "constant"],
-    "beta": np.logspace(-3, 1, num=20),
-    "save_final_checkpoint": [1]
+    "schedule": ["monotonic"],
+    "beta": list(np.logspace(-2, 1, num=10)),
+    "save_final_checkpoint": [1],
+    "seed": [0, 1, 2]
 }
 
 YAH_CONFIG1 = {
@@ -26,9 +27,10 @@ YAH_CONFIG1 = {
     "data_name": ["yahoo"],
     "total_epochs": [100],
     "decoder_name": ["lstm"],
-    "schedule": ["monotonic", "constant"],
-    "beta": np.logspace(-3, 1, num=20),
-    "save_final_checkpoint": [1]
+    "schedule": ["monotonic"],
+    "beta": list(np.logspace(-2, 1, num=10)),
+    "save_final_checkpoint": [1],
+    "seed": [0, 1, 2]
 }
 
 YAH_CONFIG2 = {
@@ -36,9 +38,10 @@ YAH_CONFIG2 = {
     "data_name": ["yahoo"],
     "total_epochs": [100],
     "decoder_name": ["trans"],
-    "schedule": ["monotonic", "constant"],
-    "beta": np.logspace(-3, 1, num=20),
-    "save_final_checkpoint": [1]
+    "schedule": ["monotonic"],
+    "beta": list(np.logspace(-2, 1, num=10)),
+    "save_final_checkpoint": [1],
+    "seed": [0, 1, 2]
 }
 
 if __name__ == "__main__":

@@ -22,8 +22,8 @@ class TestCelebAImage(unittest.TestCase):
     self.hyper_resnet_model = hyper_build_model("celeba", "resnet", cfg, device)
 
   def test_summary(self):
-    print(summary(self.resnet_model, (3, 64, 64), device="cpu"))
-    print(summary(self.hyper_resnet_model, (3, 64, 64), device="cpu"))
+    print(summary(self.conv_model, (3, 64, 64), device="cpu"))
+    print(summary(self.hyper_conv_model, (3, 64, 64), device="cpu"))
 
   def test_forward(self):
     x = torch.randn(2, 3, 64, 64)

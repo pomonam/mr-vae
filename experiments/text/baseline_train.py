@@ -340,10 +340,12 @@ def main():
            start_tokens,
            end_token)
 
-  if args.save_final_checkpoint:
+  if args.save_final_checkpoint and args.seed == 0:
     save_checkpoint = \
-      os.path.join("checkpoints", "base_{}_{}_{}_{}.pth".format(args.data_name, args.decoder_name,
-                                                                args.beta, args.schedule))
+      os.path.join("checkpoints", "base_{}_{}_{}_{}.pth".format(args.data_name,
+                                                                args.decoder_name,
+                                                                args.beta,
+                                                                args.schedule))
     log_info = {
         "state_dict": model.state_dict(),
     }

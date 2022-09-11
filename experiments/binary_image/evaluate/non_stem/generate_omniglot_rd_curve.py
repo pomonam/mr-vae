@@ -6,10 +6,9 @@ from tueplots import markers
 from tueplots.constants.color import palettes
 from tueplots.constants.color import rgb
 from experiments.binary_image.evaluate.utils import get_baseline_summary, get_summary, get_baseline_rd, get_hyper_rd
-from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
-BASELINE_NAME = "hvae_bimage_jobs_v1"
+BASELINE_NAME = "hvae_bimage_jobs_final"
 HYPER_NAME = "hvae_bimage_hyper_sweep_v11"
 RESNET_ID = "2ozohuv8"
 CONV_ID = "2dwn18sd"
@@ -21,16 +20,16 @@ def main():
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.inverted())
 
-  # rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
-  #                              schedule="monotonic", arc_name="resnet", test=True)
-  # plt.plot([0], [0])
-  # plt.scatter(
-  #   rate,
-  #   dist,
-  #   label=r"Independent Training",
-  #   edgecolors="k",
-  #   linewidths=0.5,
-  #   c=rgb.tue_lightblue)
+  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
+                               schedule="monotonic", arc_name="resnet", test=True)
+  plt.plot([0], [0])
+  plt.scatter(
+    rate,
+    dist,
+    label=r"Independent Training",
+    edgecolors="k",
+    linewidths=0.5,
+    c=rgb.tue_lightblue)
 
   rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
                                schedule="monotonic", arc_name="conv", test=True)

@@ -47,13 +47,13 @@ class HyperLstmEncoder(BaseHyperEncoder):
         })
     self.hyper_encoder = get_hyper_layer(hidden_size * 2, hyper_cfg)
 
-    self.embedding = nn.Linear(hidden_size * 2, self.latent_dim)
-    self.hyper_embedding = get_hyper_layer(self.latent_dim, hyper_cfg)
-    self.embedding_proj = nn.Linear(self.latent_dim, self.latent_dim)
+    self.embedding = nn.Linear(hidden_size * 2, hidden_size * 2)
+    self.hyper_embedding = get_hyper_layer(hidden_size * 2, hyper_cfg)
+    self.embedding_proj = nn.Linear(hidden_size * 2, self.latent_dim)
 
-    self.log_var = nn.Linear(hidden_size * 2, self.latent_dim)
-    self.hyper_log_var = get_hyper_layer(self.latent_dim, hyper_cfg)
-    self.log_var_proj = nn.Linear(self.latent_dim, self.latent_dim)
+    self.log_var = nn.Linear(hidden_size * 2, hidden_size * 2)
+    self.hyper_log_var = get_hyper_layer(hidden_size * 2, hyper_cfg)
+    self.log_var_proj = nn.Linear(hidden_size * 2, self.latent_dim)
 
   def forward(self, batch):
     text_ids = batch["text_ids"]
@@ -68,20 +68,15 @@ class HyperLstmEncoder(BaseHyperEncoder):
     out = torch.cat(encoder_states, 1)
     out = self.hyper_encoder(out)
 
-    if self.hyper_cfg.include_latent_stem:
-      emb = self.embedding(out)
-      emb = self.hyper_embedding(emb)
-      emb = self.embedding_proj(emb)
-      output["embedding"] = emb
+    emb = self.embedding(out)
+    emb = self.hyper_embedding(emb)
+    emb = self.embedding_proj(emb)
+    output["embedding"] = emb
+    lv = self.log_var(out)
+    lv = self.hyper_log_var(lv)
+    lv = self.log_var_proj(lv)
+    output["log_covariance"] = lv
 
-      lv = self.log_var(out)
-      lv = self.hyper_log_var(lv)
-      lv = self.log_var_proj(lv)
-      output["log_covariance"] = lv
-
-    else:
-      output["embedding"] = self.embedding(out)
-      output["log_covariance"] = self.log_var(out)
     return output
 
 
@@ -121,7 +116,6 @@ class HyperLstmDecoder(BaseHyperDecoder):
         vocab_size=vocab_size,
         token_embedder=self._embed_fn_rnn,
         hparams={"rnn_cell": dec_cell_hparams})
-    # self.hyper_lstm_decoder = get_hyper_layer(hidden_size, hyper_cfg)
 
     self.mlp_linear_layer = nn.Linear(32, hidden_size * 2)
     self.hyper_mlp_linear_layer = get_hyper_layer(hidden_size * 2, hyper_cfg)
