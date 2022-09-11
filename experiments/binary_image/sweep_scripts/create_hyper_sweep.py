@@ -13,11 +13,11 @@ args = parser.parse_args()
 CONV_CONFIG = {
     "lr": [1e-2, 3e-3, 1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
     "total_epochs": [200],
-    "data_name": ["mnist", "omniglot"],
+    "data_name": ["mnist"],
     "encoder_name": ["conv"],
     "decoder_name": ["conv"],
     "hyper_config_summary": [
-        "lin_bn", "smlp_bn", "aff_bn", "lin_in", "smlp_in", "aff_in"
+        "lin_bn",
     ],
 }
 
@@ -35,11 +35,11 @@ if __name__ == "__main__":
       CONV_CONFIG,
       command_template="python hyper_train.py --experiment_name {} ".format(
           args.experiment_name))
-  jobs += ["\n"]
-  jobs += generate_job_strings(
-      RENSET_CONFIG,
-      command_template="python hyper_train.py --experiment_name {} ".format(
-          args.experiment_name))
+  # jobs += ["\n"]
+  # jobs += generate_job_strings(
+  #     RENSET_CONFIG,
+  #     command_template="python hyper_train.py --experiment_name {} ".format(
+  #         args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
-  generate_sh_file(args.file_name, len(jobs))
+  generate_sh_file(args.file_name, len(jobs), cluster_name="q")
