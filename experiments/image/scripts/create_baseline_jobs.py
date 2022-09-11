@@ -13,13 +13,14 @@ parser.add_argument(
 args = parser.parse_args()
 
 SVHN_CONFIG1 = {
-    # "lr": [0.0003],
-    # "total_epochs": [200],
-    # "data_name": ["svhn"],
-    # "arch_name": ["conv"],
-    # "schedule": ["constant", "monotonic"],
-    # "beta": list(np.logspace(-3, 1, num=20)) + [1],
-    # "save_final_checkpoint": [1]
+    "lr": [0.0003],
+    "total_epochs": [200],
+    "data_name": ["svhn"],
+    "arch_name": ["conv"],
+    "schedule": ["monotonic"],
+    "beta": list(np.logspace(-2, 1, num=10)),
+    "save_final_checkpoint": [1],
+    "seed": [0, 1, 2]
 }
 
 SVHN_CONFIG2 = {
@@ -34,13 +35,14 @@ SVHN_CONFIG2 = {
 }
 
 CIFAR_CONFIG1 = {
-    # "lr": [0.001],
-    # "total_epochs": [200],
-    # "data_name": ["cifar"],
-    # "arch_name": ["conv"],
-    # "schedule": ["constant", "monotonic"],
-    # "beta": list(np.logspace(-3, 1, num=20)) + [1],
-    # "save_final_checkpoint": [1]
+    "lr": [0.001],
+    "total_epochs": [200],
+    "data_name": ["cifar"],
+    "arch_name": ["conv"],
+    "schedule": ["monotonic"],
+    "beta": list(np.logspace(-2, 1, num=10)),
+    "save_final_checkpoint": [1],
+    "seed": [0, 1, 2]
 }
 
 CIFAR_CONFIG2 = {
@@ -55,13 +57,14 @@ CIFAR_CONFIG2 = {
 }
 
 CELEB_CONFIG1 = {
-    # "lr": [0.001],
-    # "total_epochs": [200],
-    # "data_name": ["celeba"],
-    # "arch_name": ["conv"],
-    # "schedule": ["constant", "monotonic"],
-    # "beta": list(np.logspace(-3, 1, num=20)) + [1],
-    # "save_final_checkpoint": [1]
+    "lr": [0.001],
+    "total_epochs": [200],
+    "data_name": ["celeba"],
+    "arch_name": ["conv"],
+    "schedule": ["monotonic"],
+    "beta": list(np.logspace(-2, 1, num=10)),
+    "save_final_checkpoint": [1],
+    "seed": [0, 1, 2]
 }
 
 CELEB_CONFIG2 = {

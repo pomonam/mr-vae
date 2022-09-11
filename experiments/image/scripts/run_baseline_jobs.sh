@@ -6,7 +6,7 @@
 #SBATCH --partition=p100
 #SBATCH --qos=normal
 #SBATCH --export=ALL
-#SBATCH --array=0-90%90
+#SBATCH --array=0-180%180
 #SBATCH --output=temp/array-%A_%a.out
 #SBATCH -c 4
 
