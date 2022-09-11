@@ -29,4 +29,7 @@ class TestTextImage(unittest.TestCase):
                                                 device)
 
   def test_summary(self):
-    pass
+    print(sum(p.numel() for p in self.lstm_model.parameters()))
+    print(sum(p.numel() for p in self.trans_model.parameters()))
+    print(sum(p.numel() for p in self.hyper_lstm_model.parameters()))
+    print(sum(p.numel() for p in self.hyper_trans_model.parameters()))

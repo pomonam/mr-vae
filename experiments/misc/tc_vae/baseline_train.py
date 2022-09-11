@@ -349,8 +349,8 @@ def main():
       default=10,
       type=int,
       help='size of latent dimension')
-  parser.add_argument('--beta', default=6, type=float, help='ELBO penalty term')
-  parser.add_argument('--tcvae', action='store_true')
+  parser.add_argument('--beta', default=1, type=float, help='ELBO penalty term')
+  parser.add_argument('--tcvae', default=True, action='store_true')
   parser.add_argument('--exclude-mutinfo', action='store_true')
   parser.add_argument('--beta-anneal', action='store_true')
   parser.add_argument('--lambda-anneal', action='store_true')
