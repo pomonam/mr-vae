@@ -336,7 +336,7 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument("--experiment_name", type=str, default="hvae_text_debug")
 
-  parser.add_argument("--decoder_name", type=str, default="trans")
+  parser.add_argument("--decoder_name", type=str, default="lstm")
   parser.add_argument("--data_name", type=str, default="ptb")
 
   parser.add_argument("--hyper_config_summary", type=str, default="lin_bn")
