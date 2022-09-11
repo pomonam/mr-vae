@@ -1,60 +1,60 @@
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.01 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.01 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.01 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.021544346900318832 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.021544346900318832 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.021544346900318832 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.046415888336127774 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.046415888336127774 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.046415888336127774 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.1 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.1 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.1 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.21544346900318834 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.21544346900318834 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.21544346900318834 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.46415888336127775 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.46415888336127775 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 0.46415888336127775 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 1.0 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 1.0 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 1.0 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 2.154434690031882 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 2.154434690031882 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 2.154434690031882 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 4.6415888336127775 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 4.6415888336127775 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 4.6415888336127775 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 10.0 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 10.0 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lambda 10.0 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.01 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.01 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.01 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.021544346900318832 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.021544346900318832 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.021544346900318832 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.046415888336127774 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.046415888336127774 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.046415888336127774 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.1 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.1 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.1 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.21544346900318834 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.21544346900318834 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.21544346900318834 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.46415888336127775 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.46415888336127775 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 0.46415888336127775 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 1.0 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 1.0 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 1.0 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 2.154434690031882 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 2.154434690031882 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 2.154434690031882 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 4.6415888336127775 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 4.6415888336127775 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 4.6415888336127775 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 10.0 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 10.0 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lambda 10.0 --save_final_checkpoint 1 --seed 2
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.01 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.01 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.01 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.021544346900318832 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.021544346900318832 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.021544346900318832 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.046415888336127774 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.046415888336127774 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.046415888336127774 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.1 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.1 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.1 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.21544346900318834 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.21544346900318834 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.21544346900318834 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.46415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.46415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 0.46415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 1.0 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 1.0 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 1.0 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 2.154434690031882 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 2.154434690031882 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 2.154434690031882 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 4.6415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 4.6415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 4.6415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 10.0 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 10.0 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name mnist --lamb 10.0 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.01 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.01 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.01 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.021544346900318832 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.021544346900318832 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.021544346900318832 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.046415888336127774 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.046415888336127774 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.046415888336127774 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.1 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.1 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.1 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.21544346900318834 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.21544346900318834 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.21544346900318834 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.46415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.46415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 0.46415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 1.0 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 1.0 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 1.0 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 2.154434690031882 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 2.154434690031882 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 2.154434690031882 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 4.6415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 4.6415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 4.6415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 10.0 --seed 0 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 10.0 --seed 1 
+python baseline_train.py --experiment_name hvqvae_image_jobs_final --lr 0.003 --total_epochs 200 --data_name celeba --lamb 10.0 --seed 2

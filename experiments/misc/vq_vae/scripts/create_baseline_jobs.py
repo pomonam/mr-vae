@@ -15,7 +15,7 @@ CONFIG = {
     "total_epochs": [200],
     "data_name": ["mnist", "celeba"],
     "lamb": list(np.logspace(-2, 1, num=10)),
-    "save_final_checkpoint": [1],
+    # "save_final_checkpoint": [1],
     "seed": [0, 1, 2]
 }
 
