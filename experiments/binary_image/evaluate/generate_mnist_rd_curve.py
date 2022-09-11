@@ -9,7 +9,7 @@ from tueplots.constants.color import rgb
 from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
-BASELINE_NAME = "hvae_bimage_jobs_v9"
+BASELINE_NAME = "hvae_bimage_jobs_v11"
 HYPER_NAME = "hvae_bimage_hyper_sweep_v10"
 ID = "be6u0ww7"
 
