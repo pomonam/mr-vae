@@ -7,7 +7,7 @@
 
 import torch.utils.data as data
 import numpy as np
-import lmdb
+# import lmdb
 import os
 import io
 from PIL import Image

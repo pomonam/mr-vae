@@ -17,7 +17,7 @@ import os
 import urllib
 from lmdb_datasets import LMDBDataset
 from thirdparty.lsun import LSUN
-
+from experiments.binary_image.input_pipeline import load_mnist_data, load_omniglot_data
 
 class StackedMNIST(dset.MNIST):
 
@@ -101,6 +101,23 @@ class CropCelebA64(object):
 def get_loaders(args):
   """Get data loaders for required dataset."""
   return get_loaders_eval(args.dataset, args)
+
+
+def get_custom_loaders(args):
+  """Get data loaders for required dataset."""
+  if args.dataset == 'mnist':
+    train_queue = load_mnist_data("train", args.batch_size,
+                                  workers=8, data_path="../../logs/data")
+    valid_queue = load_mnist_data("test", args.batch_size,
+                                  workers=1, data_path="../../logs/data")
+    return train_queue, valid_queue, 10
+
+  elif args.dataset == "omniglot":
+    train_queue = load_omniglot_data("train", args.batch_size,
+                                  workers=8, data_path="../../logs/data")
+    valid_queue = load_omniglot_data("test", args.batch_size,
+                                  workers=1, data_path="../../logs/data")
+    return train_queue, valid_queue, 10
 
 
 def download_omniglot(data_dir):
