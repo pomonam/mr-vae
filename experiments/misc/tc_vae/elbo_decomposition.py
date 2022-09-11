@@ -7,33 +7,21 @@ from torch.autograd import Variable
 
 import experiments.misc.tc_vae.lib.dist as dist
 
+cuda = torch.cuda.is_available()
+DEVICE = torch.device("cuda" if cuda else "cpu")
+
 
 def estimate_entropies(qz_samples, qz_params, q_dist):
-    """Computes the term:
-        E_{p(x)} E_{q(z|x)} [-log q(z)]
-    and
-        E_{p(x)} E_{q(z_j|x)} [-log q(z_j)]
-    where q(z) = 1/N sum_n=1^N q(z|x_n).
-    Assumes samples are from q(z|x) for *all* x in the dataset.
-    Assumes that q(z|x) is factorial ie. q(z|x) = prod_j q(z_j|x).
-    Computes numerically stable NLL:
-        - log q(z) = log N - logsumexp_n=1^N log q(z|x_n)
-    Inputs:
-    -------
-        qz_samples (K, S) Variable
-        qz_params  (N, K, nparams) Variable
-    """
-
     # Only take a sample subset of the samples
-    qz_samples = qz_samples.index_select(1, Variable(torch.randperm(qz_samples.size(1))[:10000].cuda()))
+    qz_samples = qz_samples.index_select(1, Variable(torch.randperm(qz_samples.size(1))[:10000].to(DEVICE)))
 
     K, S = qz_samples.size()
     N, _, nparams = qz_params.size()
     assert(nparams == q_dist.nparams)
     assert(K == qz_params.size(1))
 
-    marginal_entropies = torch.zeros(K).cuda()
-    joint_entropy = torch.zeros(1).cuda()
+    marginal_entropies = torch.zeros(K).to(DEVICE)
+    joint_entropy = torch.zeros(1).to(DEVICE)
 
     pbar = tqdm(total=S)
     k = 0
@@ -59,9 +47,6 @@ def estimate_entropies(qz_samples, qz_params, q_dist):
 
 
 def logsumexp(value, dim=None, keepdim=False):
-    """Numerically stable implementation of the operation
-    value.exp().sum(dim, keepdim).log()
-    """
     if dim is not None:
         m, _ = torch.max(value, dim=dim, keepdim=True)
         value0 = value - m
@@ -79,18 +64,6 @@ def logsumexp(value, dim=None, keepdim=False):
 
 
 def analytical_NLL(qz_params, q_dist, prior_dist, qz_samples=None):
-    """Computes the quantities
-        1/N sum_n=1^N E_{q(z|x)} [ - log q(z|x) ]
-    and
-        1/N sum_n=1^N E_{q(z_j|x)} [ - log p(z_j) ]
-    Inputs:
-    -------
-        qz_params  (N, K, nparams) Variable
-    Returns:
-    --------
-        nlogqz_condx (K,) Variable
-        nlogpz (K,) Variable
-    """
     pz_params = Variable(torch.zeros(1).type_as(qz_params.data).expand(qz_params.size()), volatile=True)
 
     nlogqz_condx = q_dist.NLL(qz_params).mean(0)
@@ -111,7 +84,7 @@ def elbo_decomposition(vae, dataset_loader):
     logpx = 0
     for xs in dataset_loader:
         batch_size = xs.size(0)
-        xs = Variable(xs.view(batch_size, -1, 64, 64).cuda(), volatile=True)
+        xs = Variable(xs.view(batch_size, -1, 64, 64).to(DEVICE), volatile=True)
         z_params = vae.encoder.forward(xs).view(batch_size, K, nparams)
         qz_params[n:n + batch_size] = z_params.data
         n += batch_size
@@ -124,7 +97,7 @@ def elbo_decomposition(vae, dataset_loader):
     # Reconstruction term
     logpx = logpx / (N * S)
 
-    qz_params = Variable(qz_params.cuda(), volatile=True)
+    qz_params = Variable(qz_params.to(DEVICE), volatile=True)
 
     print('Sampling from q(z).')
     # sample S times from each marginal q(z_j|x_n)
@@ -176,53 +149,53 @@ def elbo_decomposition(vae, dataset_loader):
     return logpx, dependence, information, dimwise_kl, analytical_cond_kl, marginal_entropies, joint_entropy
 
 
-if __name__ == '__main__':
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-checkpt', required=True)
-    parser.add_argument('-save', type=str, default='.')
-    parser.add_argument('-gpu', type=int, default=0)
-    args = parser.parse_args()
-
-    def load_model_and_dataset(checkpt_filename):
-        checkpt = torch.load(checkpt_filename)
-        args = checkpt['args']
-        state_dict = checkpt['state_dict']
-
-        # backwards compatibility
-        if not hasattr(args, 'conv'):
-            args.conv = False
-
-        from vae_quant import VAE, setup_data_loaders
-
-        # model
-        if args.dist == 'normal':
-            prior_dist = dist.Normal()
-            q_dist = dist.Normal()
-        elif args.dist == 'laplace':
-            prior_dist = dist.Laplace()
-            q_dist = dist.Laplace()
-        elif args.dist == 'flow':
-            prior_dist = flows.FactorialNormalizingFlow(dim=args.latent_dim, nsteps=32)
-            q_dist = dist.Normal()
-        vae = VAE(z_dim=args.latent_dim, use_cuda=True, prior_dist=prior_dist, q_dist=q_dist, conv=args.conv)
-        vae.load_state_dict(state_dict, strict=False)
-        vae.eval()
-
-        # dataset loader
-        loader = setup_data_loaders(args, use_cuda=True)
-        return vae, loader
-
-    torch.cuda.set_device(args.gpu)
-    vae, dataset_loader = load_model_and_dataset(args.checkpt)
-    logpx, dependence, information, dimwise_kl, analytical_cond_kl, marginal_entropies, joint_entropy = \
-        elbo_decomposition(vae, dataset_loader)
-    torch.save({
-        'logpx': logpx,
-        'dependence': dependence,
-        'information': information,
-        'dimwise_kl': dimwise_kl,
-        'analytical_cond_kl': analytical_cond_kl,
-        'marginal_entropies': marginal_entropies,
-        'joint_entropy': joint_entropy
-    }, os.path.join(args.save, 'elbo_decomposition.pth'))
+# if __name__ == '__main__':
+#     import argparse
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('-checkpt', required=True)
+#     parser.add_argument('-save', type=str, default='.')
+#     parser.add_argument('-gpu', type=int, default=0)
+#     args = parser.parse_args()
+#
+#     def load_model_and_dataset(checkpt_filename):
+#         checkpt = torch.load(checkpt_filename)
+#         args = checkpt['args']
+#         state_dict = checkpt['state_dict']
+#
+#         # backwards compatibility
+#         if not hasattr(args, 'conv'):
+#             args.conv = False
+#
+#         from vae_quant import VAE, setup_data_loaders
+#
+#         # model
+#         if args.dist == 'normal':
+#             prior_dist = dist.Normal()
+#             q_dist = dist.Normal()
+#         elif args.dist == 'laplace':
+#             prior_dist = dist.Laplace()
+#             q_dist = dist.Laplace()
+#         elif args.dist == 'flow':
+#             prior_dist = flows.FactorialNormalizingFlow(dim=args.latent_dim, nsteps=32)
+#             q_dist = dist.Normal()
+#         vae = VAE(z_dim=args.latent_dim, use_cuda=True, prior_dist=prior_dist, q_dist=q_dist, conv=args.conv)
+#         vae.load_state_dict(state_dict, strict=False)
+#         vae.eval()
+#
+#         # dataset loader
+#         loader = setup_data_loaders(args, use_cuda=True)
+#         return vae, loader
+#
+#     torch.cuda.set_device(args.gpu)
+#     vae, dataset_loader = load_model_and_dataset(args.checkpt)
+#     logpx, dependence, information, dimwise_kl, analytical_cond_kl, marginal_entropies, joint_entropy = \
+#         elbo_decomposition(vae, dataset_loader)
+#     torch.save({
+#         'logpx': logpx,
+#         'dependence': dependence,
+#         'information': information,
+#         'dimwise_kl': dimwise_kl,
+#         'analytical_cond_kl': analytical_cond_kl,
+#         'marginal_entropies': marginal_entropies,
+#         'joint_entropy': joint_entropy
+#     }, os.path.join(args.save, 'elbo_decomposition.pth'))

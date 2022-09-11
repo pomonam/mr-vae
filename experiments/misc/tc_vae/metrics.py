@@ -1,14 +1,13 @@
 import math
-import os
-import torch
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 
 import torch
-import lib.dist as dist
-# import lib.flows as flows
-import lib.utils as utils
+import experiments.misc.tc_vae.lib.utils as utils
+
+cuda = torch.cuda.is_available()
+DEVICE = torch.device("cuda" if cuda else "cpu")
 
 metric_name = 'MIG'
 
@@ -54,7 +53,7 @@ def estimate_entropies(qz_samples, qz_params, q_dist, n_samples=10000, weights=N
 
     # Only take a sample subset of the samples
     if weights is None:
-        qz_samples = qz_samples.index_select(1, Variable(torch.randperm(qz_samples.size(1))[:n_samples].cuda()))
+        qz_samples = qz_samples.index_select(1, Variable(torch.randperm(qz_samples.size(1))[:n_samples].to(DEVICE)))
     else:
         sample_inds = torch.multinomial(weights, n_samples, replacement=True)
         qz_samples = qz_samples.index_select(1, sample_inds)
@@ -69,7 +68,7 @@ def estimate_entropies(qz_samples, qz_params, q_dist, n_samples=10000, weights=N
     else:
         weights = torch.log(weights.view(N, 1, 1) / weights.sum())
 
-    entropies = torch.zeros(K).cuda()
+    entropies = torch.zeros(K).to(DEVICE)
 
     pbar = tqdm(total=S)
     k = 0
@@ -104,11 +103,11 @@ def mutual_info_metric_shapes(vae, shapes_dataset):
     n = 0
     for xs in dataset_loader:
         batch_size = xs.size(0)
-        xs = Variable(xs.view(batch_size, 1, 64, 64).cuda(), volatile=True)
+        xs = Variable(xs.view(batch_size, 1, 64, 64).to(DEVICE), volatile=True)
         qz_params[n:n + batch_size] = vae.encoder.forward(xs).view(batch_size, vae.z_dim, nparams).data
         n += batch_size
 
-    qz_params = Variable(qz_params.view(3, 6, 40, 32, 32, K, nparams).cuda())
+    qz_params = Variable(qz_params.view(3, 6, 40, 32, 32, K, nparams).to(DEVICE))
     qz_samples = vae.q_dist.sample(params=qz_params)
 
     print('Estimating marginal entropies.')
@@ -187,11 +186,11 @@ def mutual_info_metric_faces(vae, shapes_dataset):
     n = 0
     for xs in dataset_loader:
         batch_size = xs.size(0)
-        xs = Variable(xs.view(batch_size, 1, 64, 64).cuda(), volatile=True)
+        xs = Variable(xs.view(batch_size, 1, 64, 64).to(DEVICE), volatile=True)
         qz_params[n:n + batch_size] = vae.encoder.forward(xs).view(batch_size, vae.z_dim, nparams).data
         n += batch_size
 
-    qz_params = Variable(qz_params.view(50, 21, 11, 11, K, nparams).cuda())
+    qz_params = Variable(qz_params.view(50, 21, 11, 11, K, nparams).to(DEVICE))
     qz_samples = vae.q_dist.sample(params=qz_params)
 
     print('Estimating marginal entropies.')

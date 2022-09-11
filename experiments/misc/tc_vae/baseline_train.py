@@ -8,13 +8,14 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-
+from experiments.wandb_utils import init_wandb
 import experiments.misc.tc_vae.lib.dist as dist
 import experiments.misc.tc_vae.lib.utils as utils
 import experiments.misc.tc_vae.lib.datasets as dset
 from experiments.misc.tc_vae.metrics import mutual_info_metric_shapes
 from experiments.misc.tc_vae.elbo_decomposition import elbo_decomposition
-
+from src.utils import seed_everything
+import wandb
 
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
@@ -28,8 +29,6 @@ class MLPEncoder(nn.Module):
         self.fc1 = nn.Linear(4096, 1200)
         self.fc2 = nn.Linear(1200, 1200)
         self.fc3 = nn.Linear(1200, output_dim)
-
-        self.conv_z = nn.Conv2d(64, output_dim, 4, 1, 0)
 
         self.act = nn.ReLU(inplace=True)
 
@@ -297,6 +296,8 @@ def anneal_kl(args, vae, iteration):
 def main():
     # parse command line arguments
     parser = argparse.ArgumentParser(description="parse args")
+    parser.add_argument("--experiment_name", type=str, default="hvae_tcvae_debug")
+
     parser.add_argument('-d', '--dataset', default='shapes', type=str, help='dataset name',
         choices=['shapes', 'faces'])
     parser.add_argument('-dist', default='normal', type=str, choices=['normal', 'laplace', 'flow'])
@@ -312,16 +313,20 @@ def main():
     parser.add_argument('--mss', action='store_true', help='use the improved minibatch estimator')
     parser.add_argument('--conv', action='store_true')
     parser.add_argument('--gpu', type=int, default=0)
-    parser.add_argument('--visdom', action='store_true', help='whether plotting in visdom is desired')
+    parser.add_argument('--seed', type=int, default=0)
+    # parser.add_argument('--visdom', action='store_true', help='whether plotting in visdom is desired')
     parser.add_argument('--save', default='test1')
+    parser.add_argument("--checkpoint_dir", type=str, default=None)
     parser.add_argument('--log_freq', default=200, type=int, help='num iterations per log')
     args = parser.parse_args()
 
     # torch.cuda.set_device(args.gpu)
+    init_wandb(
+        args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
 
+    seed_everything(args.seed)
     # data loader
     train_loader = setup_data_loaders(args)
-
 
     prior_dist = dist.Normal()
     q_dist = dist.Normal()
@@ -369,33 +374,33 @@ def main():
                     elbo_running_mean.val, elbo_running_mean.avg))
 
                 vae.eval()
-                utils.save_checkpoint({
-                    'state_dict': vae.state_dict(),
-                    'args': args}, args.save, 0)
+                # utils.save_checkpoint({
+                #     'state_dict': vae.state_dict(),
+                #     'args': args}, args.save, 0)
                 # eval('plot_vs_gt_' + args.dataset)(vae, train_loader.dataset,
                 #     os.path.join(args.save, 'gt_vs_latent_{:05d}.png'.format(iteration)))
 
     # Report statistics after training
     vae.eval()
-    utils.save_checkpoint({
-        'state_dict': vae.state_dict(),
-        'args': args}, args.save, 0)
+    # utils.save_checkpoint({
+    #     'state_dict': vae.state_dict(),
+    #     'args': args}, args.save, 0)
     dataset_loader = DataLoader(train_loader.dataset, batch_size=1000, num_workers=0, shuffle=False)
     logpx, dependence, information, dimwise_kl, analytical_cond_kl, marginal_entropies, joint_entropy = \
         elbo_decomposition(vae, dataset_loader)
     metrics, _, _ = mutual_info_metric_shapes(vae, train_loader.dataset)
-    print(metrics)
 
-    torch.save({
+    log_info = {
         'logpx': logpx,
         'dependence': dependence,
         'information': information,
         'dimwise_kl': dimwise_kl,
         'analytical_cond_kl': analytical_cond_kl,
         'marginal_entropies': marginal_entropies,
-        'joint_entropy': joint_entropy
-    }, os.path.join(args.save, 'elbo_decomposition.pth'))
-    # eval('plot_vs_gt_' + args.dataset)(vae, dataset_loader.dataset, os.path.join(args.save, 'gt_vs_latent.png'))
+        'joint_entropy': joint_entropy,
+        "metrics": metrics
+    }
+    wandb.log(log_info)
     return vae
 
 
