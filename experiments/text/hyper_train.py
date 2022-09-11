@@ -208,6 +208,9 @@ def hyper_single_evaluate(
     metric_dict = initialize_metric(criterion.get_eval_metric_lst())
 
     for batch in p_bar:
+      batch = {
+          "data": batch, "start_tokens": start_token, "end_token": end_token
+      }
       output_dict = model.fixed_forward(batch, value=1)
       loss_dict = criterion.eval_forward(
           recon_x=output_dict["reconstruction"],
