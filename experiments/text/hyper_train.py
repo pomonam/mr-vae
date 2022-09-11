@@ -224,16 +224,15 @@ def hyper_single_evaluate(
   return metric_dict["loss"].avg
 
 
-def hyper_train(
-    model,
-    iterator,
-    criterion,
-    optimizer,
-    scheduler,
-    device,
-    cfg,
-    start_token,
-    end_token):
+def hyper_train(model,
+                iterator,
+                criterion,
+                optimizer,
+                scheduler,
+                device,
+                cfg,
+                start_token,
+                end_token):
   do_checkpoint = cfg.checkpoint_dir is not None
   if do_checkpoint and os.path.exists(
       os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):

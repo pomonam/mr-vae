@@ -125,8 +125,8 @@ class HyperConfig:
     self.apply_bn_calibrate = 0
     self.apply_bn_replace = 1
     self.reduce_range = 1
-    self.include_encoder_stem = 1
-    self.include_decoder_stem = 1
+    self.include_encoder_stem = 0
+    self.include_decoder_stem = 0
     self.param_type = "post_act"
     self.layer_type = "sig_gate"
     self.block_type = "linear"

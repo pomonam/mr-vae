@@ -1,7 +1,10 @@
+import os
 import time
 import math
 from numbers import Number
 import argparse
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -13,45 +16,65 @@ import experiments.misc.tc_vae.lib.utils as utils
 import experiments.misc.tc_vae.lib.datasets as dset
 from experiments.misc.tc_vae.metrics import mutual_info_metric_shapes
 from experiments.misc.tc_vae.elbo_decomposition import elbo_decomposition
+from src.hyper.layers import get_hyper_layer
 from src.utils import seed_everything
 import wandb
+from src.hyper.base_model import BaseHyperEncoder, BaseHyperDecoder
+from src.config import HyperConfig
+
+_SQRT3 = math.sqrt(3)
+_LOG_A = math.log(0.001)
+_LOG_RED_A = math.log(0.01)
+_LOG_B = math.log(10)
+_LOG_M = (_LOG_A + _LOG_B) / 2
+_LOG_RED_M = (_LOG_RED_A + _LOG_B) / 2
+_LOG_DIFF = _LOG_M - _LOG_A
+_LOG_RED_DIFF = _LOG_RED_M - _LOG_RED_A
 
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
 
 
-class MLPEncoder(nn.Module):
+class HyperMLPEncoder(BaseHyperEncoder):
 
-  def __init__(self, output_dim):
-    super(MLPEncoder, self).__init__()
+  def __init__(self, output_dim, hyper_cfg):
+    super(HyperMLPEncoder, self).__init__()
     self.output_dim = output_dim
 
     self.fc1 = nn.Linear(4096, 1200)
+    self.hyper_fc1 = get_hyper_layer(1200, hyper_cfg)
     self.fc2 = nn.Linear(1200, 1200)
+    self.hyper_fc2 = get_hyper_layer(1200, hyper_cfg)
     self.fc3 = nn.Linear(1200, output_dim)
-
+    # self.hyper_fc3 = get_hyper_layer(1200, hyper_cfg)
     self.act = nn.ReLU(inplace=True)
 
   def forward(self, x):
     h = x.view(-1, 64 * 64)
     h = self.act(self.fc1(h))
+    h = self.hyper_fc1(h)
     h = self.act(self.fc2(h))
+    h = self.hyper_fc2(h)
     h = self.fc3(h)
+    # h = self.hyper_fc3(h)
     z = h.view(x.size(0), self.output_dim)
     return z
 
 
-class MLPDecoder(nn.Module):
+class HyperMLPDecoder(BaseHyperDecoder):
 
-  def __init__(self, input_dim):
-    super(MLPDecoder, self).__init__()
+  def __init__(self, input_dim, hyper_cfg):
+    super(HyperMLPDecoder, self).__init__()
     self.net = nn.Sequential(
         nn.Linear(input_dim, 1200),
         nn.Tanh(),
+        get_hyper_layer(1200, hyper_cfg),
         nn.Linear(1200, 1200),
         nn.Tanh(),
+        get_hyper_layer(1200, hyper_cfg),
         nn.Linear(1200, 1200),
         nn.Tanh(),
+        get_hyper_layer(1200, hyper_cfg),
         nn.Linear(1200, 4096))
 
   def forward(self, z):
@@ -65,6 +88,7 @@ class VAE(nn.Module):
 
   def __init__(self,
                z_dim,
+               hyper_cfg,
                use_cuda=False,
                prior_dist=dist.Normal(),
                q_dist=dist.Normal(),
@@ -76,6 +100,7 @@ class VAE(nn.Module):
 
     self.use_cuda = use_cuda
     self.z_dim = z_dim
+    self.hyper_cfg = hyper_cfg
     self.include_mutinfo = include_mutinfo
     self.tcvae = tcvae
     self.lamb = 0
@@ -91,22 +116,67 @@ class VAE(nn.Module):
     self.register_buffer('prior_params', torch.zeros(self.z_dim, 2))
 
     # create the encoder and decoder networks
-    self.encoder = MLPEncoder(z_dim * self.q_dist.nparams)
-    self.decoder = MLPDecoder(z_dim)
+    self.encoder = HyperMLPEncoder(z_dim * self.q_dist.nparams, hyper_cfg)
+    self.decoder = HyperMLPDecoder(z_dim, hyper_cfg)
 
     # if use_cuda:
     #     # calling cuda() here will put all the parameters of
     #     # the encoder and decoder networks into gpu memory
     #     self.cuda()
 
-  # return prior parameters wrapped in a suitable Variable
+  def set_net_inputs(self, value: torch.Tensor) -> None:
+    self.encoder.set_net_inputs(value)
+    self.decoder.set_net_inputs(value)
+
+  def sample(self, x: torch.Tensor) -> dict:
+    try:
+      batch_size = x.shape[0]
+      device = x.device
+    except AttributeError:
+      # This is for text models.
+      batch_size = x.batch_size
+      device = x._batch["text_ids"].device
+
+    sample_dict = {}
+    sample_dict["net"] = (
+        torch.FloatTensor(batch_size, 1).uniform_(-_SQRT3, _SQRT3).to(device))
+    beta = sample_dict["net"] * (_SQRT3 / 3)
+    if self.hyper_cfg.reduce_range:
+      beta = beta * _LOG_RED_DIFF + _LOG_RED_M
+    else:
+      beta = beta * _LOG_DIFF + _LOG_M
+
+    sample_dict["beta"] = torch.exp(beta)
+    return sample_dict
+
+  def sample_inverse(self, x: torch.Tensor, value: float) -> dict:
+    try:
+      batch_size = x.shape[0]
+      device = x.device
+    except AttributeError:
+      # This is for text models.
+      batch_size = x.batch_size
+      device = x._batch["text_ids"].device
+
+    sample_dict = {}
+    ones = torch.ones(batch_size, 1).to(device)
+    beta = value * ones
+    sample_dict["beta"] = torch.ones(batch_size, 1).to(device) * beta
+    if self.hyper_cfg.reduce_range:
+      net_beta = (torch.log(sample_dict["beta"]) - _LOG_RED_M) / _LOG_RED_DIFF
+    else:
+      net_beta = (torch.log(sample_dict["beta"]) - _LOG_M) / _LOG_DIFF
+    sample_dict["net"] = net_beta * (3 / _SQRT3)
+    return sample_dict
+
   def _get_prior_params(self, batch_size=1):
     expanded_size = (batch_size,) + self.prior_params.size()
     prior_params = Variable(self.prior_params.expand(expanded_size))
     return prior_params
 
-  # samples from the model p(x|z)p(z)
-  def model_sample(self, batch_size=1):
+  def model_sample(self, value, batch_size=1):
+    sample_dict = self.sample_inverse(torch.Tensor(1, 1).to(DEVICE), value)
+    self.set_net_inputs(sample_dict["net"])
     # sample from prior (value will be sampled by guide when computing the ELBO)
     prior_params = self._get_prior_params(batch_size)
     zs = self.prior_dist.sample(params=prior_params)
@@ -114,13 +184,10 @@ class VAE(nn.Module):
     x_params = self.decoder.forward(zs)
     return x_params
 
-  # define the guide (i.e. variational distribution) q(z|x)
   def encode(self, x):
     x = x.view(x.size(0), 1, 64, 64)
-    # use the encoder to get the parameters used to define q(z|x)
     z_params = self.encoder.forward(x).view(
         x.size(0), self.z_dim, self.q_dist.nparams)
-    # sample the latent code z
     zs = self.q_dist.sample(params=z_params)
     return zs, z_params
 
@@ -129,8 +196,22 @@ class VAE(nn.Module):
     xs = self.x_dist.sample(params=x_params)
     return xs, x_params
 
-  # define a helper function for reconstructing images
-  def reconstruct_img(self, x):
+  def sample_reconstruct_img(self, x):
+    sample_dict = self.sample(x)
+    self.set_net_inputs(sample_dict["net"])
+
+    zs, z_params = self.encode(x)
+    xs, x_params = self.decode(zs)
+    return xs, x_params, zs, z_params, sample_dict
+
+  def set_value(self, value):
+    sample_dict = self.sample_inverse(torch.Tensor(1, 1).to(DEVICE), value)
+    self.set_net_inputs(sample_dict["net"])
+
+  def fixed_reconstruct_img(self, x, value):
+    sample_dict = self.sample_inverse(x, value)
+    self.set_net_inputs(sample_dict["net"])
+
     zs, z_params = self.encode(x)
     xs, x_params = self.decode(zs)
     return xs, x_params, zs, z_params
@@ -145,12 +226,12 @@ class VAE(nn.Module):
     W[M - 1, 0] = strat_weight
     return W.log()
 
-  def elbo(self, x, dataset_size):
+  def sample_elbo(self, x, dataset_size):
     # log p(x|z) + log p(z) - log q(z|x)
     batch_size = x.size(0)
     x = x.view(batch_size, 1, 64, 64)
     prior_params = self._get_prior_params(batch_size)
-    x_recon, x_params, zs, z_params = self.reconstruct_img(x)
+    x_recon, x_params, zs, z_params, sample_dict = self.sample_reconstruct_img(x)
     logpx = self.x_dist.log_density(
         x, params=x_params).view(batch_size, -1).sum(1)
     logpz = self.prior_dist.log_density(
@@ -160,8 +241,8 @@ class VAE(nn.Module):
 
     elbo = logpx + logpz - logqz_condx
 
-    if self.beta == 1 and self.include_mutinfo and self.lamb == 0:
-      return elbo, elbo.detach()
+    # if self.beta == 1 and self.include_mutinfo and self.lamb == 0:
+    #   return elbo, elbo.detach()
 
     # compute log q(z) ~= log 1/(NM) sum_m=1^M q(z|x_m) = - log(MN) + logsumexp_m(q(z|x_m))
     _logqz = self.q_dist.log_density(
@@ -198,11 +279,11 @@ class VAE(nn.Module):
       if self.include_mutinfo:
         modified_elbo = logpx - \
             (logqz_condx - logqz) - \
-            self.beta * (logqz - logqz_prodmarginals) - \
+            sample_dict["beta"] * (logqz - logqz_prodmarginals) - \
             (1 - self.lamb) * (logqz_prodmarginals - logpz)
       else:
         modified_elbo = logpx - \
-            self.beta * (logqz - logqz_prodmarginals) - \
+            sample_dict["beta"] * (logqz - logqz_prodmarginals) - \
             (1 - self.lamb) * (logqz_prodmarginals - logpz)
 
     return modified_elbo, elbo.detach()
@@ -320,6 +401,7 @@ def main():
   # parse command line arguments
   parser = argparse.ArgumentParser(description="parse args")
   parser.add_argument("--experiment_name", type=str, default="hvae_tcvae_debug")
+  parser.add_argument("--hyper_config_summary", type=str, default="lin_bn")
 
   parser.add_argument(
       '-d',
@@ -366,6 +448,8 @@ def main():
       '--log_freq', default=200, type=int, help='num iterations per log')
   args = parser.parse_args()
 
+  hyper_cfg = HyperConfig(args)
+
   # torch.cuda.set_device(args.gpu)
   init_wandb(
       args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
@@ -379,6 +463,7 @@ def main():
 
   vae = VAE(
       z_dim=args.latent_dim,
+      hyper_cfg=hyper_cfg,
       use_cuda=True,
       prior_dist=prior_dist,
       q_dist=q_dist,
@@ -404,7 +489,7 @@ def main():
       iteration += 1
       batch_time = time.time()
       vae.train()
-      anneal_kl(args, vae, iteration)
+      # anneal_kl(args, vae, iteration)
       optimizer.zero_grad()
       # transfer to GPU
       x = x.to(DEVICE)
@@ -412,7 +497,7 @@ def main():
       # wrap the mini-batch in a PyTorch Variable
       x = Variable(x)
       # do ELBO gradient and accumulate loss
-      obj, elbo = vae.elbo(x, dataset_size)
+      obj, elbo = vae.sample_elbo(x, dataset_size)
       if utils.isnan(obj).any():
         raise ValueError('NaN spotted in objective.')
       obj.mean().mul(-1).backward()
@@ -445,19 +530,17 @@ def main():
   #     'args': args}, args.save, 0)
   dataset_loader = DataLoader(
       train_loader.dataset, batch_size=1000, num_workers=0, shuffle=False)
-  logpx, dependence, information, dimwise_kl, analytical_cond_kl, marginal_entropies, joint_entropy = \
-      elbo_decomposition(vae, dataset_loader)
-  metrics, _, _ = mutual_info_metric_shapes(vae, train_loader.dataset)
+  # logpx, dependence, information, dimwise_kl, analytical_cond_kl, marginal_entropies, joint_entropy = \
+  #     elbo_decomposition(vae, dataset_loader)
 
+  beta_lst = np.logspace(-2, 1, num=20, base=10)
+  metrics_lst = []
+  for beta in beta_lst:
+    vae.set_net_inputs(beta)
+    metrics, _, _ = mutual_info_metric_shapes(vae, train_loader.dataset)
+    metrics_lst.append(metrics)
   log_info = {
-      'logpx': logpx,
-      'dependence': dependence,
-      'information': information,
-      'dimwise_kl': dimwise_kl,
-      'analytical_cond_kl': analytical_cond_kl,
-      'marginal_entropies': marginal_entropies,
-      'joint_entropy': joint_entropy,
-      "metrics": metrics
+      'metrics_lst': metrics_lst,
   }
   wandb.log(log_info)
   return vae

@@ -127,7 +127,8 @@ def main():
   plt.plot(rate, dist, "-", label="Hyper BN", linewidth=1, alpha=0.8)
 
   rate, dist = generate_hyper_rd(runs, "3m5hulfi")
-  plt.plot(rate, dist, "-", label="Hyper (Instance Norm)", linewidth=1, alpha=0.8)
+  plt.plot(
+      rate, dist, "-", label="Hyper (Instance Norm)", linewidth=1, alpha=0.8)
   #
   # rate, dist = generate_hyper_rd(runs, "1ni26qv1")
   # plt.plot(rate, dist, "-", label="Large MLP Block", linewidth=1, alpha=0.8)

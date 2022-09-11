@@ -160,11 +160,11 @@ class HyperVQMNISTResNetEncoder(BaseHyperEncoder):
     layers.append(
         nn.Sequential(
             HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
-          get_hyper_layer(128, hyper_cfg),
+            get_hyper_layer(128, hyper_cfg),
             nn.ReLU(),
             HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
             nn.ReLU(),
-          get_hyper_layer(128, hyper_cfg),
+            get_hyper_layer(128, hyper_cfg),
         ))
     self.layers = layers
     self.depth = len(layers)
@@ -197,7 +197,7 @@ class HyperVQMNISTResNetDecoder(BaseHyperDecoder):
     layers = nn.ModuleList()
 
     layers.append(nn.ConvTranspose2d(self.latent_dim, 128, 1, 1))
-    layers.append(get_hyper_layer(128, hyper_cfg))
+    # layers.append(get_hyper_layer(128, hyper_cfg))
 
     layers.append(
         nn.Sequential(
@@ -210,11 +210,11 @@ class HyperVQMNISTResNetDecoder(BaseHyperDecoder):
     layers.append(
         nn.Sequential(
             HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
-          get_hyper_layer(128, hyper_cfg),
+            get_hyper_layer(128, hyper_cfg),
             nn.ReLU(),
             HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
             nn.ReLU(),
-          get_hyper_layer(128, hyper_cfg),
+            get_hyper_layer(128, hyper_cfg),
         ))
 
     layers.append(

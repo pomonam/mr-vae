@@ -52,7 +52,10 @@ class HyperBetaVAE(HyperVAE):
     return output
 
   def fixed_forward(self, inputs: dict, value: float, **kwargs) -> dict:
-    x = inputs["data"]
+    if isinstance(inputs, torch.Tensor):
+      x = inputs
+    else:
+      x = inputs["data"]
     sample_dict = self.sample_inverse(x, value)
     self.set_net_inputs(sample_dict["net"])
 

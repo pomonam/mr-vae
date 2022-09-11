@@ -25,7 +25,9 @@ CONV_CONFIG2 = {
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["conv"],
     "decoder_name": ["conv"],
-    "hyper_config_summary": ["lin_bn", "smlp_bn", "aff_bn", "lin_in", "smlp_in", "aff_in"],
+    "hyper_config_summary": [
+        "lin_bn", "smlp_bn", "aff_bn", "lin_in", "smlp_in", "aff_in"
+    ],
 }
 
 RENSET_CONFIG1 = {
@@ -49,7 +51,6 @@ RENSET_CONFIG2 = {
     "save_final_checkpoint": [1],
     "seed": [0, 1, 2]
 }
-
 
 if __name__ == "__main__":
   jobs = generate_job_strings(

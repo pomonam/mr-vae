@@ -10,15 +10,20 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-
 CONV_CONFIG = {
     "lr": [1e-2, 3e-3, 1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
     "total_epochs": [200],
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["conv"],
     "decoder_name": ["conv"],
-    "hyper_config_summary": ["lin_bn_stem", "smlp_bn_stem", "aff_bn_stem", "lin_in_stem",
-                             "smlp_in_stem", "aff_in_stem"],
+    "hyper_config_summary": [
+        "lin_bn_stem",
+        "smlp_bn_stem",
+        "aff_bn_stem",
+        "lin_in_stem",
+        "smlp_in_stem",
+        "aff_in_stem"
+    ],
 }
 
 RENSET_CONFIG = {

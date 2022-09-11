@@ -15,7 +15,9 @@ CONV_CONFIG = {
     "total_epochs": [200],
     "data_name": ["cifar", "svhn", "celeba"],
     "arch_name": ["conv"],
-    "hyper_config_summary": ["lin_bn", "smlp_bn", "aff_bn", "lin_in", "smlp_in", "aff_in"],
+    "hyper_config_summary": [
+        "lin_bn", "smlp_bn", "aff_bn", "lin_in", "smlp_in", "aff_in"
+    ],
 }
 
 RENSET_CONFIG = {
