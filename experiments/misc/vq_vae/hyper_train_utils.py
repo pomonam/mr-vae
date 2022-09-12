@@ -136,7 +136,7 @@ def hyper_predict(model, loader, value, device):
   queue = build_input_queue(loader, device)
   batch = next(queue)
   batch["data"] = batch["data"][:10]
-  model_out = model.fixed_forward(batch)
+  model_out = model.fixed_forward(batch, value)
   reconstructions = model_out["recon_x"].cpu().detach()
   z_enc = model_out["z"]
   z = torch.randn_like(z_enc)
