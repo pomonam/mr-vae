@@ -9,10 +9,10 @@ from experiments.binary_image.evaluate.utils import get_baseline_summary, get_su
 from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
-BASELINE_NAME = "hvae_bimage_jobs_v1"
+BASELINE_NAME = "hvae_bimage_jobs_final"
 HYPER_NAME = "hvae_bimage_hyper_sweep_v11"
 RESNET_ID = "8cwxtvws"
-CONV_ID = "27e2fj4f"
+CONV_ID = "16tc7mo3"
 
 
 def main():
@@ -21,16 +21,16 @@ def main():
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.inverted())
 
-  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME,
-                               schedule="monotonic", arc_name="resnet", test=True)
-  plt.plot([0], [0])
-  plt.scatter(
-      rate,
-      dist,
-      label=r"Independent Training",
-      edgecolors="k",
-      linewidths=0.5,
-      c=rgb.tue_lightblue)
+  # rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME,
+  #                              schedule="monotonic", arc_name="resnet", test=True)
+  # plt.plot([0], [0])
+  # plt.scatter(
+  #     rate,
+  #     dist,
+  #     label=r"Independent Training",
+  #     edgecolors="k",
+  #     linewidths=0.5,
+  #     c=rgb.tue_lightblue)
 
   rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME,
                                schedule="monotonic", arc_name="conv", test=True)
@@ -43,8 +43,8 @@ def main():
       linewidths=0.5,
       c=rgb.tue_lightblue)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, RESNET_ID)
-  plt.plot(rate, dist, "o-", label="Hypernetwork", linewidth=2, c=rgb.tue_ocre)
+  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, RESNET_ID)
+  # plt.plot(rate, dist, "o-", label="Hypernetwork", linewidth=2, c=rgb.tue_ocre)
 
   rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, CONV_ID)
   plt.plot(rate, dist, "o-", label="Hypernetwork", linewidth=2, c=rgb.tue_ocre)
