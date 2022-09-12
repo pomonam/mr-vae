@@ -501,7 +501,7 @@ def main():
             '[iteration %03d] time: %.2f \tbeta %.2f \tlambda %.2f training ELBO: %.4f (%.4f)'
             % (iteration,
                time.time() - batch_time,
-               vae.beta,
+               1.,
                vae.lamb,
                elbo_running_mean.val,
                elbo_running_mean.avg))
