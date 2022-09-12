@@ -194,7 +194,6 @@ class VAE(nn.Module):
   def sample_reconstruct_img(self, x):
     sample_dict = self.sample(x)
     self.set_net_inputs(sample_dict["net"])
-
     zs, z_params = self.encode(x)
     xs, x_params = self.decode(zs)
     return xs, x_params, zs, z_params, sample_dict
@@ -435,7 +434,7 @@ def main():
       '--mss', action='store_true', help='use the improved minibatch estimator')
   parser.add_argument('--conv', action='store_true')
   parser.add_argument('--gpu', type=int, default=0)
-  parser.add_argument('--seed', type=int, default=0)
+  parser.add_argument('--seed', type=int, default=1)
   # parser.add_argument('--visdom', action='store_true', help='whether plotting in visdom is desired')
   # parser.add_argument('--save', default='test1')
   parser.add_argument("--checkpoint_dir", type=str, default=None)

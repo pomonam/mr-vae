@@ -131,7 +131,7 @@ def main():
   hyper_evaluate(model, train_loader, cfg.total_epochs, "train_eval", DEVICE)
   hyper_evaluate(model, test_loader, cfg.total_epochs, "test", DEVICE)
 
-  for sample in model.get_test_samples(4):
+  for sample in model.get_log_uniform_samples(4):
     true_data, reconstructions, generations = hyper_predict(model, test_loader, sample, DEVICE)
     column_names = ["images_id", "truth", "reconstruction", "normal_generation"]
     data_to_log = []
@@ -155,9 +155,9 @@ def main():
     val_table = wandb.Table(data=data_to_log, columns=column_names)
     wandb.log({"image_at_{}".format(sample): val_table})
 
-  if args.save_final_checkpoint:
+  if args.save_final_checkpoint and args.seed == 0:
     save_checkpoint = \
-      os.path.join("checkpoints", "base_{}_{}.pth".format(args.data_name, args.lamb))
+      os.path.join("checkpoints", "hyper_{}.pth".format(args.data_name))
     log_info = {
         "state_dict": model.state_dict(),
     }
