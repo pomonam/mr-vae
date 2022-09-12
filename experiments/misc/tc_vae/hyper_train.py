@@ -67,13 +67,13 @@ class HyperMLPDecoder(BaseHyperDecoder):
     self.net = nn.Sequential(
         nn.Linear(input_dim, 1200),
         nn.Tanh(),
-        get_hyper_layer(1200, hyper_cfg),
+        # get_hyper_layer(1200, hyper_cfg),
         nn.Linear(1200, 1200),
         nn.Tanh(),
         get_hyper_layer(1200, hyper_cfg),
         nn.Linear(1200, 1200),
         nn.Tanh(),
-        get_hyper_layer(1200, hyper_cfg),
+        # get_hyper_layer(1200, hyper_cfg),
         nn.Linear(1200, 4096))
 
   def forward(self, z):
@@ -103,7 +103,7 @@ class VAE(nn.Module):
     self.include_mutinfo = include_mutinfo
     self.tcvae = tcvae
     self.lamb = 0
-    self.beta = 1
+    # self.beta = 1
     self.mss = mss
     self.x_dist = dist.Bernoulli()
 
@@ -120,8 +120,7 @@ class VAE(nn.Module):
 
   def set_inputs_for_net(self, x, value):
     sample_dict = self.sample_inverse(x, value)
-    self.encoder.set_net_inputs(sample_dict["net"])
-    self.decoder.set_net_inputs(sample_dict["net"])
+    self.set_net_inputs(sample_dict["net"])
 
   def sample(self, x: torch.Tensor) -> dict:
     try:
@@ -169,24 +168,26 @@ class VAE(nn.Module):
     prior_params = Variable(self.prior_params.expand(expanded_size))
     return prior_params
 
-  def model_sample(self, value, batch_size=1):
-    sample_dict = self.sample_inverse(torch.Tensor(1, 1).to(DEVICE), value)
-    self.set_net_inputs(sample_dict["net"])
-    # sample from prior (value will be sampled by guide when computing the ELBO)
-    prior_params = self._get_prior_params(batch_size)
-    zs = self.prior_dist.sample(params=prior_params)
-    # decode the latent code z
-    x_params = self.decoder.forward(zs)
-    return x_params
+  # def model_sample(self, value, batch_size=1):
+  #   sample_dict = self.sample_inverse(torch.Tensor(1, 1).to(DEVICE), value)
+  #   self.set_net_inputs(sample_dict["net"])
+  #   # sample from prior (value will be sampled by guide when computing the ELBO)
+  #   prior_params = self._get_prior_params(batch_size)
+  #   zs = self.prior_dist.sample(params=prior_params)
+  #   # decode the latent code z
+  #   x_params = self.decoder.forward(zs)
+  #   return x_params
 
   def encode(self, x):
     x = x.view(x.size(0), 1, 64, 64)
+    # net_inputs should be already set.
     z_params = self.encoder.forward(x).view(
         x.size(0), self.z_dim, self.q_dist.nparams)
     zs = self.q_dist.sample(params=z_params)
     return zs, z_params
 
   def decode(self, z):
+    # net_inputs should be already set.
     x_params = self.decoder.forward(z).view(z.size(0), 1, 64, 64)
     xs = self.x_dist.sample(params=x_params)
     return xs, x_params
@@ -203,9 +204,8 @@ class VAE(nn.Module):
     self.decoder.set_net_inputs(value)
 
   def fixed_reconstruct_img(self, x, value):
-    # sample_dict = self.sample_inverse(x, value)
-    # self.set_net_inputs(sample_dict["net"])
-    self.set_inputs_for_net(x, value)
+    sample_dict = self.sample_inverse(x, value)
+    self.set_net_inputs(sample_dict["net"])
     zs, z_params = self.encode(x)
     xs, x_params = self.decode(zs)
     return xs, x_params, zs, z_params
@@ -234,9 +234,6 @@ class VAE(nn.Module):
         zs, params=z_params).view(batch_size, -1).sum(1)
 
     elbo = logpx + logpz - logqz_condx
-
-    # if self.beta == 1 and self.include_mutinfo and self.lamb == 0:
-    #   return elbo, elbo.detach()
 
     # compute log q(z) ~= log 1/(NM) sum_m=1^M q(z|x_m) = - log(MN) + logsumexp_m(q(z|x_m))
     _logqz = self.q_dist.log_density(
@@ -323,50 +320,50 @@ win_latent_walk = None
 win_train_elbo = None
 
 
-def display_samples(model, x, vis):
-  global win_samples, win_test_reco, win_latent_walk
-
-  # plot random samples
-  sample_mu = model.model_sample(batch_size=100).sigmoid()
-  sample_mu = sample_mu
-  images = list(sample_mu.view(-1, 1, 64, 64).data.cpu())
-  win_samples = vis.images(
-      images, 10, 2, opts={'caption': 'samples'}, win=win_samples)
-
-  # plot the reconstructed distribution for the first 50 test images
-  test_imgs = x[:50, :]
-  _, reco_imgs, zs, _ = model.reconstruct_img(test_imgs)
-  reco_imgs = reco_imgs.sigmoid()
-  test_reco_imgs = torch.cat(
-      [test_imgs.view(1, -1, 64, 64), reco_imgs.view(1, -1, 64, 64)],
-      0).transpose(0, 1)
-  win_test_reco = vis.images(
-      list(test_reco_imgs.contiguous().view(-1, 1, 64, 64).data.cpu()),
-      10,
-      2,
-      opts={'caption': 'test reconstruction image'},
-      win=win_test_reco)
-
-  # plot latent walks (change one variable while all others stay the same)
-  zs = zs[0:3]
-  batch_size, z_dim = zs.size()
-  xs = []
-  delta = torch.autograd.Variable(
-      torch.linspace(-2, 2, 7), volatile=True).type_as(zs)
-  for i in range(z_dim):
-    vec = Variable(torch.zeros(z_dim)).view(1, z_dim).expand(
-        7, z_dim).contiguous().type_as(zs)
-    vec[:, i] = 1
-    vec = vec * delta[:, None]
-    zs_delta = zs.clone().view(batch_size, 1, z_dim)
-    zs_delta[:, :, i] = 0
-    zs_walk = zs_delta + vec[None]
-    xs_walk = model.decoder.forward(zs_walk.view(-1, z_dim)).sigmoid()
-    xs.append(xs_walk)
-
-  xs = list(torch.cat(xs, 0).data.cpu())
-  win_latent_walk = vis.images(
-      xs, 7, 2, opts={'caption': 'latent walk'}, win=win_latent_walk)
+# def display_samples(model, x, vis):
+#   global win_samples, win_test_reco, win_latent_walk
+#
+#   # plot random samples
+#   sample_mu = model.model_sample(batch_size=100).sigmoid()
+#   sample_mu = sample_mu
+#   images = list(sample_mu.view(-1, 1, 64, 64).data.cpu())
+#   win_samples = vis.images(
+#       images, 10, 2, opts={'caption': 'samples'}, win=win_samples)
+#
+#   # plot the reconstructed distribution for the first 50 test images
+#   test_imgs = x[:50, :]
+#   _, reco_imgs, zs, _ = model.reconstruct_img(test_imgs)
+#   reco_imgs = reco_imgs.sigmoid()
+#   test_reco_imgs = torch.cat(
+#       [test_imgs.view(1, -1, 64, 64), reco_imgs.view(1, -1, 64, 64)],
+#       0).transpose(0, 1)
+#   win_test_reco = vis.images(
+#       list(test_reco_imgs.contiguous().view(-1, 1, 64, 64).data.cpu()),
+#       10,
+#       2,
+#       opts={'caption': 'test reconstruction image'},
+#       win=win_test_reco)
+#
+#   # plot latent walks (change one variable while all others stay the same)
+#   zs = zs[0:3]
+#   batch_size, z_dim = zs.size()
+#   xs = []
+#   delta = torch.autograd.Variable(
+#       torch.linspace(-2, 2, 7), volatile=True).type_as(zs)
+#   for i in range(z_dim):
+#     vec = Variable(torch.zeros(z_dim)).view(1, z_dim).expand(
+#         7, z_dim).contiguous().type_as(zs)
+#     vec[:, i] = 1
+#     vec = vec * delta[:, None]
+#     zs_delta = zs.clone().view(batch_size, 1, z_dim)
+#     zs_delta[:, :, i] = 0
+#     zs_walk = zs_delta + vec[None]
+#     xs_walk = model.decoder.forward(zs_walk.view(-1, z_dim)).sigmoid()
+#     xs.append(xs_walk)
+#
+#   xs = list(torch.cat(xs, 0).data.cpu())
+#   win_latent_walk = vis.images(
+#       xs, 7, 2, opts={'caption': 'latent walk'}, win=win_latent_walk)
 
 
 def plot_elbo(train_elbo, vis):
@@ -395,7 +392,7 @@ def main():
   # parse command line arguments
   parser = argparse.ArgumentParser(description="parse args")
   parser.add_argument("--experiment_name", type=str, default="hvae_tcvae_debug")
-  parser.add_argument("--hyper_config_summary", type=str, default="lin_bn")
+  parser.add_argument("--hyper_config_summary", type=str, default="smlp_bn")
 
   parser.add_argument(
       '-d',
@@ -533,10 +530,11 @@ def main():
     # vae.set_net_inputs(beta)
     metrics, _, _ = mutual_info_metric_shapes(vae, train_loader.dataset, hyper_mode=True, value=beta)
     metrics_lst.append(metrics)
-  log_info = {
-      'metrics_lst': metrics_lst,
-  }
-  wandb.log(log_info)
+    log_info = {
+      "beta": beta,
+      'metrics': metrics,
+    }
+    wandb.log(log_info)
   return vae
 
 
