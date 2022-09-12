@@ -30,14 +30,14 @@ RENSET_CONFIG = {
 
 if __name__ == "__main__":
   jobs = generate_job_strings(
-      RENSET_CONFIG,
+      CONV_CONFIG,
       command_template="python hyper_train.py --experiment_name {} ".format(
           args.experiment_name))
-  jobs += ["\n"]
-  jobs += generate_job_strings(
-      RENSET_CONFIG,
-      command_template="python baseline_train.py --experiment_name {} ".format(
-          args.experiment_name))
+  # jobs += ["\n"]
+  # jobs += generate_job_strings(
+  #     CONV_CONFIG,
+  #     command_template="python hyper_train.py --experiment_name {} ".format(
+  #         args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
   generate_sh_file(args.file_name, len(jobs))
