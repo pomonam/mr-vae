@@ -56,7 +56,6 @@ class HyperMLPEncoder(BaseHyperEncoder):
     h = self.act(self.fc2(h))
     h = self.hyper_fc2(h)
     h = self.fc3(h)
-    # h = self.hyper_fc3(h)
     z = h.view(x.size(0), self.output_dim)
     return z
 
@@ -119,14 +118,10 @@ class VAE(nn.Module):
     self.encoder = HyperMLPEncoder(z_dim * self.q_dist.nparams, hyper_cfg)
     self.decoder = HyperMLPDecoder(z_dim, hyper_cfg)
 
-    # if use_cuda:
-    #     # calling cuda() here will put all the parameters of
-    #     # the encoder and decoder networks into gpu memory
-    #     self.cuda()
-
-  def set_net_inputs(self, value: torch.Tensor) -> None:
-    self.encoder.set_net_inputs(value)
-    self.decoder.set_net_inputs(value)
+  def set_inputs_for_net(self, x, value):
+    sample_dict = self.sample_inverse(x, value)
+    self.encoder.set_net_inputs(sample_dict["net"])
+    self.decoder.set_net_inputs(sample_dict["net"])
 
   def sample(self, x: torch.Tensor) -> dict:
     try:
@@ -204,14 +199,14 @@ class VAE(nn.Module):
     xs, x_params = self.decode(zs)
     return xs, x_params, zs, z_params, sample_dict
 
-  def set_value(self, value):
-    sample_dict = self.sample_inverse(torch.Tensor(1, 1).to(DEVICE), value)
-    self.set_net_inputs(sample_dict["net"])
+  def set_net_inputs(self, value: torch.Tensor) -> None:
+    self.encoder.set_net_inputs(value)
+    self.decoder.set_net_inputs(value)
 
   def fixed_reconstruct_img(self, x, value):
-    sample_dict = self.sample_inverse(x, value)
-    self.set_net_inputs(sample_dict["net"])
-
+    # sample_dict = self.sample_inverse(x, value)
+    # self.set_net_inputs(sample_dict["net"])
+    self.set_inputs_for_net(x, value)
     zs, z_params = self.encode(x)
     xs, x_params = self.decode(zs)
     return xs, x_params, zs, z_params
@@ -269,21 +264,21 @@ class VAE(nn.Module):
 
     if not self.tcvae:
       if self.include_mutinfo:
-        modified_elbo = logpx - self.beta * ((logqz_condx - logpz) - self.lamb *
+        modified_elbo = logpx - sample_dict["beta"].squeeze(-1) * ((logqz_condx - logpz) - self.lamb *
                                              (logqz_prodmarginals - logpz))
       else:
-        modified_elbo = logpx - self.beta * ((logqz - logqz_prodmarginals) +
+        modified_elbo = logpx - sample_dict["beta"].squeeze(-1) * ((logqz - logqz_prodmarginals) +
                                              (1 - self.lamb) *
                                              (logqz_prodmarginals - logpz))
     else:
       if self.include_mutinfo:
         modified_elbo = logpx - \
             (logqz_condx - logqz) - \
-            sample_dict["beta"] * (logqz - logqz_prodmarginals) - \
+            sample_dict["beta"].squeeze(-1) * (logqz - logqz_prodmarginals) - \
             (1 - self.lamb) * (logqz_prodmarginals - logpz)
       else:
         modified_elbo = logpx - \
-            sample_dict["beta"] * (logqz - logqz_prodmarginals) - \
+            sample_dict["beta"].squeeze(-1) * (logqz - logqz_prodmarginals) - \
             (1 - self.lamb) * (logqz_prodmarginals - logpz)
 
     return modified_elbo, elbo.detach()
@@ -424,7 +419,7 @@ def main():
   parser.add_argument(
       '-b', '--batch-size', default=2048, type=int, help='batch size')
   parser.add_argument(
-      '-l', '--learning-rate', default=1e-3, type=float, help='learning rate')
+      '-l', '--lr', default=1e-3, type=float, help='learning rate')
   parser.add_argument(
       '-z',
       '--latent-dim',
@@ -432,7 +427,7 @@ def main():
       type=int,
       help='size of latent dimension')
   parser.add_argument('--beta', default=6, type=float, help='ELBO penalty term')
-  parser.add_argument('--tcvae', action='store_true')
+  parser.add_argument('--tcvae', default=True, action='store_true')
   parser.add_argument('--exclude-mutinfo', action='store_true')
   parser.add_argument('--beta-anneal', action='store_true')
   parser.add_argument('--lambda-anneal', action='store_true')
@@ -442,7 +437,7 @@ def main():
   parser.add_argument('--gpu', type=int, default=0)
   parser.add_argument('--seed', type=int, default=0)
   # parser.add_argument('--visdom', action='store_true', help='whether plotting in visdom is desired')
-  parser.add_argument('--save', default='test1')
+  # parser.add_argument('--save', default='test1')
   parser.add_argument("--checkpoint_dir", type=str, default=None)
   parser.add_argument(
       '--log_freq', default=200, type=int, help='num iterations per log')
@@ -474,7 +469,7 @@ def main():
   vae = vae.to(DEVICE)
 
   # setup the optimizer
-  optimizer = optim.Adam(vae.parameters(), lr=args.learning_rate)
+  optimizer = optim.Adam(vae.parameters(), lr=args.lr)
 
   train_elbo = []
 
@@ -494,7 +489,6 @@ def main():
       # transfer to GPU
       x = x.to(DEVICE)
 
-      # wrap the mini-batch in a PyTorch Variable
       x = Variable(x)
       # do ELBO gradient and accumulate loss
       obj, elbo = vae.sample_elbo(x, dataset_size)
@@ -528,16 +522,17 @@ def main():
   # utils.save_checkpoint({
   #     'state_dict': vae.state_dict(),
   #     'args': args}, args.save, 0)
-  dataset_loader = DataLoader(
-      train_loader.dataset, batch_size=1000, num_workers=0, shuffle=False)
+  # dataset_loader = DataLoader(
+  #     train_loader.dataset, batch_size=1000, num_workers=0, shuffle=False)
   # logpx, dependence, information, dimwise_kl, analytical_cond_kl, marginal_entropies, joint_entropy = \
   #     elbo_decomposition(vae, dataset_loader)
 
   beta_lst = np.logspace(-2, 1, num=20, base=10)
   metrics_lst = []
   for beta in beta_lst:
-    vae.set_net_inputs(beta)
-    metrics, _, _ = mutual_info_metric_shapes(vae, train_loader.dataset)
+    # Setting the hyper inputs.
+    # vae.set_net_inputs(beta)
+    metrics, _, _ = mutual_info_metric_shapes(vae, train_loader.dataset, hyper_mode=True, value=beta)
     metrics_lst.append(metrics)
   log_info = {
       'metrics_lst': metrics_lst,
