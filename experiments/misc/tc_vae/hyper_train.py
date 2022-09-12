@@ -70,7 +70,7 @@ class HyperMLPDecoder(BaseHyperDecoder):
         # get_hyper_layer(1200, hyper_cfg),
         nn.Linear(1200, 1200),
         nn.Tanh(),
-        get_hyper_layer(1200, hyper_cfg),
+        # get_hyper_layer(1200, hyper_cfg),
         nn.Linear(1200, 1200),
         nn.Tanh(),
         # get_hyper_layer(1200, hyper_cfg),
