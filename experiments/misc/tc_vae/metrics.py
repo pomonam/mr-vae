@@ -99,7 +99,7 @@ def estimate_entropies(qz_samples,
   return entropies
 
 
-def mutual_info_metric_shapes(vae, shapes_dataset):
+def mutual_info_metric_shapes(vae, shapes_dataset, hyper_mode=False, value=0):
   dataset_loader = DataLoader(
       shapes_dataset, batch_size=1000, num_workers=0, shuffle=False)
 
@@ -115,6 +115,8 @@ def mutual_info_metric_shapes(vae, shapes_dataset):
   for xs in dataset_loader:
     batch_size = xs.size(0)
     xs = Variable(xs.view(batch_size, 1, 64, 64).to(DEVICE), volatile=True)
+    if hyper_mode:
+      vae.set_inputs_for_net(xs, value)
     qz_params[n:n + batch_size] = vae.encoder.forward(xs).view(
         batch_size, vae.z_dim, nparams).data
     n += batch_size
