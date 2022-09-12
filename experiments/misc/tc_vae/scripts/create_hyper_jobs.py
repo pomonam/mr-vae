@@ -8,7 +8,7 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_tcvae_hyper_jobs_v12")
+    "--experiment_name", type=str, default="hvae_tcvae_hyper_jobs_v13")
 
 args = parser.parse_args()
 
@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-2, 3e-3, 1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
-    "hyper_config_summary": ["lin_bn", "smlp_bn", "aff_bn"],
+    "hyper_config_summary": ["lin_bn"],
 }
 
 if __name__ == "__main__":
