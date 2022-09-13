@@ -45,10 +45,7 @@ class HyperMLPEncoder(BaseHyperEncoder):
     self.hyper_fc1 = get_hyper_layer(1200, hyper_cfg)
     self.fc2 = nn.Linear(1200, 1200)
     self.hyper_fc2 = get_hyper_layer(1200, hyper_cfg)
-    # self.fc22 = nn.Linear(1200, 1200)
-    # self.hyper_fc22 = get_hyper_layer(1200, hyper_cfg)
     self.fc3 = nn.Linear(1200, output_dim)
-    # self.hyper_fc3 = get_hyper_layer(output_dim, hyper_cfg)
     self.act = nn.ReLU(inplace=True)
 
   def forward(self, x):
@@ -57,8 +54,6 @@ class HyperMLPEncoder(BaseHyperEncoder):
     h = self.hyper_fc1(h)
     h = self.act(self.fc2(h))
     h = self.hyper_fc2(h)
-    # h = self.act(self.fc22(h))
-    # h = self.hyper_fc22(h)
     h = self.fc3(h)
     # h = self.hyper_fc3(h)
     z = h.view(x.size(0), self.output_dim)
@@ -78,6 +73,7 @@ class HyperMLPDecoder(BaseHyperDecoder):
         get_hyper_layer(1200, hyper_cfg),
         nn.Linear(1200, 1200),
         nn.Tanh(),
+        get_hyper_layer(1200, hyper_cfg),
         nn.Linear(1200, 4096)
     )
 
@@ -397,7 +393,7 @@ def main():
   # parse command line arguments
   parser = argparse.ArgumentParser(description="parse args")
   parser.add_argument("--experiment_name", type=str, default="hvae_tcvae_debug")
-  parser.add_argument("--hyper_config_summary", type=str, default="smlp_bn")
+  parser.add_argument("--hyper_config_summary", type=str, default="amlp_bn")
 
   parser.add_argument(
       '-d',
@@ -414,7 +410,7 @@ def main():
   parser.add_argument(
       '-n',
       '--num-epochs',
-      default=100,
+      default=50,
       type=int,
       help='number of training epochs')
   parser.add_argument(
