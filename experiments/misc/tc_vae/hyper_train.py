@@ -45,8 +45,8 @@ class HyperMLPEncoder(BaseHyperEncoder):
     self.hyper_fc1 = get_hyper_layer(1200, hyper_cfg)
     self.fc2 = nn.Linear(1200, 1200)
     self.hyper_fc2 = get_hyper_layer(1200, hyper_cfg)
-    self.fc22 = nn.Linear(1200, 1200)
-    self.hyper_fc22 = get_hyper_layer(1200, hyper_cfg)
+    # self.fc22 = nn.Linear(1200, 1200)
+    # self.hyper_fc22 = get_hyper_layer(1200, hyper_cfg)
     self.fc3 = nn.Linear(1200, output_dim)
     # self.hyper_fc3 = get_hyper_layer(output_dim, hyper_cfg)
     self.act = nn.ReLU(inplace=True)
@@ -57,8 +57,8 @@ class HyperMLPEncoder(BaseHyperEncoder):
     h = self.hyper_fc1(h)
     h = self.act(self.fc2(h))
     h = self.hyper_fc2(h)
-    h = self.act(self.fc22(h))
-    h = self.hyper_fc22(h)
+    # h = self.act(self.fc22(h))
+    # h = self.hyper_fc22(h)
     h = self.fc3(h)
     # h = self.hyper_fc3(h)
     z = h.view(x.size(0), self.output_dim)
@@ -71,13 +71,12 @@ class HyperMLPDecoder(BaseHyperDecoder):
     super(HyperMLPDecoder, self).__init__()
     self.net = nn.Sequential(
         nn.Linear(input_dim, 1200),
-        # get_hyper_layer(1200, hyper_cfg),
         nn.Tanh(),
-        nn.Linear(1200, 1200),
         get_hyper_layer(1200, hyper_cfg),
+        nn.Linear(1200, 1200),
         nn.Tanh(),
-        nn.Linear(1200, 1200),
         get_hyper_layer(1200, hyper_cfg),
+        nn.Linear(1200, 1200),
         nn.Tanh(),
         nn.Linear(1200, 4096)
     )
@@ -378,20 +377,20 @@ def plot_elbo(train_elbo, vis):
       torch.Tensor(train_elbo), opts={'markers': True}, win=win_train_elbo)
 
 
-def anneal_kl(args, vae, iteration):
-  if args.dataset == 'shapes':
-    warmup_iter = 7000
-  elif args.dataset == 'faces':
-    warmup_iter = 2500
-
-  if args.lambda_anneal:
-    vae.lamb = max(0, 0.95 - 1 / warmup_iter * iteration)  # 1 --> 0
-  else:
-    vae.lamb = 0
-  if args.beta_anneal:
-    vae.beta = min(args.beta, args.beta / warmup_iter * iteration)  # 0 --> 1
-  else:
-    vae.beta = args.beta
+# def anneal_kl(args, vae, iteration):
+#   if args.dataset == 'shapes':
+#     warmup_iter = 7000
+#   elif args.dataset == 'faces':
+#     warmup_iter = 2500
+#
+#   if args.lambda_anneal:
+#     vae.lamb = max(0, 0.95 - 1 / warmup_iter * iteration)  # 1 --> 0
+#   else:
+#     vae.lamb = 0
+#   if args.beta_anneal:
+#     vae.beta = min(args.beta, args.beta / warmup_iter * iteration)  # 0 --> 1
+#   else:
+#     vae.beta = args.beta
 
 
 def main():
@@ -415,7 +414,7 @@ def main():
   parser.add_argument(
       '-n',
       '--num-epochs',
-      default=50,
+      default=100,
       type=int,
       help='number of training epochs')
   parser.add_argument(
