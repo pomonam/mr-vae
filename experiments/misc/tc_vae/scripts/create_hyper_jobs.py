@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 CONFIG = {
     "lr": [1e-2, 3e-3, 1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
-    "hyper_config_summary": ["lin_bn"],
+    "hyper_config_summary": ["lin_bn", "amlp_bn"],
 }
 
 if __name__ == "__main__":

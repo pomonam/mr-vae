@@ -50,17 +50,25 @@ class HyperConfig:
           self.shared_preprocess = 0
           self.apply_zero_init = 0
           self.reduce_range = 1
-          self.reduce_range = 1
 
           self.param_type = "post_act"
           self.layer_type = "sig_gate"
           self.block_type = "linear"
           self.norm_type = "scale_shift"
 
+        elif "amlp" in self.hyper_config_summary:
+          self.shared_preprocess = 0
+          self.apply_zero_init = 0
+          self.reduce_range = 1
+
+          self.param_type = "post_act"
+          self.layer_type = "scale_shift"
+          self.block_type = "mlp"
+          self.norm_type = "scale_shift"
+
         elif "smlp" in self.hyper_config_summary:
           self.shared_preprocess = 1
           self.apply_zero_init = 0
-          self.reduce_range = 1
           self.reduce_range = 1
 
           self.param_type = "post_act"
@@ -71,7 +79,6 @@ class HyperConfig:
         elif "aff" in self.hyper_config_summary:
           self.shared_preprocess = 1
           self.apply_zero_init = 0
-          self.reduce_range = 1
           self.reduce_range = 1
 
           self.param_type = "post_act"
