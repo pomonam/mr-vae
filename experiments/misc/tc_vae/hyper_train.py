@@ -46,7 +46,7 @@ class HyperMLPEncoder(BaseHyperEncoder):
     self.fc2 = nn.Linear(1200, 1200)
     self.hyper_fc2 = get_hyper_layer(1200, hyper_cfg)
     self.fc3 = nn.Linear(1200, output_dim)
-    self.hyper_fc3 = get_hyper_layer(1200, hyper_cfg)
+    self.hyper_fc3 = get_hyper_layer(output_dim, hyper_cfg)
     self.act = nn.ReLU(inplace=True)
 
   def forward(self, x):
