@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import tqdm
 import wandb
+import matplotlib.pyplot as plt
 
 os.environ["WANDB_API_KEY"] = "65a71cb86f66a117460fb632080693d4cc9ab979"
 
@@ -29,9 +30,8 @@ parser.add_argument(
 parser.add_argument("--bottleneck_size", type=int, default=100)
 parser.add_argument("--total_epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=1e-3)
-parser.add_argument("--batch_size", type=int, default=50000) # Do full-batch training
-#parser.add_argument("--beta", type=float, default=-1)
-parser.add_argument("--beta", type=float, default=2)
+parser.add_argument("--batch_size", type=int, default=5000) # Also corresponds to dataset size
+parser.add_argument("--beta", type=float, required=True)
 parser.add_argument("--schedule", type=str, default="constant")
 
 parser.add_argument("--seed", type=int, default=0)
@@ -92,6 +92,7 @@ def train(model, biq, optimizer, scheduler, cfg):
         epoch = slurm_checkpoint["epoch"]
     else:
         epoch = 0
+    encoder_var = []
 
     while epoch < cfg.total_epochs:
         do_evaluate = epoch % cfg.eval_freq == 0
@@ -124,10 +125,12 @@ def train(model, biq, optimizer, scheduler, cfg):
             loss.backward()
             optimizer.step()
 
+
             metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
             summ_dict = summarize_metric(metric_dict)
             summ_str = generate_metric_str("train", epoch, summ_dict)
             p_bar.set_description(summ_str)
+            encoder_var.append(model.encoder_var.item())
 
         scheduler.step()
         summ_dict = summarize_metric(metric_dict, name="train_step/")
@@ -138,6 +141,10 @@ def train(model, biq, optimizer, scheduler, cfg):
         if np.isnan(summ_dict["train_step/loss"]):
             wandb.finish(exit_code=1)
             raise ValueError()
+
+    print("--> Encoder_var: ", encoder_var)
+    plt.plot(encoder_var)
+    plt.show()
 
 
 def main():

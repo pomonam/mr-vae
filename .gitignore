@@ -37,3 +37,6 @@ experiments/text/wandb
 
 experiments/misc/vq_vae/wandb
 experiments/misc/vq_vae/checkpoints/*.pth
+
+tests/theory/wandb
+wandb/

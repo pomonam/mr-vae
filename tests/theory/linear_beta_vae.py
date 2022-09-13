@@ -71,7 +71,7 @@ class LinearEncoder(nn.Module):
     def __init__(self, bottleneck_size):
         super().__init__()
         self.bottleneck_size = bottleneck_size
-        self.layer = nn.Linear(784, bottleneck_size * 2, bias=False)
+        self.layer = nn.Linear(784, bottleneck_size, bias=False)
 
     def forward(self, x):
         x = x.reshape(-1, 784)
@@ -97,6 +97,7 @@ class LinearVae(nn.Module):
 
         self.encoder = encoder
         self.decoder = decoder
+        self.encoder_var = torch.nn.Parameter(torch.ones(1))
         self.observation_log_likelihood_fn = log_normal_likelihood
         self.x_logvar = nn.Parameter(
             torch.log(torch.tensor(1)), requires_grad=True)
@@ -104,7 +105,8 @@ class LinearVae(nn.Module):
     def encode(self, x):
         hidden = self.encoder(x)
         mean = hidden[:, :self.encoder.bottleneck_size]
-        logvar = hidden[:, self.encoder.bottleneck_size:]
+        ones_var = torch.ones((x.shape[0], self.encoder.bottleneck_size)).cuda()
+        logvar = torch.mul(ones_var, self.encoder_var)
         return mean, logvar
 
     def decode(self, z):
