@@ -1,6 +1,8 @@
+from typing import Tuple
+
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
 
 from src.base_architecture import BaseDecoder
@@ -9,22 +11,24 @@ from src.base_architecture import BaseEncoder
 
 class BaseAE(nn.Module):
 
-  def __init__(self,
-               encoder: BaseEncoder = None,
-               decoder: BaseDecoder = None,
-               reconstruction_loss: str = "mse"):
+  def __init__(
+      self,
+      encoder: BaseEncoder,
+      decoder: BaseDecoder,
+      reconstruction_loss: str = "mse",
+  ) -> None:
 
-    nn.Module.__init__(self)
+    super().__init__()
 
     self.model_name = "BaseAE"
     self.encoder = encoder
     self.decoder = decoder
     self.reconstruction_loss = reconstruction_loss
 
-  def forward(self, inputs, **kwargs):
+  def forward(self, inputs: torch.Tensor, **kwargs):
     raise NotImplementedError()
 
-  def reconstruct(self, inputs: torch.Tensor):
+  def reconstruct(self, inputs: torch.Tensor) -> torch.Tensor:
     return self({"data": inputs, "data_bis": inputs}).recon_x
 
   def interpolate(
@@ -32,7 +36,7 @@ class BaseAE(nn.Module):
       starting_inputs: torch.Tensor,
       ending_inputs: torch.Tensor,
       granularity: int = 10,
-  ):
+  ) -> torch.Tensor:
     assert starting_inputs.shape[0] == ending_inputs.shape[0], (
         "The number of starting_inputs should equal the number of ending_inputs. Got "
         f"{starting_inputs.shape[0]} sampler for starting_inputs and {ending_inputs.shape[0]} "
@@ -59,26 +63,34 @@ class BaseAE(nn.Module):
 
 class VAE(BaseAE):
 
-  def __init__(self,
-               encoder: BaseEncoder = None,
-               decoder: BaseDecoder = None,
-               reconstruction_loss: str = "mse"):
+  def __init__(
+      self,
+      encoder: BaseEncoder,
+      decoder: BaseDecoder,
+      reconstruction_loss: str = "mse",
+  ) -> None:
 
-    BaseAE.__init__(
-        self,
+    super().__init__(
         encoder=encoder,
         decoder=decoder,
         reconstruction_loss=reconstruction_loss)
 
     self.model_name = "VAE"
 
-  def _sample_gauss(self, mu, std):
-    # Reparametrization trick
-    # Sample N(0, I)
+  def forward(self, inputs: torch.Tensor, **kwargs):
+    raise NotImplementedError()
+
+  # noinspection PyMethodMayBeStatic
+  def _sample_gauss(self, mu: torch.Tensor,
+                    std: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    # Reparametrization trick.
     eps = torch.randn_like(std)
     return mu + eps * std, eps
 
-  def get_nll(self, data, n_samples=1, batch_size=100):
+  def get_nll(self,
+              data: torch.Tensor,
+              n_samples: int = 1,
+              batch_size: int = 100) -> np.ndarray:
 
     if n_samples <= batch_size:
       n_full_batch = 1
@@ -93,12 +105,15 @@ class VAE(BaseAE):
 
       log_p_x = []
 
-      for j in range(n_full_batch):
+      for _ in range(n_full_batch):
 
         x_rep = torch.cat(batch_size * [x])
 
         encoder_output = self.encoder(x_rep)
-        mu, log_var = encoder_output["embedding"], encoder_output["log_covariance"]
+        mu, log_var = (
+            encoder_output["embedding"],
+            encoder_output["log_covariance"],
+        )
 
         std = torch.exp(0.5 * log_var)
         z, _ = self._sample_gauss(mu, std)

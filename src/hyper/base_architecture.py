@@ -1,13 +1,11 @@
 import torch
-import torch.nn as nn
 
+from src.base_architecture import BaseDecoder
+from src.base_architecture import BaseEncoder
 from src.hyper.layers import HyperLayer
 
 
-class BaseHyperEncoder(nn.Module):
-
-  def __init__(self):
-    nn.Module.__init__(self)
+class BaseHyperEncoder(BaseEncoder):
 
   def set_net_inputs(self, value: torch.Tensor) -> None:
     for module in self.modules():
@@ -19,14 +17,11 @@ class BaseHyperEncoder(nn.Module):
       if isinstance(module, HyperLayer):
         module.reset_net_inputs()
 
-  def forward(self, x):
+  def forward(self, inputs: torch.Tensor):
     raise NotImplementedError()
 
 
-class BaseHyperDecoder(nn.Module):
-
-  def __init__(self):
-    nn.Module.__init__(self)
+class BaseHyperDecoder(BaseDecoder):
 
   def set_net_inputs(self, value: torch.Tensor) -> None:
     for module in self.modules():
@@ -38,5 +33,5 @@ class BaseHyperDecoder(nn.Module):
       if isinstance(module, HyperLayer):
         module.reset_net_inputs()
 
-  def forward(self, z: torch.Tensor):
+  def forward(self, inputs: torch.Tensor):
     raise NotImplementedError()

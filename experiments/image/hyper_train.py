@@ -8,48 +8,24 @@ import torch.nn as nn
 import torch.nn.functional as F
 import wandb
 
-from experiments.image.input_pipeline import load_data
-from experiments.image.hyper_models import HyperCelebConvDecoder, HyperCelebResNetDecoder, HyperCelebResNetEncoder, HyperCifarResNetDecoder, HyperCifarResNetEncoder, HyperCifarConvEncoder
 from experiments.hyper_train_utils import hyper_evaluate
-from experiments.image.hyper_models import HyperCifarConvDecoder, HyperCelebConvEncoder, HyperCelebConvDecoder
-
 from experiments.hyper_train_utils import hyper_predict
 from experiments.hyper_train_utils import hyper_train
+from experiments.image.hyper_models import HyperCelebConvDecoder
+from experiments.image.hyper_models import HyperCelebConvEncoder
+from experiments.image.hyper_models import HyperCelebResNetDecoder
+from experiments.image.hyper_models import HyperCelebResNetEncoder
+from experiments.image.hyper_models import HyperCifarConvDecoder
+from experiments.image.hyper_models import HyperCifarConvEncoder
+from experiments.image.hyper_models import HyperCifarResNetDecoder
+from experiments.image.hyper_models import HyperCifarResNetEncoder
+from experiments.image.input_pipeline import load_data
 from experiments.wandb_utils import init_wandb
-from src.config import TrainConfig
-from src.hyper.models.beta_vae import BetaHyperVAE
-from src.models.beta_vae import log_sum_exp
-from src.utils import seed_everything
 from src.config import HyperConfig
-
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--experiment_name", type=str, default="hv_image_debug")
-
-parser.add_argument("--arch_name", type=str, default="resnet")
-parser.add_argument("--data_name", type=str, default="cifar")
-
-parser.add_argument("--block_type", type=str, default="mlp")
-parser.add_argument("--preprocess_beta", type=int, default=0)
-parser.add_argument("--include_sigmoid_activation", type=int, default=0)
-parser.add_argument("--include_layer_norm", type=int, default=0)
-parser.add_argument("--include_shift", type=int, default=1)
-parser.add_argument("--include_residual_connection", type=int, default=1)
-parser.add_argument("--include_output_stem", type=int, default=0)
-
-parser.add_argument("--total_epochs", type=int, default=10)
-parser.add_argument("--warmup_epochs", type=int, default=10)
-
-parser.add_argument("--lr", type=float, default=1e-3)
-parser.add_argument("--batch_size", type=int, default=128)
-
-parser.add_argument("--seed", type=int, default=0)
-parser.add_argument("--checkpoint_dir", type=str, default=None)
-parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=50)
-# Never evaluate during training.
-parser.add_argument("--eval_freq", type=int, default=2000)
-args = parser.parse_args()
+from src.config import TrainConfig
+from src.hyper.beta_vae import HyperBetaVAE
+from src.utils import log_sum_exp
+from src.utils import seed_everything
 
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
@@ -118,44 +94,71 @@ def build_criterion(device):
   return loss_fnc.to(device)
 
 
-def build_model(data_name, hyper_cfg, device):
+def build_model(data_name, arch_name, hyper_cfg, device):
   if data_name in ["cifar", "svhn"]:
     if data_name == "cifar":
       latent_dim = 256
     else:
       latent_dim = 32
-    model = BetaHyperVAE(
-        encoder=HyperCifarConvEncoder(latent_dim, hyper_cfg) if args.arch_name == "conv" else HyperCifarResNetEncoder(latent_dim, hyper_cfg),
-        decoder=HyperCifarConvDecoder(latent_dim, hyper_cfg) if args.arch_name == "conv" else HyperCifarResNetDecoder(latent_dim, hyper_cfg),
+    model = HyperBetaVAE(
+        encoder=HyperCifarConvEncoder(latent_dim, hyper_cfg) if arch_name
+        == "conv" else HyperCifarResNetEncoder(latent_dim, hyper_cfg),
+        decoder=HyperCifarConvDecoder(latent_dim, hyper_cfg) if arch_name
+        == "conv" else HyperCifarResNetDecoder(latent_dim, hyper_cfg),
         hyper_cfg=hyper_cfg)
   else:
-    model = BetaHyperVAE(
-        encoder=HyperCelebConvEncoder(hyper_cfg) if args.arch_name == "conv" else HyperCelebResNetEncoder(hyper_cfg),
-        decoder=HyperCelebConvDecoder(hyper_cfg) if args.arch_name == "conv" else HyperCelebResNetDecoder(hyper_cfg),
+    model = HyperBetaVAE(
+        encoder=HyperCelebConvEncoder(hyper_cfg)
+        if arch_name == "conv" else HyperCelebResNetEncoder(hyper_cfg),
+        decoder=HyperCelebConvDecoder(hyper_cfg)
+        if arch_name == "conv" else HyperCelebResNetDecoder(hyper_cfg),
         hyper_cfg=hyper_cfg)
+  model.reconstruction_loss = "mse"
   return model.to(device)
 
 
 def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--experiment_name", type=str, default="hvae_image_debug")
+
+  parser.add_argument("--data_name", type=str, default="cifar")
+  parser.add_argument("--arch_name", type=str, default="resnet")
+
+  parser.add_argument("--hyper_config_summary", type=str, default="lin_bn")
+
+  parser.add_argument("--total_epochs", type=int, default=10)
+  parser.add_argument("--warmup_epochs", type=int, default=10)
+  parser.add_argument("--lr", type=float, default=1e-3)
+  parser.add_argument("--batch_size", type=int, default=128)
+
+  parser.add_argument("--seed", type=int, default=0)
+  parser.add_argument("--checkpoint_dir", type=str, default=None)
+  parser.add_argument("--save_final_checkpoint", type=int, default=0)
+  parser.add_argument("--save_freq", type=int, default=50)
+  # Never evaluate during training.
+  parser.add_argument("--eval_freq", type=int, default=2000)
+  args = parser.parse_args()
+
   init_wandb(
       args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
   hyper_cfg = HyperConfig(args)
 
   seed_everything(cfg.seed)
-  model = build_model(args.data_name, hyper_cfg, DEVICE)
+  model = build_model(args.data_name, args.arch_name, hyper_cfg, DEVICE)
+  print(model)
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
+
   scheduler1 = torch.optim.lr_scheduler.LinearLR(
       optimizer,
       start_factor=1e-10,
       end_factor=1.,
       total_iters=cfg.warmup_epochs)
-  cosine_epochs = max(
-      cfg.total_epochs - cfg.warmup_epochs, 1)
+  cosine_epochs = max(cfg.total_epochs - cfg.warmup_epochs, 1)
   scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
-      optimizer, T_max=cosine_epochs)
+      optimizer, T_max=cosine_epochs, eta_min=1e-6)
   scheduler = torch.optim.lr_scheduler.SequentialLR(
       optimizer,
       schedulers=[scheduler1, scheduler2],
@@ -165,19 +168,13 @@ def main():
       args.data_name,
       "train",
       cfg.batch_size,
-      workers=0,
+      workers=4,
       data_path="../../logs/data")
-  # valid_loader = load_data(
-  #     args.data_name,
-  #     "valid",
-  #     cfg.batch_size,
-  #     workers=2,
-  #     data_path="../../logs/data")
   test_loader = load_data(
       args.data_name,
       "test",
       cfg.batch_size,
-      workers=0,
+      workers=4,
       data_path="../../logs/data")
 
   hyper_train(model,
@@ -188,22 +185,27 @@ def main():
               scheduler,
               DEVICE,
               cfg,
-              # valid_loader
-              )
-  hyper_evaluate(model,
-                 train_loader,
-                 criterion,
-                 cfg.total_epochs,
-                 "train_eval",
-                 DEVICE)
-  hyper_evaluate(model,
-                 test_loader,
-                 criterion,
-                 cfg.total_epochs,
-                 "test",
-                 DEVICE)
+              hyper_cfg)
+  hyper_evaluate(
+      model,
+      train_loader,
+      criterion,
+      cfg.total_epochs,
+      "train_eval",
+      hyper_cfg,
+      DEVICE,
+      train_loader=train_loader)
+  hyper_evaluate(
+      model,
+      test_loader,
+      criterion,
+      cfg.total_epochs,
+      "test",
+      hyper_cfg,
+      DEVICE,
+      train_loader=train_loader)
 
-  for sample in model.get_test_samples(5):
+  for sample in model.get_log_uniform_samples(4):
     true_data, reconstructions, generations = hyper_predict(model, test_loader, sample, DEVICE)
     column_names = ["images_id", "truth", "reconstruction", "normal_generation"]
     data_to_log = []
@@ -224,13 +226,12 @@ def main():
                   255.0,
               )),
       ])
-
     val_table = wandb.Table(data=data_to_log, columns=column_names)
     wandb.log({"image_at_{}".format(sample): val_table})
 
-  if args.save_final_checkpoint is not None:
+  if args.save_final_checkpoint is not None and args.seed == 0:
     save_checkpoint = \
-      os.path.join("checkpoints", "base_{}.pth".format(args.data_name))
+      os.path.join("checkpoints", "hyper_{}_{}.pth".format(args.data_name, args.arch_name))
     log_info = {
         "state_dict": model.state_dict(),
     }

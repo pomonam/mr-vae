@@ -1,3 +1,6 @@
+# Models adapted from:
+# https://github.com/clementchadebec/benchmark_VAE/tree/main/src/pythae/models/nn/benchmarks/mnist
+
 from collections import OrderedDict
 
 import torch
@@ -11,7 +14,7 @@ from src.models.resblock import ResBlock
 class ConvEncoder(BaseEncoder):
 
   def __init__(self):
-    BaseEncoder.__init__(self)
+    super().__init__()
 
     self.input_dim = (1, 28, 28)
     self.latent_dim = 32
@@ -45,17 +48,18 @@ class ConvEncoder(BaseEncoder):
     self.embedding = nn.Linear(1024, self.latent_dim)
     self.log_var = nn.Linear(1024, self.latent_dim)
 
-  def forward(self, x: torch.Tensor):
+  def forward(self, inputs: torch.Tensor):
     max_depth = self.depth
-    out = x
+    out = inputs
 
     output = {}
     for i in range(max_depth):
       out = self.layers[i](out)
 
       if i + 1 == self.depth:
-        output["embedding"] = self.embedding(out.reshape(x.shape[0], -1))
-        output["log_covariance"] = self.log_var(out.reshape(x.shape[0], -1))
+        output["embedding"] = self.embedding(out.reshape(inputs.shape[0], -1))
+        output["log_covariance"] = self.log_var(
+            out.reshape(inputs.shape[0], -1))
 
     return output
 
@@ -63,7 +67,7 @@ class ConvEncoder(BaseEncoder):
 class ConvDecoder(BaseDecoder):
 
   def __init__(self):
-    BaseDecoder.__init__(self)
+    super().__init__()
 
     self.input_dim = (1, 28, 28)
     self.latent_dim = 32
@@ -94,18 +98,18 @@ class ConvDecoder(BaseDecoder):
     self.layers = layers
     self.depth = len(layers)
 
-  def forward(self, z: torch.Tensor):
+  def forward(self, inputs: torch.Tensor):
     output = OrderedDict()
 
     max_depth = self.depth
 
-    out = z
+    out = inputs
 
     for i in range(max_depth):
       out = self.layers[i](out)
 
       if i == 0:
-        out = out.reshape(z.shape[0], 1024, 4, 4)
+        out = out.reshape(inputs.shape[0], 1024, 4, 4)
 
       if i + 1 == self.depth:
         output["reconstruction"] = out
@@ -116,7 +120,7 @@ class ConvDecoder(BaseDecoder):
 class ResNetEncoder(BaseEncoder):
 
   def __init__(self):
-    BaseEncoder.__init__(self)
+    super().__init__()
 
     self.input_dim = (1, 28, 28)
     self.latent_dim = 32
@@ -126,19 +130,16 @@ class ResNetEncoder(BaseEncoder):
     layers.append(
         nn.Sequential(
             nn.Conv2d(self.n_channels, 64, 4, 2, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
         ))
     layers.append(
         nn.Sequential(
             nn.Conv2d(64, 128, 4, 2, padding=1),
-            nn.BatchNorm2d(128),
             nn.ReLU(),
         ))
     layers.append(
         nn.Sequential(
             nn.Conv2d(128, 128, 3, 2, padding=1),
-            nn.BatchNorm2d(128),
             nn.ReLU(),
         ))
 
@@ -173,7 +174,7 @@ class ResNetEncoder(BaseEncoder):
 class ResNetDecoder(BaseDecoder):
 
   def __init__(self):
-    BaseDecoder.__init__(self)
+    super().__init__()
 
     self.input_dim = (1, 28, 28)
     self.latent_dim = 32
@@ -186,7 +187,6 @@ class ResNetDecoder(BaseDecoder):
     layers.append(
         nn.Sequential(
             nn.ConvTranspose2d(128, 128, 3, 2, padding=1),
-            nn.BatchNorm2d(128),
             nn.ReLU(),
         ))
 
@@ -201,7 +201,6 @@ class ResNetDecoder(BaseDecoder):
     layers.append(
         nn.Sequential(
             nn.ConvTranspose2d(128, 64, 3, 2, padding=1, output_padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
         ))
     layers.append(

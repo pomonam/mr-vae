@@ -13,7 +13,11 @@ def tile_image(batch_image, n, m=None):
   if m is None:
     m = n
   assert n * m == batch_image.size(0)
-  channels, height, width = batch_image.size(1), batch_image.size(2), batch_image.size(3)
+  channels, height, width = (
+      batch_image.size(1),
+      batch_image.size(2),
+      batch_image.size(3),
+  )
   batch_image = batch_image.view(n, m, channels, height, width)
   batch_image = batch_image.permute(2, 0, 4, 1, 3)
   batch_image = batch_image.contiguous().view(channels, n * height, m * width)

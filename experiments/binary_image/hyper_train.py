@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
 import wandb
 
@@ -20,39 +20,9 @@ from experiments.hyper_train_utils import hyper_train
 from experiments.wandb_utils import init_wandb
 from src.config import HyperConfig
 from src.config import TrainConfig
-from src.hyper.models.beta_vae import BetaHyperVAE
-from src.models.beta_vae import log_sum_exp
+from src.hyper.beta_vae import HyperBetaVAE
+from src.utils import log_sum_exp
 from src.utils import seed_everything
-
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--experiment_name", type=str, default="hv_binary_image_debug")
-
-parser.add_argument("--data_name", type=str, default="mnist")
-parser.add_argument("--encoder_name", type=str, default="conv")
-parser.add_argument("--decoder_name", type=str, default="conv")
-
-parser.add_argument("--block_type", type=str, default="mlp2")
-parser.add_argument("--layer_type", type=str, default="tanh_gate")
-parser.add_argument("--param_type", type=str, default="pre_bn")
-parser.add_argument("--preprocess_beta", type=int, default=1)
-parser.add_argument("--include_latent_stem", type=int, default=0)
-parser.add_argument("--include_output_stem", type=int, default=0)
-
-parser.add_argument("--total_epochs", type=int, default=10)
-parser.add_argument("--warmup_epochs", type=int, default=10)
-
-parser.add_argument("--lr", type=float, default=1e-4)
-parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--beta", type=float, default=1.)
-
-parser.add_argument("--seed", type=int, default=0)
-parser.add_argument("--checkpoint_dir", type=str, default=None)
-parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=50)
-# Never evaluate during training.
-parser.add_argument("--eval_freq", type=int, default=2000)
-args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
@@ -136,11 +106,48 @@ def build_model(encoder_name, decoder_name, hyper_cfg, device):
   else:
     raise
 
-  model = BetaHyperVAE(encoder=encoder, decoder=decoder, hyper_cfg=hyper_cfg)
+  model = HyperBetaVAE(encoder=encoder, decoder=decoder, hyper_cfg=hyper_cfg)
+  model.reconstruction_loss = "bce"
   return model.to(device)
 
 
 def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+      "--experiment_name", type=str, default="hvae_bimage_debug")
+
+  parser.add_argument("--data_name", type=str, default="mnist")
+  parser.add_argument("--encoder_name", type=str, default="conv")
+  parser.add_argument("--decoder_name", type=str, default="conv")
+
+  parser.add_argument("--hyper_config_summary", type=str, default=None)
+
+  # hyper_config_summary overrides below options
+  parser.add_argument("--block_type", type=str, default="mlp")
+  parser.add_argument("--layer_type", type=str, default="affine")
+  parser.add_argument("--param_type", type=str, default="post_act")
+  parser.add_argument("--norm_type", type=str, default="scale_shift")
+  parser.add_argument("--reduce_range", type=int, default=1)
+  parser.add_argument("--apply_bn_tracking", type=int, default=1)
+  parser.add_argument("--apply_bn_calibrate", type=int, default=0)
+  parser.add_argument("--apply_bn_replace", type=int, default=1)
+  parser.add_argument("--shared_preprocess", type=int, default=0)
+  parser.add_argument("--apply_zero_init", type=int, default=0)
+  parser.add_argument("--include_latent_stem", type=int, default=1)
+
+  parser.add_argument("--total_epochs", type=int, default=10)
+  parser.add_argument("--warmup_epochs", type=int, default=10)
+  parser.add_argument("--lr", type=float, default=1e-4)
+  parser.add_argument("--batch_size", type=int, default=128)
+
+  parser.add_argument("--seed", type=int, default=0)
+  parser.add_argument("--checkpoint_dir", type=str, default=None)
+  parser.add_argument("--save_final_checkpoint", type=int, default=0)
+  parser.add_argument("--save_freq", type=int, default=50)
+  # Never evaluate during training.
+  parser.add_argument("--eval_freq", type=int, default=2000)
+  args = parser.parse_args()
+
   init_wandb(
       args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
@@ -148,6 +155,8 @@ def main():
 
   seed_everything(cfg.seed)
   model = build_model(args.encoder_name, args.decoder_name, hyper_cfg, DEVICE)
+  wandb.watch(model)
+  print(model)
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
@@ -159,7 +168,7 @@ def main():
       total_iters=cfg.warmup_epochs)
   cosine_epochs = max(cfg.total_epochs - cfg.warmup_epochs, 1)
   scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(
-      optimizer, T_max=cosine_epochs)
+      optimizer, T_max=cosine_epochs, eta_min=1e-6)
   scheduler = torch.optim.lr_scheduler.SequentialLR(
       optimizer,
       schedulers=[scheduler1, scheduler2],
@@ -185,21 +194,28 @@ def main():
               optimizer,
               scheduler,
               DEVICE,
-              cfg)
-  hyper_evaluate(model,
-                 train_loader,
-                 criterion,
-                 cfg.total_epochs,
-                 "train_eval",
-                 DEVICE)
-  hyper_evaluate(model,
-                 test_loader,
-                 criterion,
-                 cfg.total_epochs,
-                 "test",
-                 DEVICE)
+              cfg,
+              hyper_cfg)
+  hyper_evaluate(
+      model,
+      train_loader,
+      criterion,
+      cfg.total_epochs,
+      "train_eval",
+      hyper_cfg,
+      DEVICE,
+      train_loader=train_loader)
+  hyper_evaluate(
+      model,
+      test_loader,
+      criterion,
+      cfg.total_epochs,
+      "test",
+      hyper_cfg,
+      DEVICE,
+      train_loader=train_loader)
 
-  for sample in model.get_test_samples(5):
+  for sample in model.get_log_uniform_samples(4):
     true_data, reconstructions, generations = hyper_predict(model, test_loader, sample, DEVICE)
     column_names = ["images_id", "truth", "reconstruction", "normal_generation"]
     data_to_log = []
@@ -224,9 +240,11 @@ def main():
     val_table = wandb.Table(data=data_to_log, columns=column_names)
     wandb.log({"image_at_{}".format(sample): val_table})
 
-  if args.save_final_checkpoint:
+  if args.save_final_checkpoint and args.seed == 0:
     save_checkpoint = \
-      os.path.join("checkpoints", "hyper_{}_{}_{}.pth".format(args.data_name, args.encoder_name, args.decoder_name))
+      os.path.join("checkpoints", "hyper_{}_{}_{}.pth".format(args.data_name,
+                                                              args.encoder_name,
+                                                              args.decoder_name))
     log_info = {
         "state_dict": model.state_dict(),
     }

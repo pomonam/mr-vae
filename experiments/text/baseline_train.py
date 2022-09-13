@@ -5,15 +5,13 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import tqdm
 import wandb
 
 from experiments.text.input_pipeline import load_data
-from experiments.text.models import LstmDecoder, TransformerDecoder
+from experiments.text.models import LstmDecoder
 from experiments.text.models import LstmEncoder
-from experiments.train_utils import evaluate
-from experiments.train_utils import train
+from experiments.text.models import TransformerDecoder
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
 from src.evaluate import generate_metric_str
@@ -21,28 +19,8 @@ from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
 from src.models.beta_vae import BetaVAE
-from src.models.beta_vae import log_sum_exp
+from src.utils import log_sum_exp
 from src.utils import seed_everything
-
-parser = argparse.ArgumentParser()
-parser.add_argument(
-  "--experiment_name", type=str, default="hypervae-text-train")
-
-parser.add_argument("--decoder_name", type=str, default="trans")
-parser.add_argument("--data_name", type=str, default="yahoo")
-
-parser.add_argument("--total_epochs", type=int, default=10)
-parser.add_argument("--lr", type=float, default=0.001)
-parser.add_argument("--batch_size", type=int, default=32)
-parser.add_argument("--beta", type=float, default=1.)
-parser.add_argument("--schedule", type=str, default="constant")
-
-parser.add_argument("--seed", type=int, default=0)
-parser.add_argument("--checkpoint_dir", type=str, default=None)
-parser.add_argument("--save_final_checkpoint", type=int, default=0)
-parser.add_argument("--save_freq", type=int, default=5)
-parser.add_argument("--eval_freq", type=int, default=15)
-args = parser.parse_args()
 
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")
@@ -60,19 +38,20 @@ class TextCriterion(nn.Module):
 
   @staticmethod
   def forward(recon_x, x, mu, log_var, z, beta):
+    # Autoregressive loss.
     recon_loss = recon_x
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
     loss_dict = {
-      "loss": (recon_loss + beta * kld).mean(dim=0),
-      "distortion": recon_loss.mean(dim=0),
-      "rate": kld.mean(dim=0)
+        "loss": (recon_loss + beta * kld).mean(dim=0),
+        "distortion": recon_loss.mean(dim=0),
+        "rate": kld.mean(dim=0)
     }
     return loss_dict
 
   @staticmethod
-  def eval_forward(recon_x, x, mu, log_var, z, beta):
+  def eval_forward(recon_x, x, mu, log_var, z, beta=1):
     recon_loss = recon_x
 
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
@@ -90,10 +69,10 @@ class TextCriterion(nn.Module):
     mi = neg_entropy - log_qz.mean(-1)
 
     loss_dict = {
-      "loss": (recon_loss + beta * kld).mean(dim=0),
-      "distortion": recon_loss.mean(dim=0),
-      "rate": kld.mean(dim=0),
-      "mi": mi
+        "loss": (recon_loss + beta * kld).mean(dim=0),
+        "distortion": recon_loss.mean(dim=0),
+        "rate": kld.mean(dim=0),
+        "mi": mi
     }
     return loss_dict
 
@@ -104,12 +83,15 @@ def build_criterion(device):
 
 
 def build_model(vocab_size, data_name, decoder_name, device):
+  # Use the smaller models for both datasets.
   # v1 = data_name == "yahoo"
   v1 = False
   model = BetaVAE(
-    encoder=LstmEncoder(vocab_size, v1=v1),
-    decoder=LstmDecoder(vocab_size, v1=v1) if decoder_name == "lstm" else TransformerDecoder(vocab_size, v1=v1),
+      encoder=LstmEncoder(vocab_size, v1=v1),
+      decoder=LstmDecoder(vocab_size, v1=v1)
+      if decoder_name == "lstm" else TransformerDecoder(vocab_size, v1=v1),
   )
+  model.reconstruction_loss = "ce"
   return model.to(device)
 
 
@@ -121,7 +103,17 @@ def build_input_queue(loader, device):
       yield {"data": batch.to(device, non_blocking=True)}
 
 
-def evaluate(model, iterator, criterion, epoch, name, device, start_token, end_token, delta=0.01, ):
+def evaluate(
+    model,
+    iterator,
+    criterion,
+    epoch,
+    name,
+    device,
+    start_token,
+    end_token,
+    delta=0.01,
+):
   model.eval()
 
   with torch.no_grad():
@@ -133,18 +125,22 @@ def evaluate(model, iterator, criterion, epoch, name, device, start_token, end_t
     num_words = 0.
     nll_total = 0.
     for batch in p_bar:
-      batch = {"data": batch, "start_tokens": start_token, "end_token": end_token}
+      batch = {
+          "data": batch, "start_tokens": start_token, "end_token": end_token
+      }
       output_dict = model(batch)
       means.append(output_dict["mu"])
 
       loss_dict = criterion.eval_forward(
-        recon_x=output_dict["reconstruction"],
-        x=output_dict["data"],
-        mu=output_dict["mu"],
-        log_var=output_dict["log_var"],
-        z=output_dict["z"],
-        beta=1.)
-      metric_dict = update_metric(metric_dict, loss_dict, batch["data"]["text_ids"].size(0))
+          recon_x=output_dict["reconstruction"],
+          x=output_dict["data"],
+          mu=output_dict["mu"],
+          log_var=output_dict["log_var"],
+          z=output_dict["z"],
+          beta=1.)
+      metric_dict = update_metric(metric_dict,
+                                  loss_dict,
+                                  batch["data"]["text_ids"].size(0))
       summ_dict = summarize_metric(metric_dict)
       summ_str = generate_metric_str(name, epoch, summ_dict)
       p_bar.set_description(summ_str)
@@ -156,7 +152,7 @@ def evaluate(model, iterator, criterion, epoch, name, device, start_token, end_t
 
   au_var = means - au_mean
   ns = au_var.size(0)
-  au_var = (au_var ** 2).sum(dim=0) / (ns - 1)
+  au_var = (au_var**2).sum(dim=0) / (ns - 1)
 
   summ_dict = summarize_metric(metric_dict, name=name + "/")
   summ_dict[name + "/" + "au"] = (au_var >= delta).sum().item()
@@ -169,22 +165,21 @@ def evaluate(model, iterator, criterion, epoch, name, device, start_token, end_t
   return metric_dict["loss"].avg
 
 
-def train(model,
-          iterator,
-          # test_loader,
-          criterion,
-          optimizer,
-          scheduler,
-          device,
-          cfg,
-          start_token,
-          end_token
-          ):
+def train(
+    model,
+    iterator,  # test_loader,
+    criterion,
+    optimizer,
+    scheduler,
+    device,
+    cfg,
+    start_token,
+    end_token):
   do_checkpoint = cfg.checkpoint_dir is not None
   if do_checkpoint and os.path.exists(
-          os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
+      os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
     slurm_checkpoint = torch.load(
-      os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
+        os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
     model.load_state_dict(slurm_checkpoint["state_dict"])
     optimizer.load_state_dict(slurm_checkpoint["optimizer"])
     scheduler.load_state_dict(slurm_checkpoint["scheduler"])
@@ -204,8 +199,7 @@ def train(model,
                "train",
                device,
                start_token,
-               end_token
-               )
+               end_token)
       evaluate(model,
                iterator,
                criterion,
@@ -213,40 +207,44 @@ def train(model,
                "test",
                device,
                start_token,
-               end_token
-               )
+               end_token)
 
     if do_checkpoint and do_save:
       slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")
       log_info = {
-        "id": wandb.run.id,
-        "epoch": epoch,
-        "state_dict": model.state_dict(),
-        "optimizer": optimizer.state_dict(),
-        "scheduler": scheduler.state_dict()
+          "id": wandb.run.id,
+          "epoch": epoch,
+          "state_dict": model.state_dict(),
+          "optimizer": optimizer.state_dict(),
+          "scheduler": scheduler.state_dict()
       }
       torch.save(log_info, slurm_check_dir)
 
     model.train()
     metric_dict = initialize_metric(criterion.get_metric_lst())
+    # Set to training mode ...
     iterator.switch_to_dataset("train")
     p_bar = tqdm.tqdm(iterator)
 
     for batch in p_bar:
-      batch = {"data": batch, "start_tokens": start_token, "end_token": end_token}
+      batch = {
+          "data": batch, "start_tokens": start_token, "end_token": end_token
+      }
       output_dict = model(batch)
       loss_dict = criterion(
-        recon_x=output_dict["reconstruction"],
-        x=output_dict["data"],
-        mu=output_dict["mu"],
-        log_var=output_dict["log_var"],
-        z=output_dict["z"],
-        beta=cfg.get_beta(epoch))
+          recon_x=output_dict["reconstruction"],
+          x=output_dict["data"],
+          mu=output_dict["mu"],
+          log_var=output_dict["log_var"],
+          z=output_dict["z"],
+          beta=cfg.get_beta(epoch))
       optimizer.zero_grad()
       loss_dict["loss"].backward()
       torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
       optimizer.step()
-      metric_dict = update_metric(metric_dict, loss_dict, batch["data"]["text_ids"].size(0))
+      metric_dict = update_metric(metric_dict,
+                                  loss_dict,
+                                  batch["data"]["text_ids"].size(0))
       summ_dict = summarize_metric(metric_dict)
       summ_str = generate_metric_str("train", epoch, summ_dict)
       p_bar.set_description(summ_str)
@@ -265,8 +263,7 @@ def train(model,
                           "valid",
                           device,
                           start_token,
-                          end_token
-                          )
+                          end_token)
       scheduler.step(val_loss)
     else:
       scheduler.step()
@@ -277,24 +274,44 @@ def train(model,
 
 
 def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--experiment_name", type=str, default="hvae_text_debug")
+
+  parser.add_argument("--decoder_name", type=str, default="trans")
+  parser.add_argument("--data_name", type=str, default="ptb")
+
+  parser.add_argument("--total_epochs", type=int, default=10)
+  parser.add_argument("--lr", type=float, default=0.001)
+  parser.add_argument("--batch_size", type=int, default=32)
+  parser.add_argument("--beta", type=float, default=1.)
+  parser.add_argument("--schedule", type=str, default="constant")
+
+  parser.add_argument("--seed", type=int, default=0)
+  parser.add_argument("--checkpoint_dir", type=str, default=None)
+  parser.add_argument("--save_final_checkpoint", type=int, default=0)
+  parser.add_argument("--save_freq", type=int, default=5)
+  parser.add_argument("--eval_freq", type=int, default=15)
+  args = parser.parse_args()
+
   init_wandb(
-    args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
+      args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
 
   seed_everything(cfg.seed)
-
   train_data, iterator, vocab = load_data(args.data_name, "train", cfg.batch_size,
                                           data_path="../../logs/text_data", device=DEVICE)
-  model = build_model(train_data.vocab.size, args.data_name, args.decoder_name, DEVICE)
+  model = build_model(train_data.vocab.size,
+                      args.data_name,
+                      args.decoder_name,
+                      DEVICE)
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
   scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer, patience=2, factor=0.5, cooldown=15, min_lr=1e-6)
+      optimizer, patience=2, factor=0.5, cooldown=15, min_lr=1e-6)
 
-  start_tokens = torch.full(
-    (cfg.batch_size,),
-    vocab.bos_token_id,
-    dtype=torch.long).to(DEVICE)
+  start_tokens = torch.full((cfg.batch_size,),
+                            vocab.bos_token_id,
+                            dtype=torch.long).to(DEVICE)
   end_token = vocab.eos_token_id
 
   train(model,
@@ -305,8 +322,7 @@ def main():
         DEVICE,
         cfg,
         start_tokens,
-        end_token
-        )
+        end_token)
   evaluate(model,
            iterator,
            criterion,
@@ -314,17 +330,24 @@ def main():
            "train",
            DEVICE,
            start_tokens,
-           end_token
-           )
-  evaluate(model, iterator, criterion, cfg.total_epochs, "test", DEVICE, start_tokens,
+           end_token)
+  evaluate(model,
+           iterator,
+           criterion,
+           cfg.total_epochs,
+           "test",
+           DEVICE,
+           start_tokens,
            end_token)
 
-  if args.save_final_checkpoint:
+  if args.save_final_checkpoint and args.seed == 0:
     save_checkpoint = \
-      os.path.join("checkpoints", "base_{}_{}_{}_{}.pth".format(args.data_name, args.decoder_name,
-                                                                args.beta, args.schedule))
+      os.path.join("checkpoints", "final_{}_{}_{}_{}.pth".format(args.data_name,
+                                                                 args.decoder_name,
+                                                                 args.beta,
+                                                                 args.schedule))
     log_info = {
-      "state_dict": model.state_dict(),
+        "state_dict": model.state_dict(),
     }
     torch.save(log_info, save_checkpoint)
 

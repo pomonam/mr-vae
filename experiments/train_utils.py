@@ -45,7 +45,6 @@ def evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
 
   means = torch.cat(means, dim=0)
   au_mean = means.mean(0, keepdim=True)
-
   au_var = means - au_mean
   ns = au_var.size(0)
   au_var = (au_var**2).sum(dim=0) / (ns - 1)
@@ -78,7 +77,7 @@ def train(model,
     epoch = 0
 
   while epoch < cfg.total_epochs:
-    do_evaluate = epoch % cfg.eval_freq == 0
+    do_evaluate = epoch % cfg.eval_freq == 0 and epoch != 0
     do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
     if do_evaluate:
@@ -125,16 +124,17 @@ def train(model,
     wandb.log(summ_dict)
     epoch = epoch + 1
 
-    if "ReduceLROnPlateau" in str(scheduler.__class__):
-      val_loss = evaluate(model,
-                          valid_loader,
-                          criterion,
-                          epoch,
-                          "valid",
-                          device)
-      scheduler.step(val_loss)
-    else:
-      scheduler.step()
+    # We are not using this at the moment.
+    # if "ReduceLROnPlateau" in str(scheduler.__class__):
+    #   val_loss = evaluate(model,
+    #                       valid_loader,
+    #                       criterion,
+    #                       epoch,
+    #                       "valid",
+    #                       device)
+    #   scheduler.step(val_loss)
+    # else:
+    scheduler.step()
 
     if np.isnan(summ_dict["train_step/loss"]):
       wandb.finish(exit_code=1)

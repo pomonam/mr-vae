@@ -1,5 +1,3 @@
-import math
-
 import torch
 import torch.nn.parallel
 import torch.utils.data
@@ -18,13 +16,13 @@ class CropCelebA64(object):
     return new_pic
 
   def __repr__(self):
-    return self.__class__.__name__ + '()'
+    return self.__class__.__name__ + "()"
 
 
 def load_data(data_name,
               split,
               batch_size,
-              workers=4,
+              workers=0,
               data_path="../../logs/data"):
   if data_name == "cifar":
     train_transform = transforms.Compose(
@@ -51,7 +49,7 @@ def load_data(data_name,
         transforms.ToTensor(),
     ])
     train_data = SVHN(
-        data_path, split='train', download=True, transform=transform)
+        data_path, split="train", download=True, transform=transform)
 
     # train_ratio = 0.9
     # num_train = math.floor(len(train_data.data) * train_ratio)
@@ -60,12 +58,12 @@ def load_data(data_name,
     # train_data.labels = train_data.labels[:num_train]
     #
     # valid_data = SVHN(
-    #     data_path, split='train', download=True, transform=transform)
+    #     data_path, split="train", download=True, transform=transform)
     # valid_data.data = valid_data.data[num_train:, :, :, :]
     # valid_data.labels = valid_data.labels[num_train:]
 
     test_data = SVHN(
-        data_path, split='test', download=True, transform=transform)
+        data_path, split="test", download=True, transform=transform)
 
   elif data_name == "celeba":
     train_transform = transforms.Compose([
@@ -80,21 +78,22 @@ def load_data(data_name,
         transforms.Resize(64),
         transforms.ToTensor(),
     ])
+    # Feed in default paths.
     train_data = CelebA(
         "/scratch/ssd002/datasets/celeba_pytorch",
-        split='train',
+        split="train",
         download=True,
         transform=train_transform)
 
     # valid_data = CelebA(
     #     "/scratch/ssd002/datasets/celeba_pytorch",
-    #     split='valid',
+    #     split="valid",
     #     download=True,
     #     transform=test_transform)
 
     test_data = CelebA(
         "/scratch/ssd002/datasets/celeba_pytorch",
-        split='test',
+        split="test",
         download=True,
         transform=test_transform)
 
@@ -127,7 +126,7 @@ def load_data(data_name,
         batch_size=batch_size,
         shuffle=True,
         num_workers=workers,
-        drop_last=is_train,
+        drop_last=False,
         sampler=None)
 
   return loader

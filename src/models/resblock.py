@@ -1,19 +1,19 @@
 import torch
-import torch.nn as nn
+from torch import nn
+
+from src.config import HyperConfig
 from src.hyper.layers import get_hyper_layer
 
 
 class ResBlock(nn.Module):
 
-  def __init__(self, channels):
-    nn.Module.__init__(self)
+  def __init__(self, channels: int) -> None:
+    super().__init__()
 
     self.conv_block = nn.Sequential(
         nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-        nn.BatchNorm2d(channels),
         nn.ReLU(),
         nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-        nn.BatchNorm2d(channels),
     )
 
   def forward(self, x: torch.tensor) -> torch.Tensor:
@@ -22,37 +22,23 @@ class ResBlock(nn.Module):
 
 class HyperResBlock(nn.Module):
 
-  def __init__(self, channels, hyper_cfg):
-    nn.Module.__init__(self)
+  def __init__(self, channels: int, hyper_cfg: HyperConfig) -> None:
+    super().__init__()
 
-    if hyper_cfg.param_type == "pre_bn":
+    if hyper_cfg.param_type in ["pre_bn", "post_bn"]:
       self.conv_block = nn.Sequential(
           nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
           get_hyper_layer(channels, hyper_cfg),
-          nn.BatchNorm2d(channels),
           nn.ReLU(),
           nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-          get_hyper_layer(channels, hyper_cfg),
-          nn.BatchNorm2d(channels),
-      )
-    elif hyper_cfg.param_type == "post_bn":
-      self.conv_block = nn.Sequential(
-          nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-          nn.BatchNorm2d(channels),
-          get_hyper_layer(channels, hyper_cfg),
-          nn.ReLU(),
-          nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-          nn.BatchNorm2d(channels),
           get_hyper_layer(channels, hyper_cfg),
       )
     elif hyper_cfg.param_type == "post_act":
       self.conv_block = nn.Sequential(
           nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-          nn.BatchNorm2d(channels),
           nn.ReLU(),
           get_hyper_layer(channels, hyper_cfg),
           nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-          nn.BatchNorm2d(channels),
       )
     else:
       raise NotImplementedError

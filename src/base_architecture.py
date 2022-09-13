@@ -1,20 +1,14 @@
 import torch
-import torch.nn as nn
+from torch import nn
 
 
 class BaseEncoder(nn.Module):
 
-  def __init__(self):
-    nn.Module.__init__(self)
-
-  def forward(self, x):
+  def forward(self, inputs: torch.Tensor):
     raise NotImplementedError()
 
 
 class BaseDecoder(nn.Module):
 
-  def __init__(self):
-    nn.Module.__init__(self)
-
-  def forward(self, z: torch.Tensor):
+  def forward(self, inputs: torch.Tensor):
     raise NotImplementedError()

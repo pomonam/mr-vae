@@ -9,9 +9,9 @@ from tueplots.constants.color import rgb
 from experiments.wandb_utils import init_api
 
 ENTITY = "bae-group"
-BASELINE_NAME = "hvae_b_image_jobs_v2"
-HYPER_NAME = "hvae_b_image_hyper_sweep_v3"
-ID = "1ghsdvc7"
+BASELINE_NAME = "hvae_bimage_jobs_v9"
+HYPER_NAME = "hvae_bimage_hyper_sweep_v10"
+ID = "hpj80p7f"
 
 
 def get_summary(summary, test=True):
@@ -86,7 +86,7 @@ def get_baseline_rd(experiment_name, schedule="cyclic", test=False):
 
 def main():
   plt.rcParams.update({"figure.dpi": 300})
-  plt.rcParams.update(bundles.aistats2022())
+  plt.rcParams.update(bundles.aistats2022(column="full"))
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.inverted())
 
@@ -94,13 +94,13 @@ def main():
   runs = api.runs(ENTITY + "/" + HYPER_NAME)
 
   rate, dist = get_baseline_rd(BASELINE_NAME, schedule="monotonic", test=True)
-  plt.plot([0], [0])
-  plt.scatter(
+  # plt.plot([0], [0])
+  plt.plot(
       rate,
       dist,
       label=r"Independent Training",
-      edgecolors="k",
-      linewidths=0.5,
+      # edgecolors="k",
+      # linewidths=0.5,
       c=rgb.tue_lightblue)
 
   summary_list, config_list, name_list = [], [], []
@@ -117,7 +117,7 @@ def main():
   combined_dict = dict(zip(keys, values))
   rate = np.array([c[0] for c in combined_dict.values()])
   dist = np.array([c[1] for c in combined_dict.values()])
-  plt.plot(rate, dist, "o-", label="Hypernetwork", linewidth=2, c=rgb.tue_ocre)
+  plt.plot(rate, dist, "-", label="Hypernetwork", linewidth=2, c=rgb.tue_ocre)
 
   # rate_dict, dist_dict, elbo_dict = get_summary(summary_list[0], test=False)
   # keys = rate_dict.keys()

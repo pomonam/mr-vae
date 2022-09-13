@@ -1,0 +1,6 @@
+python hyper_train.py --experiment_name hvae_ablation_hyper_sweep --lr 0.003 --total_epochs 200 --data_name mnist --block_type mlp --param_type pre_bn --layer_type sig_gate --include_latent_stem 1 
+python hyper_train.py --experiment_name hvae_ablation_hyper_sweep --lr 0.003 --total_epochs 200 --data_name omniglot --block_type mlp --param_type pre_bn --layer_type sig_gate --include_latent_stem 1 
+python hyper_train.py --experiment_name hvae_ablation_hyper_sweep --lr 0.001 --total_epochs 200 --data_name mnist --block_type mlp --param_type pre_bn --layer_type sig_gate --include_latent_stem 1 
+python hyper_train.py --experiment_name hvae_ablation_hyper_sweep --lr 0.001 --total_epochs 200 --data_name omniglot --block_type mlp --param_type pre_bn --layer_type sig_gate --include_latent_stem 1 
+python hyper_train.py --experiment_name hvae_ablation_hyper_sweep --lr 0.0003 --total_epochs 200 --data_name mnist --block_type mlp --param_type pre_bn --layer_type sig_gate --include_latent_stem 1 
+python hyper_train.py --experiment_name hvae_ablation_hyper_sweep --lr 0.0003 --total_epochs 200 --data_name omniglot --block_type mlp --param_type pre_bn --layer_type sig_gate --include_latent_stem 1

@@ -24,7 +24,6 @@ logs
 .jekyll-cache
 _site
 .vscode
-.env
 
 experiments/binary_image/wandb
 experiments/binary_image/checkpoints/*.pth
@@ -40,3 +39,4 @@ experiments/misc/vq_vae/checkpoints/*.pth
 
 tests/theory/wandb
 wandb/
+checkpoints/*.pth
