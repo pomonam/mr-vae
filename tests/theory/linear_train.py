@@ -68,16 +68,8 @@ def evaluate(model, biq, epoch, name, delta=0.01):
                 p_bar.set_description(summ_str)
 
             means = torch.cat(means, dim=0)
-            au_mean = means.mean(0, keepdim=True)
-
-            au_var = means - au_mean
-            ns = au_var.size(0)
-            au_var = (au_var**2).sum(dim=0) / (ns - 1)
 
             summ_dict = summarize_metric(metric_dict, name=name + "/")
-
-            summ_dict[name + "/" + "au"] = (au_var >= delta).sum().cpu().item()
-            summ_dict[name + "/" + "au_var"] = au_var.cpu()
             wandb.log(summ_dict)
 
 
@@ -92,7 +84,6 @@ def train(model, biq, optimizer, scheduler, cfg):
         epoch = slurm_checkpoint["epoch"]
     else:
         epoch = 0
-    encoder_var = []
 
     while epoch < cfg.total_epochs:
         do_evaluate = epoch % cfg.eval_freq == 0
@@ -125,12 +116,10 @@ def train(model, biq, optimizer, scheduler, cfg):
             loss.backward()
             optimizer.step()
 
-
             metric_dict = update_metric(metric_dict, loss_dict, inputs.size(0))
             summ_dict = summarize_metric(metric_dict)
             summ_str = generate_metric_str("train", epoch, summ_dict)
             p_bar.set_description(summ_str)
-            encoder_var.append(model.encoder_var.item())
 
         scheduler.step()
         summ_dict = summarize_metric(metric_dict, name="train_step/")
@@ -141,11 +130,6 @@ def train(model, biq, optimizer, scheduler, cfg):
         if np.isnan(summ_dict["train_step/loss"]):
             wandb.finish(exit_code=1)
             raise ValueError()
-
-    print("--> Encoder_var: ", encoder_var)
-    plt.plot(encoder_var)
-    plt.show()
-
 
 def main():
     init_wandb(

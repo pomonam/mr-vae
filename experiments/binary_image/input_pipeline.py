@@ -69,11 +69,11 @@ def load_mnist_data(split, batch_size, workers=0, data_path="../../logs/data", d
   assert split in ["train", "train_eval", "test", "analytical"]
 
   train_data, _, test_data = load_mnist_binarized(data_path)
+  train_data = train_data.reshape(-1, 1, 28, 28).astype("float32")
+  test_data = test_data.reshape(-1, 1, 28, 28).astype("float32")
   # To create smaller dataset
   if dataset_size != -1:
     train_data = torch.utils.data.random_split(train_data, [dataset_size, len(train_data)-dataset_size])[0]
-  train_data = train_data.reshape(-1, 1, 28, 28).astype("float32")
-  test_data = test_data.reshape(-1, 1, 28, 28).astype("float32")
   is_train = split == "train"
 
   loader = torch.utils.data.DataLoader(
