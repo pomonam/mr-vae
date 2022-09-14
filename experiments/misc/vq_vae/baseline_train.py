@@ -67,7 +67,7 @@ def main():
 
   parser.add_argument("--lr", type=float, default=1e-3)
   parser.add_argument("--batch_size", type=int, default=128)
-  parser.add_argument("--lamb", type=float, default=1.)
+  parser.add_argument("--alpha", type=float, default=0.5)
 
   parser.add_argument("--seed", type=int, default=0)
   parser.add_argument("--checkpoint_dir", type=str, default=None)
@@ -81,7 +81,7 @@ def main():
   cfg = TrainConfig(args)
 
   seed_everything(cfg.seed)
-  model = build_model(args.data_name, args.lamb, DEVICE)
+  model = build_model(args.data_name, args.alpha, DEVICE)
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   scheduler1 = torch.optim.lr_scheduler.LinearLR(
@@ -153,7 +153,7 @@ def main():
 
   if args.save_final_checkpoint:
     save_checkpoint = \
-      os.path.join("checkpoints", "base_{}_{}.pth".format(args.data_name, args.lamb))
+      os.path.join("checkpoints", "base_{}_{}.pth".format(args.data_name, args.alpha))
     log_info = {
         "state_dict": model.state_dict(),
     }

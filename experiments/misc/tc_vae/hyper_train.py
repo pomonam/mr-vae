@@ -55,7 +55,7 @@ class HyperMLPEncoder(BaseHyperEncoder):
     h = self.act(self.fc2(h))
     h = self.hyper_fc2(h)
     h = self.fc3(h)
-    h = self.hyper_fc3(h)
+    # h = self.hyper_fc3(h)
     z = h.view(x.size(0), self.output_dim)
     return z
 
@@ -67,13 +67,13 @@ class HyperMLPDecoder(BaseHyperDecoder):
     self.net = nn.Sequential(
         nn.Linear(input_dim, 1200),
         nn.Tanh(),
-        get_hyper_layer(1200, hyper_cfg),
+        get_hyper_layer(1200, hyper_cfg, decoder=True),
         nn.Linear(1200, 1200),
         nn.Tanh(),
-        get_hyper_layer(1200, hyper_cfg),
+        get_hyper_layer(1200, hyper_cfg, decoder=True),
         nn.Linear(1200, 1200),
         nn.Tanh(),
-        get_hyper_layer(1200, hyper_cfg),
+        get_hyper_layer(1200, hyper_cfg, decoder=True),
         nn.Linear(1200, 4096)
     )
 
@@ -161,16 +161,6 @@ class VAE(nn.Module):
     expanded_size = (batch_size,) + self.prior_params.size()
     prior_params = Variable(self.prior_params.expand(expanded_size))
     return prior_params
-
-  # def model_sample(self, value, batch_size=1):
-  #   sample_dict = self.sample_inverse(torch.Tensor(1, 1).to(DEVICE), value)
-  #   self.set_net_inputs(sample_dict["net"])
-  #   # sample from prior (value will be sampled by guide when computing the ELBO)
-  #   prior_params = self._get_prior_params(batch_size)
-  #   zs = self.prior_dist.sample(params=prior_params)
-  #   # decode the latent code z
-  #   x_params = self.decoder.forward(zs)
-  #   return x_params
 
   def encode(self, x):
     x = x.view(x.size(0), 1, 64, 64)
@@ -386,7 +376,7 @@ def main():
   # parse command line arguments
   parser = argparse.ArgumentParser(description="parse args")
   parser.add_argument("--experiment_name", type=str, default="hvae_tcvae_debug")
-  parser.add_argument("--hyper_config_summary", type=str, default="amlp_bn")
+  parser.add_argument("--hyper_config_summary", type=str, default="default")
 
   parser.add_argument(
       '-d',
@@ -402,12 +392,12 @@ def main():
       choices=['normal', 'laplace', 'flow'])
   parser.add_argument(
       '-n',
-      '--num-epochs',
+      '--num_epochs',
       default=50,
       type=int,
       help='number of training epochs')
   parser.add_argument(
-      '-b', '--batch-size', default=2048, type=int, help='batch size')
+      '-b', '--batch_size', default=2048, type=int, help='batch size')
   parser.add_argument(
       '-l', '--lr', default=1e-3, type=float, help='learning rate')
   parser.add_argument(
