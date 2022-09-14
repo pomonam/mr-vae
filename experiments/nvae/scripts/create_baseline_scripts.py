@@ -12,7 +12,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 CONFIG = {
-    "dataset": ["mnist", "omniglot"],
+    "dataset": ["mnist",],
     "beta": list(np.logspace(-2, 1, num=4)),
     "seed": [0]
 }
