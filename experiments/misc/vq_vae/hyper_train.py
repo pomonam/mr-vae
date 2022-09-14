@@ -66,9 +66,9 @@ def main():
   parser.add_argument("--hyper_config_summary", type=str, default="lin_bn")
 
   parser.add_argument("--total_epochs", type=int, default=10)
-  parser.add_argument("--warmup_epochs", type=int, default=10)
+  parser.add_argument("--warmup_epochs", type=int, default=1)
 
-  parser.add_argument("--lr", type=float, default=1e-3)
+  parser.add_argument("--lr", type=float, default=1e-4)
   parser.add_argument("--batch_size", type=int, default=128)
 
   parser.add_argument("--seed", type=int, default=0)
@@ -102,9 +102,9 @@ def main():
 
   if args.data_name == "mnist":
     train_loader = load_mnist_data(
-        "train", cfg.batch_size, workers=4, data_path="../../../logs/data")
+        "train", cfg.batch_size, workers=0, data_path="../../../logs/data")
     test_loader = load_mnist_data(
-        "test", cfg.batch_size, workers=2, data_path="../../../logs/data")
+        "test", cfg.batch_size, workers=0, data_path="../../../logs/data")
   else:
     train_loader = load_data(
         "celeba",

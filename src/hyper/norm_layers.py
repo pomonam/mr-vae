@@ -100,7 +100,7 @@ class HyperBatchNormLayer(HyperLayer):
 
       # This is currently only applied to conv layers.
       weight = self.weight.unsqueeze(-1).unsqueeze(-1)
-      bias = self.weight.unsqueeze(-1).unsqueeze(-1)
+      bias = self.bias.unsqueeze(-1).unsqueeze(-1)
       scale = scale.unsqueeze(-1).unsqueeze(-1)
       shift = shift.unsqueeze(-1).unsqueeze(-1)
 

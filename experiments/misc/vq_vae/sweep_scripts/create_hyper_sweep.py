@@ -5,7 +5,7 @@ from experiments.array_utils import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_sweep")
-parser.add_argument("--experiment_name", type=str, default="hvqvae_image_hyper_sweep")
+parser.add_argument("--experiment_name", type=str, default="hvqvae_image_hyper_sweep_v13")
 
 args = parser.parse_args()
 
@@ -23,4 +23,4 @@ if __name__ == "__main__":
           args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
-  generate_sh_file(args.file_name, len(jobs))
+  generate_sh_file(args.file_name, len(jobs), cluster_name="q")
