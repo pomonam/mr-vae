@@ -52,7 +52,7 @@ class HyperVAE(VAE):
     self.decoder.set_net_inputs(value)
 
   def forward(self, inputs: torch.Tensor, **kwargs):
-    raise NotImplementedError
+    raise NotImplementedError()
 
   def sample(self, x: torch.Tensor) -> dict:
     try:
@@ -63,16 +63,14 @@ class HyperVAE(VAE):
       batch_size = x.batch_size
       device = x._batch["text_ids"].device
 
-    sample_dict = {}
-    sample_dict["net"] = (
+    net = (
         torch.FloatTensor(batch_size, 1).uniform_(-_SQRT3, _SQRT3).to(device))
-    beta = sample_dict["net"] * (_SQRT3 / 3)
+    beta = net * (_SQRT3 / 3)
     if self.hyper_cfg.reduce_range:
       beta = beta * _LOG_RED_DIFF + _LOG_RED_M
     else:
       beta = beta * _LOG_DIFF + _LOG_M
-
-    sample_dict["beta"] = torch.exp(beta)
+    sample_dict = {"net": net, "beta": torch.exp(beta)}
     return sample_dict
 
   def sample_inverse(self, x: torch.Tensor, value: float) -> dict:
@@ -87,12 +85,12 @@ class HyperVAE(VAE):
     sample_dict = {}
     ones = torch.ones(batch_size, 1).to(device)
     beta = value * ones
-    sample_dict["beta"] = torch.ones(batch_size, 1).to(device) * beta
     if self.hyper_cfg.reduce_range:
-      net_beta = (torch.log(sample_dict["beta"]) - _LOG_RED_M) / _LOG_RED_DIFF
+      net_beta = (torch.log(beta) - _LOG_RED_M) / _LOG_RED_DIFF
     else:
-      net_beta = (torch.log(sample_dict["beta"]) - _LOG_M) / _LOG_DIFF
+      net_beta = (torch.log(beta) - _LOG_M) / _LOG_DIFF
     sample_dict["net"] = net_beta * (3 / _SQRT3)
+    sample_dict = {"net": net_beta * (3 / _SQRT3), "beta": beta}
     return sample_dict
 
   def get_log_uniform_samples(self, num: int = 20) -> np.ndarray:

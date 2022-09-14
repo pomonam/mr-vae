@@ -1,10 +1,10 @@
+import math
 from typing import Tuple
 
-import math
+import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
-import numpy as np
 
 from src.config import HyperConfig
 from src.hyper.base_architecture import BaseHyperDecoder
@@ -14,12 +14,9 @@ from src.models.vq_vae import Quantizer
 
 # Some constants used for sampling.
 _SQRT3 = math.sqrt(3)
-_LOG_A = math.log(0.001)
 _LOG_RED_A = math.log(1)
 _LOG_B = math.log(10)
-_LOG_M = (_LOG_A + _LOG_B) / 2
 _LOG_RED_M = (_LOG_RED_A + _LOG_B) / 2
-_LOG_DIFF = _LOG_M - _LOG_A
 _LOG_RED_DIFF = _LOG_RED_M - _LOG_RED_A
 
 
@@ -37,47 +34,30 @@ class HyperVQVAE(HyperVAE):
     self.model_config = model_config
     self.model_name = "HyperVQVAE"
 
+    # Dummy sample_dict for initialization.
     sample_dict = self.sample_inverse(torch.Tensor((1, 1)), 1)
     self.set_net_inputs(sample_dict["net"])
-
     self._set_quantizer(model_config)
 
   def sample(self, x: torch.Tensor) -> dict:
-    try:
-      batch_size = x.shape[0]
-      device = x.device
-    except AttributeError:
-      # This is for text models.
-      batch_size = x.batch_size
-      device = x._batch["text_ids"].device
-
-    sample_dict = {}
-    sample_dict["net"] = (
-        torch.FloatTensor(1, 1).uniform_(-_SQRT3, _SQRT3).to(device))
-    beta = sample_dict["net"] * (_SQRT3 / 3)
+    device = x.device
+    net = (torch.FloatTensor(1, 1).uniform_(-_SQRT3, _SQRT3).to(device))
+    beta = net * (_SQRT3 / 3)
     beta = beta * _LOG_RED_DIFF + _LOG_RED_M
-    sample_dict["beta"] = torch.exp(beta)
+    sample_dict = {"net": net, "lamb": torch.exp(beta)}
     return sample_dict
 
   def sample_inverse(self, x: torch.Tensor, value: float) -> dict:
-    try:
-      batch_size = x.shape[0]
-      device = x.device
-    except AttributeError:
-      # This is for text models.
-      batch_size = x.batch_size
-      device = x._batch["text_ids"].device
-
+    device = x.device
     sample_dict = {}
     ones = torch.ones(1, 1).to(device)
     beta = value * ones
-    sample_dict["beta"] = torch.ones(1, 1).to(device) * beta
     net_beta = (torch.log(sample_dict["beta"]) - _LOG_RED_M) / _LOG_RED_DIFF
     sample_dict["net"] = net_beta * (3 / _SQRT3)
+    sample_dict = {"net": net_beta * (3 / _SQRT3), "lamb": beta}
     return sample_dict
 
   def _set_quantizer(self, model_config: dict) -> None:
-
     if model_config["input_dim"] is None:
       raise AttributeError(
           "No input dimension provided !"
@@ -99,10 +79,7 @@ class HyperVQVAE(HyperVAE):
     return self.sample_forward(inputs)
 
   def sample_forward(self, inputs: dict, **kwargs) -> dict:
-    if isinstance(inputs, torch.Tensor):
-      x = inputs
-    else:
-      x = inputs["data"]
+    x = inputs["data"]
     sample_dict = self.sample(x)
     self.set_net_inputs(sample_dict["net"])
 
@@ -192,8 +169,9 @@ class HyperVQVAE(HyperVAE):
     vq_loss = quantizer_output["loss"]
 
     return (
-        (recon_loss + lambdas.sum() * vq_loss).mean(dim=0)
-        if lambdas is not None else (recon_loss + 1. * vq_loss).mean(dim=0),
+        (recon_loss +
+         lambdas.sum() * vq_loss).mean(dim=0) if lambdas is not None else
+        (recon_loss + 1. * vq_loss).mean(dim=0),
         recon_loss.mean(dim=0),
         vq_loss.mean(dim=0),
     )
@@ -268,5 +246,3 @@ class HyperQuantizer(nn.Module):
     }
 
     return output
-
-

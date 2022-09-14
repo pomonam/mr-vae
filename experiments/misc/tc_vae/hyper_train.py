@@ -23,12 +23,12 @@ from src.hyper.base_model import BaseHyperEncoder, BaseHyperDecoder
 from src.config import HyperConfig
 
 _SQRT3 = math.sqrt(3)
-_LOG_A = math.log(0.001)
+# _LOG_A = math.log(0.001)
 _LOG_RED_A = math.log(1)
 _LOG_B = math.log(10)
-_LOG_M = (_LOG_A + _LOG_B) / 2
+# _LOG_M = (_LOG_A + _LOG_B) / 2
 _LOG_RED_M = (_LOG_RED_A + _LOG_B) / 2
-_LOG_DIFF = _LOG_M - _LOG_A
+# _LOG_DIFF = _LOG_M - _LOG_A
 _LOG_RED_DIFF = _LOG_RED_M - _LOG_RED_A
 
 cuda = torch.cuda.is_available()
@@ -517,7 +517,7 @@ def main():
   # logpx, dependence, information, dimwise_kl, analytical_cond_kl, marginal_entropies, joint_entropy = \
   #     elbo_decomposition(vae, dataset_loader)
 
-  beta_lst = np.logspace(-2, 1, num=20, base=10)
+  beta_lst = np.logspace(0, 1, num=10, base=10)
   metrics_lst = []
   for beta in beta_lst:
     # Setting the hyper inputs.

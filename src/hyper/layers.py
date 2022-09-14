@@ -21,11 +21,11 @@ def get_hyper_layer(features: int,
                     hyper_cfg: HyperConfig,
                     decoder: bool = False) -> HyperLayer:
   hyper_dict = {
-    "sig_gate": HyperSigmoidLayer(features, hyper_cfg),
-    "sqrt_gate": HyperSqrtLayer(features, hyper_cfg),
-    "tanh_gate": HyperTanhLayer(features, hyper_cfg),
-    "scale_shift": HyperScaleShiftLayer(features, hyper_cfg),
-    "affine": HyperAffineLayer(features, hyper_cfg)
+      "sig_gate": HyperSigmoidLayer(features, hyper_cfg),
+      "sqrt_gate": HyperSqrtLayer(features, hyper_cfg),
+      "tanh_gate": HyperTanhLayer(features, hyper_cfg),
+      "scale_shift": HyperScaleShiftLayer(features, hyper_cfg),
+      "affine": HyperAffineLayer(features, hyper_cfg)
   }
   if decoder:
     return hyper_dict[hyper_cfg.decoder_layer_type]
@@ -37,17 +37,16 @@ def initialize_hyper_blocks(features: int,
                             hyper_cfg: HyperConfig,
                             force_apply_zero_init: bool = False) -> nn.Module:
   if hyper_cfg.shared_preprocess:
-    block = nn.Linear(hyper_cfg.shared_preprocess_dim, features,
-                      bias=True)
+    block = nn.Linear(hyper_cfg.shared_preprocess_dim, features, bias=True)
     if hyper_cfg.apply_zero_init or force_apply_zero_init:
       block.weight.data.fill_(0)
       block.bias.data.fill_(0)
   else:
     block = get_block(hyper_cfg.block_type)(
-      # Scalar inputs for non-shared preprocess.
-      in_features=1,
-      out_features=features,
-      emd_features=hyper_cfg.non_shared_emd_dim,
+        # Scalar inputs for non-shared preprocess.
+        in_features=1,
+        out_features=features,
+        emd_features=hyper_cfg.non_shared_emd_dim,
     )
     if hyper_cfg.apply_zero_init or force_apply_zero_init:
       block.layers[-1].weight.data.fill_(0)
@@ -57,9 +56,7 @@ def initialize_hyper_blocks(features: int,
 
 class HyperSigmoidLayer(HyperLayer):
 
-  def __init__(self,
-               features: int,
-               hyper_cfg: HyperConfig) -> None:
+  def __init__(self, features: int, hyper_cfg: HyperConfig) -> None:
     super().__init__()
 
     self.features = features
@@ -82,9 +79,7 @@ class HyperSigmoidLayer(HyperLayer):
 
 class HyperSqrtLayer(HyperLayer):
 
-  def __init__(self,
-               features: int,
-               hyper_cfg: HyperConfig) -> None:
+  def __init__(self, features: int, hyper_cfg: HyperConfig) -> None:
     super().__init__()
 
     self.features = features
@@ -109,9 +104,7 @@ class HyperSqrtLayer(HyperLayer):
 
 class HyperAffineLayer(HyperLayer):
 
-  def __init__(self,
-               features: int,
-               hyper_cfg: HyperConfig) -> None:
+  def __init__(self, features: int, hyper_cfg: HyperConfig) -> None:
     super().__init__()
 
     self.features = features
@@ -133,9 +126,7 @@ class HyperAffineLayer(HyperLayer):
 
 class HyperTanhLayer(HyperLayer):
 
-  def __init__(self,
-               features: int,
-               hyper_cfg: HyperConfig) -> None:
+  def __init__(self, features: int, hyper_cfg: HyperConfig) -> None:
     super().__init__()
 
     self.features = features
@@ -159,9 +150,7 @@ class HyperTanhLayer(HyperLayer):
 
 class HyperScaleShiftLayer(HyperLayer):
 
-  def __init__(self,
-               features: int,
-               hyper_cfg: HyperConfig) -> None:
+  def __init__(self, features: int, hyper_cfg: HyperConfig) -> None:
     super().__init__()
 
     self.features = features

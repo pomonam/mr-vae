@@ -15,11 +15,12 @@ class BaseBlock(nn.Module):
     self.out_features = out_features
     self.emd_features = out_features if emd_features is None else emd_features
 
+    # Need to override this.
     self.layers = nn.Identity()
     self._construct_layers()
 
   def _construct_layers(self) -> None:
-    raise NotImplementedError
+    raise NotImplementedError()
 
   def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     out = self.layers(inputs)
