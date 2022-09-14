@@ -25,14 +25,16 @@ from linear_beta_vae import LinearEncoder
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--experiment_name", type=str, default="linear_beta_vae-mnist_baseline")
+    "--experiment_name", type=str, default="linear_vae_test")
 
 parser.add_argument("--bottleneck_size", type=int, default=100)
 parser.add_argument("--total_epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=1e-3)
-parser.add_argument("--batch_size", type=int, default=5000) # Also corresponds to dataset size
+parser.add_argument("--batch_size", type=int, default=5000)
+parser.add_argument("--dataset_size", type=int, default=5000)
 parser.add_argument("--beta", type=float, required=True)
 parser.add_argument("--schedule", type=str, default="constant")
+parser.add_argument("--freeze_decoder_for_half", type=int, default=0)
 
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--checkpoint_dir", type=str, default=None)
@@ -48,7 +50,7 @@ def evaluate(model, biq, epoch, name, delta=0.01):
     model.eval()
 
     with torch.no_grad():
-        loader = biq(name, args.batch_size, DEVICE)
+        loader = biq(name, args.batch_size, DEVICE, dataset_size=args.dataset_size)
         p_bar = tqdm.tqdm(loader)
         metric_dict = initialize_metric(["loss", "rate", "distortion"])
         means = []
@@ -89,6 +91,11 @@ def train(model, biq, optimizer, scheduler, cfg):
         do_evaluate = epoch % cfg.eval_freq == 0
         do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
+        if args.freeze_decoder_for_half == 1:
+            if (epoch+1)*2 > cfg.total_epochs:
+                for param in model.decoder.parameters():
+                    param.requires_grad = False
+
         if do_evaluate:
             evaluate(model, biq, epoch, "train_eval")
             evaluate(model, biq, epoch, "test")
@@ -104,7 +111,7 @@ def train(model, biq, optimizer, scheduler, cfg):
             torch.save(log_info, slurm_check_dir)
 
         model.train()
-        loader = biq("train", cfg.batch_size, DEVICE)
+        loader = biq("train", cfg.batch_size, DEVICE, dataset_size=args.dataset_size)
         p_bar = tqdm.tqdm(loader)
         metric_dict = initialize_metric(["loss", "rate", "distortion"])
 
@@ -126,6 +133,8 @@ def train(model, biq, optimizer, scheduler, cfg):
         summ_dict["beta"] = cfg.get_beta(epoch)
         wandb.log(summ_dict)
         epoch = epoch + 1
+
+        #print(model.encoder_var.item())
 
         if np.isnan(summ_dict["train_step/loss"]):
             wandb.finish(exit_code=1)
@@ -152,6 +161,8 @@ def main():
     evaluate(model, build_input_queue, cfg.total_epochs, "train_eval")
     evaluate(model, build_input_queue, cfg.total_epochs, "test")
     evaluate(model, build_input_queue, cfg.total_epochs, "analytical")
+    
+    print(model.encoder_var.item())
 
     '''
     # Visualizing the reconstruction

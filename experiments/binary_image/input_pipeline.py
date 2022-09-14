@@ -73,7 +73,8 @@ def load_mnist_data(split, batch_size, workers=0, data_path="../../logs/data", d
   test_data = test_data.reshape(-1, 1, 28, 28).astype("float32")
   # To create smaller dataset
   if dataset_size != -1:
-    train_data = torch.utils.data.random_split(train_data, [dataset_size, len(train_data)-dataset_size])[0]
+    np.random.seed(100)
+    train_data = train_data[np.random.choice(train_data.shape[0], dataset_size, replace=False), :]
   is_train = split == "train"
 
   loader = torch.utils.data.DataLoader(
