@@ -46,8 +46,8 @@ def main():
   rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, RESNET_ID)
   plt.plot(rate, dist, "o-", label="Hypernetwork", linewidth=2, c=rgb.tue_ocre)
 
-  plt.xlim(0, 140)
-  plt.ylim(0, 140)
+  plt.xlim(0, 120)
+  plt.ylim(0, 120)
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
