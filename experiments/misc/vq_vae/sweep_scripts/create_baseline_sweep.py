@@ -5,7 +5,7 @@ from experiments.array_utils import generate_sh_file
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="baseline_sweep")
-parser.add_argument("--experiment_name", type=str, default="hvqvae_image_sweep")
+parser.add_argument("--experiment_name", type=str, default="hvqvae_image_sweep_v13")
 
 args = parser.parse_args()
 
@@ -13,6 +13,7 @@ CONFIG = {
     "lr": [3e-3, 1e-3, 3e-4, 1e-4, 3e-5],
     "total_epochs": [200],
     "data_name": ["mnist", "celeba"],
+    "alpha": [0.5],
 }
 
 if __name__ == "__main__":

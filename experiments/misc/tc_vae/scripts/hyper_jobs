@@ -1,14 +1,42 @@
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 0.01 --hyper_config_summary lin_bn 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 0.01 --hyper_config_summary amlp_bn 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 0.003 --hyper_config_summary lin_bn 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 0.003 --hyper_config_summary amlp_bn 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 0.001 --hyper_config_summary lin_bn 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 0.001 --hyper_config_summary amlp_bn 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 0.0003 --hyper_config_summary lin_bn 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 0.0003 --hyper_config_summary amlp_bn 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 0.0001 --hyper_config_summary lin_bn 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 0.0001 --hyper_config_summary amlp_bn 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 3e-05 --hyper_config_summary lin_bn 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 3e-05 --hyper_config_summary amlp_bn 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 1e-05 --hyper_config_summary lin_bn 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v14 --lr 1e-05 --hyper_config_summary amlp_bn
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.01 --num_epochs 50 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.01 --num_epochs 50 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.01 --num_epochs 50 --batch_size 2048 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.01 --num_epochs 100 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.01 --num_epochs 100 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.01 --num_epochs 100 --batch_size 2048 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.003 --num_epochs 50 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.003 --num_epochs 50 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.003 --num_epochs 50 --batch_size 2048 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.003 --num_epochs 100 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.003 --num_epochs 100 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.003 --num_epochs 100 --batch_size 2048 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.001 --num_epochs 50 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.001 --num_epochs 50 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.001 --num_epochs 50 --batch_size 2048 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.001 --num_epochs 100 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.001 --num_epochs 100 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.001 --num_epochs 100 --batch_size 2048 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.0003 --num_epochs 50 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.0003 --num_epochs 50 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.0003 --num_epochs 50 --batch_size 2048 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.0003 --num_epochs 100 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.0003 --num_epochs 100 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.0003 --num_epochs 100 --batch_size 2048 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.0001 --num_epochs 50 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.0001 --num_epochs 50 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.0001 --num_epochs 50 --batch_size 2048 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.0001 --num_epochs 100 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.0001 --num_epochs 100 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 0.0001 --num_epochs 100 --batch_size 2048 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 3e-05 --num_epochs 50 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 3e-05 --num_epochs 50 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 3e-05 --num_epochs 50 --batch_size 2048 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 3e-05 --num_epochs 100 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 3e-05 --num_epochs 100 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 3e-05 --num_epochs 100 --batch_size 2048 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 1e-05 --num_epochs 50 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 1e-05 --num_epochs 50 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 1e-05 --num_epochs 50 --batch_size 2048 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 1e-05 --num_epochs 100 --batch_size 128 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 1e-05 --num_epochs 100 --batch_size 1024 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v15 --lr 1e-05 --num_epochs 100 --batch_size 2048
