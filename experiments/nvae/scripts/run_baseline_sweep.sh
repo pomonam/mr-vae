@@ -10,6 +10,7 @@
 
 . $HOME/envs/hvae_env
 export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH
+export PYTHONPATH=$HOME/codes/hyper-vae/experiments/nvae:$PYTHONPATH
 
 IFS=$'\n' read -d '' -r -a lines < baseline_sweep
 cd ..
