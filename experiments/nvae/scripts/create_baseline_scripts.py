@@ -29,8 +29,8 @@ if __name__ == "__main__":
       command_template=DEFAULT)
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
-  generate_sh_file(
-      args.file_name,
-      len(jobs),
-      cluster_name="q"
-  )
+  # generate_sh_file(
+  #     args.file_name,
+  #     len(jobs),
+  #     cluster_name="q"
+  # )
