@@ -63,7 +63,7 @@ def main():
 
   parser.add_argument("--data_name", type=str, default="mnist")
 
-  parser.add_argument("--hyper_config_summary", type=str, default="lin_bn")
+  parser.add_argument("--hyper_config_summary", type=str, default="default")
 
   parser.add_argument("--total_epochs", type=int, default=10)
   parser.add_argument("--warmup_epochs", type=int, default=10)
