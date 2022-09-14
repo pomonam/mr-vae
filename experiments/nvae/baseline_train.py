@@ -413,7 +413,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--dataset',
       type=str,
-      default='omniglot',
+      default='mnist',
       choices=[
           'cifar10',
           'mnist',
