@@ -104,22 +104,21 @@ def get_loaders(args):
 
 
 def get_custom_loaders(args):
-  return get_loaders_eval(args.dataset, args)
+  # return get_loaders_eval(args.dataset, args)
+  """Get data loaders for required dataset."""
+  if args.dataset == 'mnist':
+    train_queue = load_mnist_data("train", args.batch_size,
+                                  workers=8, data_path="../../logs/data", add_padding=True)
+    valid_queue = load_mnist_data("test", args.batch_size,
+                                  workers=1, data_path="../../logs/data", add_padding=True)
+    return train_queue, valid_queue, 10
 
-  # """Get data loaders for required dataset."""
-  # if args.dataset == 'mnist':
-  #   train_queue = load_mnist_data("train", args.batch_size,
-  #                                 workers=8, data_path="../../logs/data")
-  #   valid_queue = load_mnist_data("test", args.batch_size,
-  #                                 workers=1, data_path="../../logs/data")
-  #   return train_queue, valid_queue, 10
-  #
-  # elif args.dataset == "omniglot":
-  #   train_queue = load_omniglot_data("train", args.batch_size,
-  #                                 workers=8, data_path="../../logs/data")
-  #   valid_queue = load_omniglot_data("test", args.batch_size,
-  #                                 workers=1, data_path="../../logs/data")
-  #   return train_queue, valid_queue, 10
+  elif args.dataset == "omniglot":
+    train_queue = load_omniglot_data("train", args.batch_size,
+                                  workers=8, data_path="../../logs/data", add_padding=True)
+    valid_queue = load_omniglot_data("test", args.batch_size,
+                                  workers=1, data_path="../../logs/data", add_padding=True)
+    return train_queue, valid_queue, 10
 
 
 def download_omniglot(data_dir):

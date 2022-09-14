@@ -40,6 +40,20 @@ class Omniglot(Dataset):
     return len(self.data)
 
 
+class CustomMNIST(Dataset):
+
+  def __init__(self, data, transform):
+    self.data = data
+    self.transform = transform
+
+  def __getitem__(self, index):
+    d = self.data[index]
+    img = Image.fromarray(d)
+    return self.transform(img), 0
+
+  def __len__(self):
+    return len(self.data)
+
 def load_mnist_binarized(data_path):
   dataset = os.path.join(data_path, "mnist.gz")
 
@@ -65,13 +79,23 @@ def load_mnist_binarized(data_path):
   return x_train, x_valid, x_test
 
 
-def load_mnist_data(split, batch_size, workers=0, data_path="../../logs/data"):
+def load_mnist_data(split, batch_size, workers=0, data_path="../../logs/data", add_padding=False):
   assert split in ["train", "train_eval", "test"]
 
   train_data, _, test_data = load_mnist_binarized(data_path)
   train_data = train_data.reshape(-1, 1, 28, 28).astype("float32")
   test_data = test_data.reshape(-1, 1, 28, 28).astype("float32")
   is_train = split == "train"
+
+  if add_padding:
+    train_data = train_data.reshape(-1, 28, 28).astype("float32")
+    test_data = test_data.reshape(-1, 28, 28).astype("float32")
+    transform = transforms.Compose([
+      transforms.Pad(padding=2),
+      transforms.ToTensor(),
+    ])
+    train_data = CustomMNIST(train_data, transform=transform)
+    test_data = CustomMNIST(test_data, transform=True)
 
   loader = torch.utils.data.DataLoader(
       train_data if split in ["train", "train_eval"] else test_data,
@@ -99,21 +123,24 @@ def download_omniglot(data_dir):
   return
 
 
-def load_omniglot_data(split, batch_size, workers=0, data_path="../../logs/"):
+def load_omniglot_data(split, batch_size, workers=0, data_path="../../logs/", add_padding=False):
   assert split in ["train", "train_eval", "test"]
   download_omniglot(data_path)
   dataset = scipy.io.loadmat(os.path.join(data_path, "chardata.mat"))
 
   is_train = split == "train"
-  train_transform = transforms.Compose([
-      transforms.ToTensor(),
-      # For training, dynamically binarize the dataset.
-      Binarize(),
-  ])
+  if add_padding:
+    train_transform = transforms.Compose([
+        transforms.Pad(padding=2),
+        transforms.ToTensor(),
+        # For training, dynamically binarize the dataset.
+        Binarize(),
+    ])
 
-  test_transform = transforms.Compose([
+    test_transform = transforms.Compose([
+      transforms.Pad(padding=2),
       transforms.ToTensor(),
-  ])
+    ])
 
   if split == "train" or split == "train_eval":
     data = dataset["data"].astype("float32").reshape((28, 28, -1)).transpose(

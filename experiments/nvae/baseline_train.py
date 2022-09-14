@@ -12,10 +12,10 @@ import os
 
 from torch.cuda.amp import autocast, GradScaler
 
-from model import AutoEncoder
-from thirdparty.adamax import Adamax
-import utils
-import datasets
+from experiments.nvae.model import AutoEncoder
+from experiments.nvae.thirdparty.adamax import Adamax
+import experiments.nvae.utils as utils
+import experiments.nvae.datasets as datasets
 import wandb
 
 from experiments.wandb_utils import init_wandb
@@ -27,7 +27,12 @@ DEVICE = torch.device("cuda" if cuda else "cpu")
 
 
 def main(args):
-  init_wandb(args.save, project_name=args.experiment_name, config=vars(args))
+  utils.create_exp_dir(args.root)
+  proj_id = init_wandb(args.root, project_name=args.experiment_name,
+                       config=vars(args), return_id=True)
+  args.save = proj_id
+  args.save = args.root + '/eval-' + args.save
+  utils.create_exp_dir(args.save)
 
   # ensures that weight initializations are all the same
   torch.manual_seed(args.seed)
@@ -232,7 +237,7 @@ def train(train_queue,
 
     if (global_step + 1) % 100 == 0:
       if (global_step + 1) % 1000 == 0:  # reduced frequency
-        n = int(np.floor(np.sqrt(x.size(0))))
+        n = int(np.floor(np.sqrt(x.shape[0])))
         x_img = x[:n * n]
         output_img = output.mean if isinstance(
             output,
@@ -335,10 +340,10 @@ def test(valid_queue, model, num_samples, args, logging):
           torch.logsumexp(torch.stack(log_iw, dim=1), dim=1) -
           np.log(num_samples))
 
-    recon_avg.update(recon_lst.data, x.size[0])
-    kl_avg.update(kl_lst.data, x.size[0])
-    nelbo_avg.update(nelbo.data, x.size(0))
-    neg_log_p_avg.update(-log_p.data, x.size(0))
+    recon_avg.update(recon_lst.data, x.shape[0])
+    kl_avg.update(kl_lst.data, x.shape[0])
+    nelbo_avg.update(nelbo.data, x.shape[0])
+    neg_log_p_avg.update(-log_p.data, x.shape[0])
 
   utils.average_tensor(nelbo_avg.avg, args.distributed)
   utils.average_tensor(neg_log_p_avg.avg, args.distributed)
@@ -402,7 +407,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--root',
       type=str,
-      default='/tmp/nasvae/expr',
+      default='checkpoints/debug',
       help='location of the results')
   parser.add_argument(
       '--save',
@@ -431,7 +436,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--data',
       type=str,
-      default='/tmp/nasvae/data',
+      default='../../logs/data',
       help='location of the data corpus')
   # optimization
   parser.add_argument(
@@ -602,8 +607,6 @@ if __name__ == '__main__':
   parser.add_argument(
       '--seed', type=int, default=0, help='seed used for initialization')
   args = parser.parse_args()
-  args.save = args.root + '/eval-' + args.save
-  utils.create_exp_dir(args.save)
 
   # size = args.num_process_per_node
   args.distributed = False
