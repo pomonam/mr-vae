@@ -66,7 +66,7 @@ def main():
   parser.add_argument("--hyper_config_summary", type=str, default="lin_bn")
 
   parser.add_argument("--total_epochs", type=int, default=10)
-  parser.add_argument("--warmup_epochs", type=int, default=1)
+  parser.add_argument("--warmup_epochs", type=int, default=10)
 
   parser.add_argument("--lr", type=float, default=1e-4)
   parser.add_argument("--batch_size", type=int, default=128)
@@ -75,7 +75,8 @@ def main():
   parser.add_argument("--checkpoint_dir", type=str, default=None)
   parser.add_argument("--save_final_checkpoint", type=int, default=0)
   parser.add_argument("--save_freq", type=int, default=50)
-  parser.add_argument("--eval_freq", type=int, default=10)
+  # Never evaluate.
+  parser.add_argument("--eval_freq", type=int, default=2000)
   args = parser.parse_args()
 
   init_wandb(

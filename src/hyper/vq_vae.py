@@ -55,11 +55,7 @@ class HyperVQVAE(HyperVAE):
     sample_dict["net"] = (
         torch.FloatTensor(1, 1).uniform_(-_SQRT3, _SQRT3).to(device))
     beta = sample_dict["net"] * (_SQRT3 / 3)
-    if self.hyper_cfg.reduce_range:
-      beta = beta * _LOG_RED_DIFF + _LOG_RED_M
-    else:
-      beta = beta * _LOG_DIFF + _LOG_M
-
+    beta = beta * _LOG_RED_DIFF + _LOG_RED_M
     sample_dict["beta"] = torch.exp(beta)
     return sample_dict
 
@@ -76,10 +72,7 @@ class HyperVQVAE(HyperVAE):
     ones = torch.ones(1, 1).to(device)
     beta = value * ones
     sample_dict["beta"] = torch.ones(1, 1).to(device) * beta
-    if self.hyper_cfg.reduce_range:
-      net_beta = (torch.log(sample_dict["beta"]) - _LOG_RED_M) / _LOG_RED_DIFF
-    else:
-      net_beta = (torch.log(sample_dict["beta"]) - _LOG_M) / _LOG_DIFF
+    net_beta = (torch.log(sample_dict["beta"]) - _LOG_RED_M) / _LOG_RED_DIFF
     sample_dict["net"] = net_beta * (3 / _SQRT3)
     return sample_dict
 
@@ -171,7 +164,7 @@ class HyperVQVAE(HyperVAE):
 
     recon_x = self.decoder(quantized_embed)["reconstruction"]
 
-    loss, recon_loss, vq_loss = self.loss_function(recon_x, x, quantizer_output, sample_dict["beta"])
+    loss, recon_loss, vq_loss = self.loss_function(recon_x, x, quantizer_output, None)
 
     output = {
         "recon_loss": recon_loss,
@@ -199,7 +192,8 @@ class HyperVQVAE(HyperVAE):
     vq_loss = quantizer_output["loss"]
 
     return (
-        (recon_loss + lambdas.sum() * vq_loss).mean(dim=0),
+        (recon_loss + lambdas.sum() * vq_loss).mean(dim=0)
+        if lambdas is not None else (recon_loss + 1. * vq_loss).mean(dim=0),
         recon_loss.mean(dim=0),
         vq_loss.mean(dim=0),
     )
