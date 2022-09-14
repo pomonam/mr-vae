@@ -23,8 +23,8 @@ def hyper_evaluate(model, loader, epoch, name, device):
     dist_lst = []
 
     for sample in sample_lst:
-      loader = build_input_queue(loader, device)
-      p_bar = tqdm.tqdm(loader)
+      queue = build_input_queue(loader, device)
+      p_bar = tqdm.tqdm(queue)
       metric_dict = initialize_metric(["loss", "vq_loss", "recon_loss"])
 
       for batch in p_bar:
