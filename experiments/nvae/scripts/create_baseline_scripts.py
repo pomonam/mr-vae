@@ -32,5 +32,5 @@ if __name__ == "__main__":
   generate_sh_file(
       args.file_name,
       len(jobs),
-      qos="deadline"
+      cluster_name="q"
   )
