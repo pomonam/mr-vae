@@ -117,23 +117,24 @@ def main():
       "--experiment_name", type=str, default="hvae_bimage_debug")
 
   parser.add_argument("--data_name", type=str, default="mnist")
-  parser.add_argument("--encoder_name", type=str, default="conv")
-  parser.add_argument("--decoder_name", type=str, default="conv")
+  parser.add_argument("--encoder_name", type=str, default="resnet")
+  parser.add_argument("--decoder_name", type=str, default="resnet")
 
   parser.add_argument("--hyper_config_summary", type=str, default=None)
 
   # hyper_config_summary overrides below options
-  parser.add_argument("--block_type", type=str, default="mlp")
-  parser.add_argument("--layer_type", type=str, default="affine")
+  parser.add_argument("--block_type", type=str, default="linear")
+  parser.add_argument("--encoder_layer_type", type=str, default="sig_gate")
+  parser.add_argument("--decoder_layer_type", type=str, default="sqrt_gate")
   parser.add_argument("--param_type", type=str, default="post_act")
   parser.add_argument("--norm_type", type=str, default="scale_shift")
   parser.add_argument("--reduce_range", type=int, default=1)
   parser.add_argument("--apply_bn_tracking", type=int, default=1)
   parser.add_argument("--apply_bn_calibrate", type=int, default=0)
-  parser.add_argument("--apply_bn_replace", type=int, default=1)
+  parser.add_argument("--apply_bn_replace", type=int, default=0)
   parser.add_argument("--shared_preprocess", type=int, default=0)
   parser.add_argument("--apply_zero_init", type=int, default=0)
-  parser.add_argument("--include_latent_stem", type=int, default=1)
+  parser.add_argument("--include_latent_stem", type=int, default=0)
 
   parser.add_argument("--total_epochs", type=int, default=10)
   parser.add_argument("--warmup_epochs", type=int, default=10)
