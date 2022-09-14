@@ -9,10 +9,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from thirdparty.swish import Swish as SwishFN
-from thirdparty.inplaced_sync_batchnorm import SyncBatchNormSwish
+from experiments.nvae.thirdparty.swish import Swish as SwishFN
+from experiments.nvae.thirdparty.inplaced_sync_batchnorm import SyncBatchNormSwish
 
-from utils import average_tensor
+from experiments.nvae.utils import average_tensor
 from collections import OrderedDict
 
 BN_EPS = 1e-5

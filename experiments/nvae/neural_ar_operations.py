@@ -12,7 +12,7 @@ from torch.autograd import Variable
 import numpy as np
 from collections import OrderedDict
 
-from neural_operations import ConvBNSwish, normalize_weight_jit
+from experiments.nvae.neural_operations import ConvBNSwish, normalize_weight_jit
 
 AROPS = OrderedDict([
     ('conv_3x3',
