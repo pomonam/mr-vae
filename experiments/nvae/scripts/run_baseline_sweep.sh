@@ -1,15 +1,12 @@
 #!/bin/bash
 #SBATCH -N 1
-#SBATCH -J test
 #SBATCH --gres=gpu:1
-#SBATCH --mem=8GB
-#SBATCH --partition=t4v1,p100,t4v2
-#SBATCH --account=deadline
-#SBATCH --qos=deadline
+#SBATCH -p ml
+#SBATCH --mem=16GB
 #SBATCH --export=ALL
 #SBATCH --array=0-8%8
 #SBATCH --output=temp/array-%A_%a.out
-#SBATCH -c 4
+#SBATCH --cpus-per-task=8
 
 . $HOME/envs/hvae_env
 export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH
