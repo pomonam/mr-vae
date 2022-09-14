@@ -1,13 +1,26 @@
 from typing import Tuple
 
+import math
 import torch
 from torch import nn
 import torch.nn.functional as F
+import numpy as np
 
 from src.config import HyperConfig
 from src.hyper.base_architecture import BaseHyperDecoder
 from src.hyper.base_architecture import BaseHyperEncoder
 from src.hyper.base_model import HyperVAE
+from src.models.vq_vae import Quantizer
+
+# Some constants used for sampling.
+_SQRT3 = math.sqrt(3)
+_LOG_A = math.log(0.001)
+_LOG_RED_A = math.log(1)
+_LOG_B = math.log(10)
+_LOG_M = (_LOG_A + _LOG_B) / 2
+_LOG_RED_M = (_LOG_RED_A + _LOG_B) / 2
+_LOG_DIFF = _LOG_M - _LOG_A
+_LOG_RED_DIFF = _LOG_RED_M - _LOG_RED_A
 
 
 class HyperVQVAE(HyperVAE):
@@ -29,6 +42,47 @@ class HyperVQVAE(HyperVAE):
 
     self._set_quantizer(model_config)
 
+  def sample(self, x: torch.Tensor) -> dict:
+    try:
+      batch_size = x.shape[0]
+      device = x.device
+    except AttributeError:
+      # This is for text models.
+      batch_size = x.batch_size
+      device = x._batch["text_ids"].device
+
+    sample_dict = {}
+    sample_dict["net"] = (
+        torch.FloatTensor(1, 1).uniform_(-_SQRT3, _SQRT3).to(device))
+    beta = sample_dict["net"] * (_SQRT3 / 3)
+    if self.hyper_cfg.reduce_range:
+      beta = beta * _LOG_RED_DIFF + _LOG_RED_M
+    else:
+      beta = beta * _LOG_DIFF + _LOG_M
+
+    sample_dict["beta"] = torch.exp(beta)
+    return sample_dict
+
+  def sample_inverse(self, x: torch.Tensor, value: float) -> dict:
+    try:
+      batch_size = x.shape[0]
+      device = x.device
+    except AttributeError:
+      # This is for text models.
+      batch_size = x.batch_size
+      device = x._batch["text_ids"].device
+
+    sample_dict = {}
+    ones = torch.ones(1, 1).to(device)
+    beta = value * ones
+    sample_dict["beta"] = torch.ones(1, 1).to(device) * beta
+    if self.hyper_cfg.reduce_range:
+      net_beta = (torch.log(sample_dict["beta"]) - _LOG_RED_M) / _LOG_RED_DIFF
+    else:
+      net_beta = (torch.log(sample_dict["beta"]) - _LOG_M) / _LOG_DIFF
+    sample_dict["net"] = net_beta * (3 / _SQRT3)
+    return sample_dict
+
   def _set_quantizer(self, model_config: dict) -> None:
 
     if model_config["input_dim"] is None:
@@ -45,8 +99,7 @@ class HyperVQVAE(HyperVAE):
     z = z.permute(0, 2, 3, 1)
 
     self.model_config["embedding_dim"] = z.shape[-1]
-    self.quantizer = HyperQuantizer(
-        model_config=model_config, hyper_cfg=self.hyper_cfg)
+    self.quantizer = Quantizer(model_config=model_config)
 
   def forward(self, inputs: dict, **kwargs) -> dict:
     # Default behaviour is to sample betas.
@@ -146,7 +199,7 @@ class HyperVQVAE(HyperVAE):
     vq_loss = quantizer_output["loss"]
 
     return (
-        (recon_loss + lambdas.squeeze(-1) * vq_loss).mean(dim=0),
+        (recon_loss + lambdas.sum() * vq_loss).mean(dim=0),
         recon_loss.mean(dim=0),
         vq_loss.mean(dim=0),
     )
@@ -218,3 +271,7 @@ class HyperQuantizer(nn.Module):
     }
 
     return output
+
+  def get_log_uniform_samples(self, num: int = 20) -> np.ndarray:
+    return np.logspace(0, 1, num=num, base=10)
+
