@@ -134,8 +134,6 @@ def train(model, biq, optimizer, scheduler, cfg):
         wandb.log(summ_dict)
         epoch = epoch + 1
 
-        #print(model.encoder_var.item())
-
         if np.isnan(summ_dict["train_step/loss"]):
             wandb.finish(exit_code=1)
             raise ValueError()
