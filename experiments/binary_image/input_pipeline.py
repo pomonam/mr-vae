@@ -95,7 +95,7 @@ def load_mnist_data(split, batch_size, workers=0, data_path="../../logs/data", a
       transforms.ToTensor(),
     ])
     train_data = CustomMNIST(train_data, transform=transform)
-    test_data = CustomMNIST(test_data, transform=True)
+    test_data = CustomMNIST(test_data, transform=transform)
 
   loader = torch.utils.data.DataLoader(
       train_data if split in ["train", "train_eval"] else test_data,
