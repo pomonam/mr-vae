@@ -204,6 +204,9 @@ class HyperVQVAE(HyperVAE):
         vq_loss.mean(dim=0),
     )
 
+  def get_log_uniform_samples(self, num: int = 20) -> np.ndarray:
+    return np.logspace(0, 1, num=num, base=10)
+
 
 class HyperQuantizer(nn.Module):
 
@@ -272,6 +275,4 @@ class HyperQuantizer(nn.Module):
 
     return output
 
-  def get_log_uniform_samples(self, num: int = 20) -> np.ndarray:
-    return np.logspace(0, 1, num=num, base=10)
 
