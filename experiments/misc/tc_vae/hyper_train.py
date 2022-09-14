@@ -24,7 +24,7 @@ from src.config import HyperConfig
 
 _SQRT3 = math.sqrt(3)
 _LOG_A = math.log(0.001)
-_LOG_RED_A = math.log(0.01)
+_LOG_RED_A = math.log(1)
 _LOG_B = math.log(10)
 _LOG_M = (_LOG_A + _LOG_B) / 2
 _LOG_RED_M = (_LOG_RED_A + _LOG_B) / 2
@@ -55,7 +55,7 @@ class HyperMLPEncoder(BaseHyperEncoder):
     h = self.act(self.fc2(h))
     h = self.hyper_fc2(h)
     h = self.fc3(h)
-    # h = self.hyper_fc3(h)
+    h = self.hyper_fc3(h)
     z = h.view(x.size(0), self.output_dim)
     return z
 
@@ -136,11 +136,7 @@ class VAE(nn.Module):
     sample_dict["net"] = (
         torch.FloatTensor(batch_size, 1).uniform_(-_SQRT3, _SQRT3).to(device))
     beta = sample_dict["net"] * (_SQRT3 / 3)
-    if self.hyper_cfg.reduce_range:
-      beta = beta * _LOG_RED_DIFF + _LOG_RED_M
-    else:
-      beta = beta * _LOG_DIFF + _LOG_M
-
+    beta = beta * _LOG_RED_DIFF + _LOG_RED_M
     sample_dict["beta"] = torch.exp(beta)
     return sample_dict
 
@@ -157,10 +153,7 @@ class VAE(nn.Module):
     ones = torch.ones(batch_size, 1).to(device)
     beta = value * ones
     sample_dict["beta"] = torch.ones(batch_size, 1).to(device) * beta
-    if self.hyper_cfg.reduce_range:
-      net_beta = (torch.log(sample_dict["beta"]) - _LOG_RED_M) / _LOG_RED_DIFF
-    else:
-      net_beta = (torch.log(sample_dict["beta"]) - _LOG_M) / _LOG_DIFF
+    net_beta = (torch.log(sample_dict["beta"]) - _LOG_RED_M) / _LOG_RED_DIFF
     sample_dict["net"] = net_beta * (3 / _SQRT3)
     return sample_dict
 
