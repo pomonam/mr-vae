@@ -46,27 +46,28 @@ class HyperConfig:
     if args is not None:
       self.hyper_config_summary = get_ns(args, "hyper_config_summary")
       if self.hyper_config_summary is not None:
-        if "lin" in self.hyper_config_summary:
+        if "sig_encoder" in self.hyper_config_summary:
           self.shared_preprocess = 0
           self.apply_zero_init = 0
           self.reduce_range = 1
 
           self.param_type = "post_act"
-          self.layer_type = "sig_gate"
+          self.encoder_layer_type = "sig_gate"
           self.block_type = "linear"
           self.norm_type = "scale_shift"
 
-        elif "amlp" in self.hyper_config_summary:
+        elif "amlp_encoder" in self.hyper_config_summary:
           self.shared_preprocess = 0
           self.apply_zero_init = 0
           self.reduce_range = 1
 
           self.param_type = "post_act"
-          self.layer_type = "scale_shift"
+          self.encoder_layer_type = "scale_shift"
+          self.decoder_layer_type = "scale_shift"
           self.block_type = "mlp"
           self.norm_type = "scale_shift"
 
-        elif "smlp" in self.hyper_config_summary:
+        elif "smlp_encoder" in self.hyper_config_summary:
           self.shared_preprocess = 1
           self.apply_zero_init = 0
           self.reduce_range = 1
@@ -76,7 +77,7 @@ class HyperConfig:
           self.block_type = "mlp"
           self.norm_type = "scale_shift"
 
-        elif "aff" in self.hyper_config_summary:
+        elif "aff_encoder" in self.hyper_config_summary:
           self.shared_preprocess = 1
           self.apply_zero_init = 0
           self.reduce_range = 1
@@ -85,6 +86,24 @@ class HyperConfig:
           self.layer_type = "affine"
           self.block_type = "mlp"
           self.norm_type = "scale_shift"
+
+        else:
+          raise NotImplementedError()
+
+        if "sig_decoder" in self.hyper_config_summary:
+          self.decoder_layer_type = "sig_gate"
+
+        elif "sqrt_decoder" in self.hyper_config_summary:
+          self.decoder_layer_type = "sqrt_gate"
+
+        elif "amlp_decoder" in self.hyper_config_summary:
+          self.decoder_layer_type = "scale_shift"
+
+        elif "smlp_decoder" in self.hyper_config_summary:
+          self.decoder_layer_type = "sig_gate"
+
+        elif "aff_decoder" in self.hyper_config_summary:
+          self.decoder_layer_type = "affine"
 
         else:
           raise NotImplementedError()
@@ -121,7 +140,8 @@ class HyperConfig:
         self.include_decoder_stem = get_ns(args, "include_decoder_stem")
 
         self.param_type = get_ns(args, "param_type")
-        self.layer_type = get_ns(args, "layer_type")
+        self.encoder_layer_type = get_ns(args, "encoder_layer_type")
+        self.decoder_layer_type = get_ns(args, "decoder_layer_type")
         self.block_type = get_ns(args, "block_type")
         self.norm_type = get_ns(args, "norm_type")
 
@@ -135,6 +155,7 @@ class HyperConfig:
     self.include_encoder_stem = 0
     self.include_decoder_stem = 0
     self.param_type = "post_act"
-    self.layer_type = "sig_gate"
+    self.encoder_layer_type = "sig_gate"
+    self.decoder_layer_type = "sqrt_gate"
     self.block_type = "linear"
     self.norm_type = "scale_shift"

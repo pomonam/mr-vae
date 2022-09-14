@@ -22,22 +22,25 @@ class ResBlock(nn.Module):
 
 class HyperResBlock(nn.Module):
 
-  def __init__(self, channels: int, hyper_cfg: HyperConfig) -> None:
+  def __init__(self,
+               channels: int,
+               hyper_cfg: HyperConfig,
+               decoder: bool = False) -> None:
     super().__init__()
 
     if hyper_cfg.param_type in ["pre_bn", "post_bn"]:
       self.conv_block = nn.Sequential(
           nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-          get_hyper_layer(channels, hyper_cfg),
+          get_hyper_layer(channels, hyper_cfg, decoder=decoder),
           nn.ReLU(),
           nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-          get_hyper_layer(channels, hyper_cfg),
+          get_hyper_layer(channels, hyper_cfg, decoder=decoder),
       )
     elif hyper_cfg.param_type == "post_act":
       self.conv_block = nn.Sequential(
           nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
           nn.ReLU(),
-          get_hyper_layer(channels, hyper_cfg),
+          get_hyper_layer(channels, hyper_cfg, decoder=decoder),
           nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
       )
     else:
