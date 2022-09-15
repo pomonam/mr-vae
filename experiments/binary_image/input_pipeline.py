@@ -137,15 +137,17 @@ def load_omniglot_data(split, batch_size, workers=0,
         # For training, dynamically binarize the dataset.
         Binarize(),
     ])
+    test_transform = transforms.Compose([
+      transforms.Pad(padding=2),
+      transforms.ToTensor(),
+    ])
   else:
     train_transform = transforms.Compose([
         transforms.ToTensor(),
         # For training, dynamically binarize the dataset.
         Binarize(),
     ])
-
     test_transform = transforms.Compose([
-      transforms.Pad(padding=2),
       transforms.ToTensor(),
     ])
 
