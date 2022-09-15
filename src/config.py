@@ -55,7 +55,28 @@ class HyperConfig:
           self.encoder_layer_type = "sig_gate"
           self.decoder_layer_type = "sqrt_gate"
           self.block_type = "linear"
+          self.norm_type = "none"
+
+          self.include_encoder_stem = 0
+          self.include_decoder_stem = 0
+
+          self.apply_bn_tracking = 1
+          self.apply_bn_calibrate = 0
+          self.apply_bn_replace = 0
+
+        elif "default_bn" == self.hyper_config_summary:
+          self.shared_preprocess = 0
+          self.apply_zero_init = 0
+          self.reduce_range = 1
+
+          self.param_type = "post_act"
+          self.encoder_layer_type = "sig_gate"
+          self.decoder_layer_type = "sqrt_gate"
+          self.block_type = "linear"
           self.norm_type = "scale_shift"
+
+          self.include_encoder_stem = 0
+          self.include_decoder_stem = 0
 
           self.apply_bn_tracking = 1
           self.apply_bn_calibrate = 0
