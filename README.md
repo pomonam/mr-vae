@@ -3,8 +3,8 @@
 ## Setting up
 
 ### Weights and Biases logging
-The repository supports `wandb` logging. To log the results in your `wandb` account, simply enable 
-modify the `.env` file by providing the `WANDB_API_KEY`.
+The repository supports `wandb` logging. To log the results in your `wandb` account, simply change the key in
+`experiments/wandb_utils.py`
 
 ### Local
 If you would like to run the code on a local machine, follow these steps:
