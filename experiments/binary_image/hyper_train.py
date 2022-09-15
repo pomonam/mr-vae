@@ -134,7 +134,8 @@ def main():
   parser.add_argument("--apply_bn_replace", type=int, default=0)
   parser.add_argument("--shared_preprocess", type=int, default=0)
   parser.add_argument("--apply_zero_init", type=int, default=0)
-  parser.add_argument("--include_latent_stem", type=int, default=0)
+  parser.add_argument("--include_encoder_stem", type=int, default=0)
+  parser.add_argument("--include_decoder_stem", type=int, default=0)
 
   parser.add_argument("--total_epochs", type=int, default=10)
   parser.add_argument("--warmup_epochs", type=int, default=10)
