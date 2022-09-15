@@ -123,7 +123,8 @@ def download_omniglot(data_dir):
   return
 
 
-def load_omniglot_data(split, batch_size, workers=0, data_path="../../logs/", add_padding=False):
+def load_omniglot_data(split, batch_size, workers=0,
+                       data_path="../../logs/", add_padding=False):
   assert split in ["train", "train_eval", "test"]
   download_omniglot(data_path)
   dataset = scipy.io.loadmat(os.path.join(data_path, "chardata.mat"))
@@ -132,6 +133,12 @@ def load_omniglot_data(split, batch_size, workers=0, data_path="../../logs/", ad
   if add_padding:
     train_transform = transforms.Compose([
         transforms.Pad(padding=2),
+        transforms.ToTensor(),
+        # For training, dynamically binarize the dataset.
+        Binarize(),
+    ])
+  else:
+    train_transform = transforms.Compose([
         transforms.ToTensor(),
         # For training, dynamically binarize the dataset.
         Binarize(),
