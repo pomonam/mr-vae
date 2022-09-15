@@ -66,7 +66,7 @@ def main():
   rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2ku158v9")
   plt.plot(rate, dist, "o-", label="Sigmoid Gating", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3proty4c")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "otyx5qgu")
   plt.plot(rate, dist, "o-", label="Sqrt Gating", linewidth=1.5)
 
   rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "11ps3kf3")
