@@ -125,7 +125,7 @@ def main():
   # hyper_config_summary overrides below options
   parser.add_argument("--block_type", type=str, default="linear")
   parser.add_argument("--encoder_layer_type", type=str, default="sig_gate")
-  parser.add_argument("--decoder_layer_type", type=str, default="sqrt_gate")
+  parser.add_argument("--decoder_layer_type", type=str, default="inv_sqrt_gate")
   parser.add_argument("--param_type", type=str, default="post_act")
   parser.add_argument("--norm_type", type=str, default="scale_shift")
   parser.add_argument("--reduce_range", type=int, default=1)
