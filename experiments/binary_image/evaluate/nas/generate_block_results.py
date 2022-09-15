@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import numpy as np
 from tueplots import bundles
 from tueplots import cycler
 from tueplots import markers
@@ -63,17 +62,17 @@ def main():
     linewidths=0.5,
     c=rgb.tue_lightblue)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "d8u99yoj")
-  plt.plot(rate, dist, "o-", label="Sigmoid Gating", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1fj9a6jo")
+  plt.plot(rate, dist, "o-", label="Linear", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "90igfurg")
-  plt.plot(rate, dist, "o-", label="Sqrt Gating", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1atd6gjw")
+  plt.plot(rate, dist, "o-", label="MLP", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1cwmjgbb")
-  plt.plot(rate, dist, "o-", label="Tanh Gating", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "8wi63fus")
+  plt.plot(rate, dist, "o-", label="MLP (shared weights)", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3gyr7m2f")
-  plt.plot(rate, dist, "o-", label="Affine Transformation", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "259dxcag")
+  plt.plot(rate, dist, "o-", label="Large MLP", linewidth=1.5)
 
   plt.xlim(0, 120)
   plt.ylim(20, 120)
