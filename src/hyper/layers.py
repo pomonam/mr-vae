@@ -23,6 +23,7 @@ def get_hyper_layer(features: int,
   hyper_dict = {
       "sig_gate": HyperSigmoidLayer(features, hyper_cfg),
       "sqrt_gate": HyperSqrtLayer(features, hyper_cfg),
+      "inv_sqrt_gate": HyperInverseSqrtLayer(features, hyper_cfg),
       "tanh_gate": HyperTanhLayer(features, hyper_cfg),
       "scale_shift": HyperScaleShiftLayer(features, hyper_cfg),
       "affine": HyperAffineLayer(features, hyper_cfg)
@@ -92,6 +93,31 @@ class HyperSqrtLayer(HyperLayer):
     scale = torch.relu(scale)
     # Inputs should be >= 0.
     scale = torch.sqrt(scale)
+
+    if len(inputs.shape) == 4:
+      scale = scale.unsqueeze(-1).unsqueeze(-1)
+
+    if len(inputs.shape) == 3:
+      scale = scale.unsqueeze(1)
+
+    return scale * inputs
+
+
+class HyperInverseSqrtLayer(HyperLayer):
+
+  def __init__(self, features: int, hyper_cfg: HyperConfig) -> None:
+    super().__init__()
+
+    self.features = features
+    self.hyper_cfg = hyper_cfg
+    self.hyper_block_scale = \
+      initialize_hyper_blocks(self.features, self.hyper_cfg)
+
+  def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    scale = self.hyper_block_scale(self._net_inputs)
+    scale = torch.sigmoid(scale)
+    scale = torch.sqrt(scale)
+    scale = 1 / (scale + 1e-5)
 
     if len(inputs.shape) == 4:
       scale = scale.unsqueeze(-1).unsqueeze(-1)

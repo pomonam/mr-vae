@@ -19,18 +19,7 @@ RESNET_CONFIG = {
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
     "encoder_layer_type": ["sig_gate"],
-    "decoder_layer_type": ["sig_gate", "sqrt_gate", "tanh_gate", "scale_shift"],
-    "block_type": ["linear"],
-}
-
-CONV_CONFIG = {
-    "lr": [1e-2, 3e-3, 1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
-    "total_epochs": [200],
-    "data_name": ["mnist", "omniglot"],
-    "encoder_name": ["conv"],
-    "decoder_name": ["conv"],
-    "encoder_layer_type": ["sig_gate", "sqrt_gate", "tanh_gate", "scale_shift"],
-    "decoder_layer_type": ["sqrt_gate"],
+    "decoder_layer_type": ["inv_sqrt_gate"],
     "block_type": ["linear"],
 }
 
@@ -40,11 +29,6 @@ if __name__ == "__main__":
       RESNET_CONFIG,
       command_template="python hyper_train.py --experiment_name {} ".format(
           args.experiment_name))
-  # jobs += ["\n"]
-  # jobs += generate_job_strings(
-  #     CONV_CONFIG,
-  #     command_template="python hyper_train.py --experiment_name {} ".format(
-  #         args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
   generate_sh_file(args.file_name, len(jobs), cluster_name="q")
