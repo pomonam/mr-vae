@@ -30,8 +30,9 @@ CONV_CONFIG = {
     "encoder_name": ["conv"],
     "decoder_name": ["conv"],
     "encoder_layer_type": ["sig_gate", "sqrt_gate", "tanh_gate", "scale_shift"],
-    "decoder_layer_type": ["sqrt_gate"],
+    "decoder_layer_type": ["affine"],
     "block_type": ["linear"],
+    "shared_preprocess": [1]
 }
 
 

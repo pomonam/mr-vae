@@ -38,18 +38,27 @@ class HyperVAE(VAE):
     self.hyper_cfg = hyper_cfg
 
     if self.hyper_cfg.shared_preprocess:
-      self.preprocess_block = get_block(self.hyper_cfg.block_type)(
+      self.preprocess_encoder_block = get_block(self.hyper_cfg.block_type)(
           in_features=1,
           out_features=self.hyper_cfg.shared_preprocess_dim,
           # By default, hidden dimension has expansion factor of 4.
           emd_features=self.hyper_cfg.shared_preprocess_dim * 4,
       )
+      self.preprocess_decoder_block = get_block(self.hyper_cfg.block_type)(
+          in_features=1,
+          out_features=self.hyper_cfg.shared_preprocess_dim,
+          emd_features=self.hyper_cfg.shared_preprocess_dim * 4,
+      )
 
   def set_net_inputs(self, value: torch.Tensor) -> None:
     if self.hyper_cfg.shared_preprocess:
-      value = self.preprocess_block(value)
-    self.encoder.set_net_inputs(value)
-    self.decoder.set_net_inputs(value)
+      encoder_value = self.preprocess_encoder_block(value)
+      decoder_value = self.preprocess_decoder_block(value)
+      self.encoder.set_net_inputs(encoder_value)
+      self.decoder.set_net_inputs(decoder_value)
+    else:
+      self.encoder.set_net_inputs(value)
+      self.decoder.set_net_inputs(value)
 
   def forward(self, inputs: torch.Tensor, **kwargs):
     raise NotImplementedError()
