@@ -9,7 +9,7 @@ from experiments.binary_image.evaluate.utils import get_baseline_rd, get_hyper_r
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_bimage_jobs_final"
-HYPER_NAME = "hvae_bimage_nas_sweep_encoder_layer_type_v14"
+HYPER_NAME = "hvae_bimage_nas_sweep_encoder_layer_type_v20"
 
 
 def main():
@@ -29,17 +29,20 @@ def main():
     linewidths=0.5,
     c=rgb.tue_lightblue)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2uesg74a")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3v7xhz9c")
   plt.plot(rate, dist, "o-", label="Sigmoid Gating", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "31zfgn0y")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3qawh6h1")
   plt.plot(rate, dist, "o-", label="Sqrt Gating", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3emb2jb7")
-  plt.plot(rate, dist, "o-", label="Tanh Gating", linewidth=1.5)
+  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "8ps7i6ky")
+  # plt.plot(rate, dist, "o-", label="Tanh Gating", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2bf5blmi")
-  plt.plot(rate, dist, "o-", label="Affine Transformation", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "qpr4wily")
+  plt.plot(rate, dist, "o-", label="Affine Gating", linewidth=1.5)
+
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1z0vw91l")
+  plt.plot(rate, dist, "o-", label="FiLM Layer", linewidth=1.5)
 
   plt.xlim(0, 120)
   plt.ylim(15, 120)
@@ -63,17 +66,20 @@ def main():
     linewidths=0.5,
     c=rgb.tue_lightblue)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "d8u99yoj")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2dyxazeo")
   plt.plot(rate, dist, "o-", label="Sigmoid Gating", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "90igfurg")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2hkbc65z")
   plt.plot(rate, dist, "o-", label="Sqrt Gating", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1cwmjgbb")
-  plt.plot(rate, dist, "o-", label="Tanh Gating", linewidth=1.5)
+  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "8ps7i6ky")
+  # plt.plot(rate, dist, "o-", label="Tanh Gating", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3gyr7m2f")
-  plt.plot(rate, dist, "o-", label="Affine Transformation", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "12mz3e2b")
+  plt.plot(rate, dist, "o-", label="Affine Gating", linewidth=1.5)
+
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "34actpo9")
+  plt.plot(rate, dist, "o-", label="FiLM Layer", linewidth=1.5)
 
   plt.xlim(0, 120)
   plt.ylim(20, 120)
