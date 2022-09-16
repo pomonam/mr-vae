@@ -4,14 +4,14 @@
 #SBATCH -p gpu
 #SBATCH --mem=16GB
 #SBATCH --export=ALL
-#SBATCH --array=0-32%32
+#SBATCH --array=0-28%28
 #SBATCH --output=temp/array-%A_%a.out
 #SBATCH --cpus-per-task=8
 
 . $HOME/envs/hvae_env
 export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH
 
-IFS=$'\n' read -d '' -r -a lines < stem_sweep
+IFS=$'\n' read -d '' -r -a lines < act_sweep
 cd ..
 
 echo ${lines[SLURM_ARRAY_TASK_ID]}
