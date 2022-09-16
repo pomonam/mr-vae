@@ -9,7 +9,8 @@ from experiments.binary_image.evaluate.utils import get_baseline_rd, get_hyper_r
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_bimage_jobs_final"
-HYPER_NAME = "hvae_bimage_nas_sweep_decoder_layer_type_v14"
+# HYPER_NAME = "hvae_bimage_nas_sweep_decoder_layer_type_v14"
+HYPER_NAME = "hvae_bimage_nas_sweep_decoder_layer_type_v15"
 
 
 def main():
@@ -29,16 +30,16 @@ def main():
     linewidths=0.5,
     c=rgb.tue_lightblue)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "150lpx88")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2br1yhy5")
   plt.plot(rate, dist, "o-", label="Sigmoid Gating", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "b4gc82jm")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3c38vbfs")
   plt.plot(rate, dist, "o-", label="Sqrt Gating", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2vca6b01")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "bsqfqth3")
   plt.plot(rate, dist, "o-", label="Tanh Gating", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "27oj5926")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1s5cxk36")
   plt.plot(rate, dist, "o-", label="Affine Transformation", linewidth=1.5)
 
   plt.xlim(0, 120)
@@ -63,16 +64,16 @@ def main():
     linewidths=0.5,
     c=rgb.tue_lightblue)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2ku158v9")
-  plt.plot(rate, dist, "o-", label="Sigmoid Gating", linewidth=1.5)
+  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "15r4vrfd")
+  # plt.plot(rate, dist, "o-", label="Sigmoid Gating", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "otyx5qgu")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1ifxamqx")
   plt.plot(rate, dist, "o-", label="Sqrt Gating", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "11ps3kf3")
-  plt.plot(rate, dist, "o-", label="Tanh Gating", linewidth=1.5)
+  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1xy0xgj8")
+  # plt.plot(rate, dist, "o-", label="Tanh Gating", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "110dklki")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3o8klhvr")
   plt.plot(rate, dist, "o-", label="Affine Transformation", linewidth=1.5)
 
   plt.xlim(0, 120)

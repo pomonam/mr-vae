@@ -8,7 +8,7 @@ parser.add_argument("--file_name", type=str, default="encoder_layer_sweep")
 parser.add_argument(
     "--experiment_name",
     type=str,
-    default="hvae_bimage_nas_sweep_encoder_layer_type_v14")
+    default="hvae_bimage_nas_sweep_encoder_layer_type_v20")
 
 args = parser.parse_args()
 
@@ -18,9 +18,15 @@ RESNET_CONFIG = {
     "data_name": ["mnist", "omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
-    "encoder_layer_type": ["sig_gate", "sqrt_gate", "tanh_gate", "scale_shift"],
-    "decoder_layer_type": ["sqrt_gate"],
-    "block_type": ["linear"],
+    "encoder_layer_type": ["sig_gate",
+                           "inv_sqrt_gate",
+                           "tanh_gate",
+                           "scale_shift",
+                           "affine"],
+    "decoder_layer_type": ["sig_gate"],
+    "param_type": ["post_act"],
+    "block_type": ["mlp"],
+    "shared_preprocess": [1],
 }
 
 CONV_CONFIG = {
@@ -48,4 +54,4 @@ if __name__ == "__main__":
   #         args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
-  generate_sh_file(args.file_name, len(jobs) - 1, cluster_name="q")
+  generate_sh_file(args.file_name, len(jobs) - 1, qos="deadline")
