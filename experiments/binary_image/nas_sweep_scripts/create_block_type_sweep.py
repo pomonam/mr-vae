@@ -18,8 +18,8 @@ LINEAR_CONFIG = {
     "data_name": ["omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
-    "encoder_layer_type": ["affine_gate"],
-    "decoder_layer_type": ["affine_gate"],
+    "encoder_layer_type": ["affine"],
+    "decoder_layer_type": ["affine"],
     "shared_preprocess": [0],
     "block_type": ["linear"],
 }
@@ -30,8 +30,8 @@ MLP_CONFIG = {
     "data_name": ["omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
-    "encoder_layer_type": ["affine_gate"],
-    "decoder_layer_type": ["affine_gate"],
+    "encoder_layer_type": ["affine"],
+    "decoder_layer_type": ["affine"],
     "shared_preprocess": [0, 1],
     "block_type": ["mlp", "large_mlp"],
 }
