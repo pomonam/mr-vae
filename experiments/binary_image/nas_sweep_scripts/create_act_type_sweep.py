@@ -20,7 +20,7 @@ RESNET_CONFIG = {
     "decoder_name": ["resnet"],
     "encoder_layer_type": ["affine"],
     "decoder_layer_type": ["affine"],
-    "param_type": ["pre_bn", "pre_act"],
+    "param_type": ["post_act", "pre_act"],
     "block_type": ["mlp"],
     "shared_preprocess": [1],
 }
