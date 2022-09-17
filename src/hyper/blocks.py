@@ -58,6 +58,7 @@ class LargeMlpBlock(BaseBlock):
   def _construct_layers(self) -> None:
     self.layers = nn.Sequential(
         nn.Linear(self.in_features, self.emd_features),
+        # TODO(JB): What activation function should we use?
         nn.GELU(),
         nn.Linear(self.emd_features, self.emd_features),
         nn.GELU(),

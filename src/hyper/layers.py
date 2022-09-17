@@ -9,7 +9,6 @@ from src.hyper.blocks import get_block
 
 class HyperLayer(nn.Module):
   _net_inputs: Optional[torch.Tensor] = None
-  _betas: Optional[torch.Tensor] = None
 
   def set_net_inputs(self, value: torch.Tensor) -> None:
     self._net_inputs = value
@@ -21,6 +20,8 @@ class HyperLayer(nn.Module):
 def get_hyper_layer(features: int,
                     hyper_cfg: HyperConfig,
                     decoder: bool = False) -> HyperLayer:
+  assert decoder is not None
+
   hyper_dict = {
       "sig_gate": HyperSigmoidLayer(features, hyper_cfg),
       "sqrt_gate": HyperSqrtLayer(features, hyper_cfg),
@@ -31,6 +32,7 @@ def get_hyper_layer(features: int,
   if decoder:
     return hyper_dict[hyper_cfg.decoder_layer_type]
   else:
+    # For encoders ...
     return hyper_dict[hyper_cfg.encoder_layer_type]
 
 
@@ -67,8 +69,7 @@ class HyperSigmoidLayer(HyperLayer):
 
   def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     scale = self.hyper_block_scale(self._net_inputs)
-    scale = torch.relu(scale)
-    scale = torch.sqrt(scale)
+    scale = torch.sigmoid(scale)
 
     if len(inputs.shape) == 4:
       scale = scale.unsqueeze(-1).unsqueeze(-1)
@@ -148,6 +149,7 @@ class HyperTanhLayer(HyperLayer):
       scale = scale.unsqueeze(1)
 
     # Residual connection for tanh transformation.
+    # Expression: I + tanh(x).
     return inputs + scale * inputs
 
 
@@ -175,4 +177,5 @@ class HyperScaleShiftLayer(HyperLayer):
       scale = scale.unsqueeze(1)
       shift = shift.unsqueeze(1)
 
+    # Can optionally do (1 + scale) * inputs + shift
     return scale * inputs + shift

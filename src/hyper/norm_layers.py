@@ -11,6 +11,7 @@ def get_hyper_bn_layer(features: int, hyper_cfg: HyperConfig) -> HyperLayer:
 
 
 def calibrate_bn(module: nn.Module):
+  # Reset BN batch statistics.
   if isinstance(module, nn.BatchNorm2d):
     # Reset all values.
     module.reset_running_stats()
@@ -30,6 +31,7 @@ def initialize_hyper_norm_blocks(
     features: int,
     hyper_cfg: HyperConfig,
     force_apply_zero_init: bool = False) -> nn.Module:
+  # The default is MLP for BN layer.
   block = get_block("mlp")(
       in_features=1,
       out_features=features,
@@ -50,6 +52,7 @@ class HyperBatchNormLayer(HyperLayer):
     self.hyper_cfg = hyper_cfg
 
     if self.hyper_cfg.norm_type == "scale_shift":
+      # Default parameters:
       self.weight = nn.Parameter(torch.empty(features), requires_grad=True)
       self.bias = nn.Parameter(torch.empty(features), requires_grad=True)
       torch.nn.init.ones_(self.weight)
@@ -104,7 +107,7 @@ class HyperLayerNormLayer(HyperLayer):
     self.hyper_cfg = hyper_cfg
 
     if self.hyper_cfg.norm_type == "scale_shift":
-      # Initialize original parameters.
+      # Default parameters:
       self.weight = nn.Parameter(torch.empty(features))
       self.bias = nn.Parameter(torch.empty(features))
       torch.nn.init.ones_(self.weight)

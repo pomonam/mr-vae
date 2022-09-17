@@ -21,6 +21,7 @@ class HyperBetaVAE(HyperVAE):
 
   def forward(self, inputs: dict, **kwargs) -> dict:
     # Default behaviour is to sample betas.
+    print("Warning: forward was called instead of sample_forward.")
     return self.sample_forward(inputs)
 
   def sample_forward(self, inputs: dict, **kwargs) -> dict:

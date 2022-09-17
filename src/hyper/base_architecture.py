@@ -16,7 +16,7 @@ class BaseHyperEncoder(BaseEncoder):
     if not is_triggered:
       print("Warning: No hyper_params registered for encoder.")
 
-  def reset_inputs(self) -> None:
+  def reset_net_inputs(self) -> None:
     for module in self.modules():
       if isinstance(module, HyperLayer):
         module.reset_net_inputs()
@@ -34,9 +34,9 @@ class BaseHyperDecoder(BaseDecoder):
         module.set_net_inputs(net_inputs)
         is_triggered = True
     if not is_triggered:
-      print("Warning: No hyper_params registered for encoder.")
+      print("Warning: No hyper_params registered for decoder.")
 
-  def reset_inputs(self) -> None:
+  def reset_net_inputs(self) -> None:
     for module in self.modules():
       if isinstance(module, HyperLayer):
         module.reset_net_inputs()

@@ -10,6 +10,7 @@ from src.hyper.base_architecture import BaseHyperEncoder
 from src.hyper.blocks import get_block
 
 # Some constants used for sampling.
+# These transformations are linear - just for conditioning.
 _SQRT3 = math.sqrt(3)
 _LOG_A = math.log(0.001)
 _LOG_RED_A = math.log(0.01)
