@@ -11,7 +11,7 @@ from experiments.binary_image.evaluate.utils import get_hyper_rd
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_bimage_jobs_final"
-HYPER_NAME = "hvae_bimage_nas_sweep_bn_type_v14"
+HYPER_NAME = "hvae_bimage_nas_sweep_bn_type_v100"
 
 
 def main():
@@ -31,14 +31,18 @@ def main():
     linewidths=0.5,
     c=rgb.tue_lightblue)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "f2jexqy4")
-  plt.plot(rate, dist, "o-", label="Without BN Transform", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "30l6z56m")
+  plt.plot(rate, dist, "o-", label="Without BN Transform (Pre-BN)", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2dwkqk05")
-  plt.plot(rate, dist, "o-", label="With BN Transform", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "36ud2iqb")
+  plt.plot(rate, dist, "o-", label="Without BN Transform (Post-BN)", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "193gwtgj")
-  plt.plot(rate, dist, "o-", label="With IN Transform", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "zphilarc")
+  plt.plot(rate, dist, "o-", label="With BN Transform (Pre-BN)", linewidth=1.5)
+
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2u0fl5c4")
+  plt.plot(rate, dist, "o-", label="With BN Transform (Post-BN)", linewidth=1.5)
+
   plt.xlim(0, 120)
   plt.ylim(15, 120)
 
@@ -61,17 +65,17 @@ def main():
     linewidths=0.5,
     c=rgb.tue_lightblue)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2v9vfunp")
-  plt.plot(rate, dist, "o-", label="Without BN Transform", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "e80hzx8k")
+  plt.plot(rate, dist, "o-", label="Without BN Transform (Pre-BN)", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1zdy1mvs")
-  plt.plot(rate, dist, "o-", label="Sqrt Gating", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3qf3hpei")
+  plt.plot(rate, dist, "o-", label="Without BN Transform (Post-BN)", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2orq3u43")
-  plt.plot(rate, dist, "o-", label="With IN Transform", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "17cpvaz2")
+  plt.plot(rate, dist, "o-", label="With BN Transform (Pre-BN)", linewidth=1.5)
 
-  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "110dklki")
-  # plt.plot(rate, dist, "o-", label="Affine Transformation", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "sjnuq022")
+  plt.plot(rate, dist, "o-", label="With BN Transform (Post-BN)", linewidth=1.5)
 
   plt.xlim(0, 120)
   plt.ylim(20, 120)

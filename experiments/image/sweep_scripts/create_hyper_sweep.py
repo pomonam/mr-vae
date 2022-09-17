@@ -6,7 +6,7 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_image_hyper_sweep_v11")
+    "--experiment_name", type=str, default="hvae_image_hyper_sweep_v100")
 
 args = parser.parse_args()
 
@@ -15,9 +15,7 @@ CONV_CONFIG = {
     "total_epochs": [200],
     "data_name": ["cifar", "svhn", "celeba"],
     "arch_name": ["conv"],
-    "hyper_config_summary": [
-        "lin_bn", "smlp_bn", "aff_bn", "lin_in", "smlp_in", "aff_in"
-    ],
+    "hyper_config_summary": ["linear_default", "linear_ss", "mlp_default"]
 }
 
 RENSET_CONFIG = {
@@ -25,7 +23,7 @@ RENSET_CONFIG = {
     "total_epochs": [200],
     "data_name": ["cifar", "svhn", "celeba"],
     "arch_name": ["resnet"],
-    "hyper_config_summary": ["lin_bn", "smlp_bn", "aff_bn"],
+    "hyper_config_summary": ["linear_default", "linear_ss", "mlp_default"]
 }
 
 if __name__ == "__main__":
@@ -33,11 +31,11 @@ if __name__ == "__main__":
       CONV_CONFIG,
       command_template="python hyper_train.py --experiment_name {} ".format(
           args.experiment_name))
-  # jobs += ["\n"]
-  # jobs += generate_job_strings(
-  #     CONV_CONFIG,
-  #     command_template="python hyper_train.py --experiment_name {} ".format(
-  #         args.experiment_name))
+  jobs += ["\n"]
+  jobs += generate_job_strings(
+      RENSET_CONFIG,
+      command_template="python hyper_train.py --experiment_name {} ".format(
+          args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
-  generate_sh_file(args.file_name, len(jobs))
+  generate_sh_file(args.file_name, len(jobs) - 1)

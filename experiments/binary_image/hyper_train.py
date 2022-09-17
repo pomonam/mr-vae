@@ -120,7 +120,7 @@ def main():
   parser.add_argument("--encoder_name", type=str, default="resnet")
   parser.add_argument("--decoder_name", type=str, default="resnet")
 
-  parser.add_argument("--hyper_config_summary", type=str, default=None)
+  parser.add_argument("--hyper_config_summary", type=str, default="linear_default")
 
   # hyper_config_summary overrides below options
   parser.add_argument("--block_type", type=str, default="linear")

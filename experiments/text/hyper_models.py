@@ -101,7 +101,7 @@ class HyperLstmDecoder(BaseHyperDecoder):
     }
     self.decoder_w_embedder = tx.modules.WordEmbedder(
         vocab_size=vocab_size, hparams=dec_emb_hparams)
-    self.hyper_decoder_w_embedder = get_hyper_layer(embed_dim, hyper_cfg)
+    self.hyper_decoder_w_embedder = get_hyper_layer(embed_dim, hyper_cfg, decoder=True)
 
     hidden_size = 550 if v1 else 256
     self.hidden_size = hidden_size
@@ -118,7 +118,7 @@ class HyperLstmDecoder(BaseHyperDecoder):
         hparams={"rnn_cell": dec_cell_hparams})
 
     self.mlp_linear_layer = nn.Linear(32, hidden_size * 2)
-    self.hyper_mlp_linear_layer = get_hyper_layer(hidden_size * 2, hyper_cfg)
+    self.hyper_mlp_linear_layer = get_hyper_layer(hidden_size * 2, hyper_cfg, decoder=True)
 
   def forward(self, inputs: torch.Tensor):
     raise LookupError()
@@ -201,7 +201,7 @@ class HyperTransformerDecoder(BaseHyperDecoder):
     }
     self.decoder_w_embedder = tx.modules.WordEmbedder(
         vocab_size=vocab_size, hparams=dec_emb_hparams)
-    self.hyper_decoder_w_embedder = get_hyper_layer(embd_dim, hyper_cfg)
+    self.hyper_decoder_w_embedder = get_hyper_layer(embd_dim, hyper_cfg, decoder=True)
 
     dec_pos_emb_hparams = {
         'dim': hidden_size,
@@ -271,7 +271,7 @@ class HyperTransformerDecoder(BaseHyperDecoder):
         hparams=trans_hparams)
 
     self.mlp_linear_layer = nn.Linear(32, hidden_size, bias=True)
-    self.hyper_mlp_linear_layer = get_hyper_layer(hidden_size, hyper_cfg)
+    self.hyper_mlp_linear_layer = get_hyper_layer(hidden_size, hyper_cfg, decoder=True)
 
   def _embed_fn_transformer(self,
                             tokens: torch.LongTensor,
