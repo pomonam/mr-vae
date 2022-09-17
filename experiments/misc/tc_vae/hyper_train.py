@@ -24,6 +24,7 @@ from src.hyper.base_model import BaseHyperEncoder
 from src.hyper.layers import get_hyper_layer
 from src.utils import seed_everything
 
+# Sample from 1 to 10 for TC-VAE.
 _SQRT3 = math.sqrt(3)
 # _LOG_A = math.log(0.001)
 _LOG_RED_A = math.log(1)
@@ -39,9 +40,10 @@ DEVICE = torch.device("cuda" if cuda else "cpu")
 
 class HyperMLPEncoder(BaseHyperEncoder):
 
-  def __init__(self, output_dim, hyper_cfg):
+  def __init__(self, output_dim, hyper_cfg, v1=True):
     super(HyperMLPEncoder, self).__init__()
     self.output_dim = output_dim
+    self.v1 = v1
 
     self.fc1 = nn.Linear(4096, 1200)
     self.hyper_fc1 = get_hyper_layer(1200, hyper_cfg)
@@ -52,32 +54,55 @@ class HyperMLPEncoder(BaseHyperEncoder):
 
   def forward(self, x):
     h = x.view(-1, 64 * 64)
-    h = self.act(self.fc1(h))
-    h = self.hyper_fc1(h)
-    h = self.act(self.fc2(h))
-    h = self.hyper_fc2(h)
-    h = self.fc3(h)
-    # h = self.hyper_fc3(h)
-    z = h.view(x.size(0), self.output_dim)
+    if self.v1:
+      h = self.act(self.fc1(h))
+      h = self.hyper_fc1(h)
+      h = self.act(self.fc2(h))
+      h = self.hyper_fc2(h)
+      h = self.fc3(h)
+      # h = self.hyper_fc3(h)
+      z = h.view(x.size(0), self.output_dim)
+    else:
+      h = self.act(self.hyper_fc1(self.fc1(h)))
+      # h = self.hyper_fc1(h)
+      h = self.act(self.hyper_fc2(self.fc2(h)))
+      # h = self.hyper_fc2(h)
+      h = self.fc3(h)
+      # h = self.hyper_fc3(h)
+      z = h.view(x.size(0), self.output_dim)
     return z
 
 
 class HyperMLPDecoder(BaseHyperDecoder):
 
-  def __init__(self, input_dim, hyper_cfg):
+  def __init__(self, input_dim, hyper_cfg, v1=True):
     super(HyperMLPDecoder, self).__init__()
-    self.net = nn.Sequential(
-        nn.Linear(input_dim, 1200),
-        nn.Tanh(),
-        get_hyper_layer(1200, hyper_cfg, decoder=True),
-        nn.Linear(1200, 1200),
-        nn.Tanh(),
-        get_hyper_layer(1200, hyper_cfg, decoder=True),
-        nn.Linear(1200, 1200),
-        nn.Tanh(),
-        get_hyper_layer(1200, hyper_cfg, decoder=True),
-        nn.Linear(1200, 4096)
-    )
+
+    if v1:
+      self.net = nn.Sequential(
+          nn.Linear(input_dim, 1200),
+          nn.Tanh(),
+          get_hyper_layer(1200, hyper_cfg, decoder=True),
+          nn.Linear(1200, 1200),
+          nn.Tanh(),
+          get_hyper_layer(1200, hyper_cfg, decoder=True),
+          nn.Linear(1200, 1200),
+          nn.Tanh(),
+          get_hyper_layer(1200, hyper_cfg, decoder=True),
+          nn.Linear(1200, 4096)
+      )
+    else:
+      self.net = nn.Sequential(
+          nn.Linear(input_dim, 1200),
+          nn.Tanh(),
+          nn.Linear(1200, 1200),
+          get_hyper_layer(1200, hyper_cfg, decoder=True),
+          nn.Tanh(),
+          nn.Linear(1200, 1200),
+          get_hyper_layer(1200, hyper_cfg, decoder=True),
+          nn.Tanh(),
+          nn.Linear(1200, 4096)
+      )
 
   def forward(self, z):
     h = z.view(z.size(0), -1)
@@ -378,7 +403,7 @@ def main():
   # parse command line arguments
   parser = argparse.ArgumentParser(description="parse args")
   parser.add_argument("--experiment_name", type=str, default="hvae_tcvae_debug")
-  parser.add_argument("--hyper_config_summary", type=str, default="default")
+  parser.add_argument("--hyper_config_summary", type=str, default="linear_default")
 
   parser.add_argument(
       '-d',
