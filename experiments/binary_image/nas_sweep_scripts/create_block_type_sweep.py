@@ -18,8 +18,8 @@ LINEAR_CONFIG = {
     "data_name": ["omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
-    "encoder_layer_type": ["affine"],
-    "decoder_layer_type": ["affine"],
+    "encoder_layer_type": ["sig_gate"],
+    "decoder_layer_type": ["sqrt_gate"],
     "shared_preprocess": [0],
     "block_type": ["linear"],
 }
@@ -30,8 +30,8 @@ MLP_CONFIG = {
     "data_name": ["omniglot"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
-    "encoder_layer_type": ["affine"],
-    "decoder_layer_type": ["affine"],
+    "encoder_layer_type": ["sig_gate"],
+    "decoder_layer_type": ["sqrt_gate"],
     "shared_preprocess": [0, 1],
     "block_type": ["mlp", "large_mlp"],
 }
@@ -48,4 +48,4 @@ if __name__ == "__main__":
           args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
-  generate_sh_file(args.file_name, len(jobs) - 1, qos="deadline")
+  generate_sh_file(args.file_name, len(jobs) - 1, cluster_name="q")
