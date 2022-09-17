@@ -17,39 +17,39 @@ def main():
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.inverted())
 
-  # rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="mnist",
-  #                              schedule="monotonic", arc_name="resnet", test=True)
-  # plt.plot([0], [0])
-  # plt.scatter(
-  #   rate,
-  #   dist,
-  #   label=r"Independent Training",
-  #   edgecolors="k",
-  #   linewidths=0.5,
-  #   c=rgb.tue_lightblue)
-  #
-  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "15t0p722")
-  # plt.plot(rate, dist, "o-", label="Linear", linewidth=1.5)
-  #
-  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "o5ejijdu")
-  # plt.plot(rate, dist, "o-", label="MLP", linewidth=1.5)
-  #
-  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1skahjue")
-  # plt.plot(rate, dist, "o-", label="MLP (shared weights)", linewidth=1.5)
-  #
-  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "27je3kfn")
-  # plt.plot(rate, dist, "o-", label="Large MLP", linewidth=1.5)
-  #
-  # plt.xlim(0, 120)
-  # plt.ylim(15, 120)
-  #
-  # plt.xlabel("Rate")
-  # plt.ylabel("Distortion")
-  # plt.title("MNIST Dataset")
-  # plt.grid()
-  # plt.legend()
-  # plt.show()
-  # plt.clf()
+  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="mnist",
+                               schedule="monotonic", arc_name="resnet", test=True)
+  plt.plot([0], [0])
+  plt.scatter(
+    rate,
+    dist,
+    label=r"Independent Training",
+    edgecolors="k",
+    linewidths=0.5,
+    c=rgb.tue_lightblue)
+
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "15t0p722")
+  plt.plot(rate, dist, "o-", label="Linear", linewidth=1.5)
+
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "o5ejijdu")
+  plt.plot(rate, dist, "o-", label="MLP", linewidth=1.5)
+
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1skahjue")
+  plt.plot(rate, dist, "o-", label="MLP (shared weights)", linewidth=1.5)
+
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "27je3kfn")
+  plt.plot(rate, dist, "o-", label="Large MLP", linewidth=1.5)
+
+  plt.xlim(0, 120)
+  plt.ylim(15, 120)
+
+  plt.xlabel("Rate")
+  plt.ylabel("Distortion")
+  plt.title("MNIST Dataset")
+  plt.grid()
+  plt.legend()
+  plt.show()
+  plt.clf()
 
   rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
                                schedule="monotonic", arc_name="resnet", test=True)
@@ -62,16 +62,16 @@ def main():
     linewidths=0.5,
     c=rgb.tue_lightblue)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3jvyy5km")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1fj9a6jo")
   plt.plot(rate, dist, "o-", label="Linear", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "15s8zujw")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1atd6gjw")
   plt.plot(rate, dist, "o-", label="MLP", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2yb38nmt")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "8wi63fus")
   plt.plot(rate, dist, "o-", label="MLP (shared weights)", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1y4cbcx9")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "259dxcag")
   plt.plot(rate, dist, "o-", label="Large MLP", linewidth=1.5)
 
   plt.xlim(0, 120)
@@ -80,7 +80,6 @@ def main():
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
   plt.title("Omniglot Dataset")
-  plt.legend()
   plt.grid()
   plt.show()
 
