@@ -15,7 +15,7 @@ args = parser.parse_args()
 LINEAR_CONFIG = {
     "lr": [1e-2, 3e-3, 1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
     "total_epochs": [200],
-    "data_name": ["omniglot"],
+    "data_name": ["mnist"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
     "encoder_layer_type": ["sig_gate"],
@@ -27,7 +27,7 @@ LINEAR_CONFIG = {
 MLP_CONFIG = {
     "lr": [1e-2, 3e-3, 1e-3, 3e-4, 1e-4, 3e-5, 1e-5],
     "total_epochs": [200],
-    "data_name": ["omniglot"],
+    "data_name": ["mnist"],
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
     "encoder_layer_type": ["sig_gate"],
