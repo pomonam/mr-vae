@@ -6,14 +6,14 @@ import torch
 import wandb
 
 from experiments.image.input_pipeline import load_data
-from experiments.misc.vq_vae.celeb_models import VQCelebResNetDecoder
-from experiments.misc.vq_vae.celeb_models import VQCelebResNetEncoder
-from experiments.misc.vq_vae.input_pipeline import load_mnist_data
-from experiments.misc.vq_vae.mnist_models import VQMNISTResNetDecoder
-from experiments.misc.vq_vae.mnist_models import VQMNISTResNetEncoder
-from experiments.misc.vq_vae.train_utils import evaluate
-from experiments.misc.vq_vae.train_utils import predict
-from experiments.misc.vq_vae.train_utils import train
+from excluded_experiments.misc.vq_vae.celeb_models import VQCelebResNetDecoder
+from excluded_experiments.misc.vq_vae.celeb_models import VQCelebResNetEncoder
+from excluded_experiments.misc.vq_vae.input_pipeline import load_mnist_data
+from excluded_experiments.misc.vq_vae.mnist_models import VQMNISTResNetDecoder
+from excluded_experiments.misc.vq_vae.mnist_models import VQMNISTResNetEncoder
+from excluded_experiments.misc.vq_vae.train_utils import evaluate
+from excluded_experiments.misc.vq_vae.train_utils import predict
+from excluded_experiments.misc.vq_vae.train_utils import train
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
 from src.models.vq_vae import VQVAE
@@ -67,7 +67,7 @@ def main():
 
   parser.add_argument("--lr", type=float, default=1e-3)
   parser.add_argument("--batch_size", type=int, default=128)
-  parser.add_argument("--alpha", type=float, default=0.5)
+  parser.add_argument("--lamb", type=float, default=1.)
 
   parser.add_argument("--seed", type=int, default=0)
   parser.add_argument("--checkpoint_dir", type=str, default=None)
@@ -81,7 +81,7 @@ def main():
   cfg = TrainConfig(args)
 
   seed_everything(cfg.seed)
-  model = build_model(args.data_name, args.alpha, DEVICE)
+  model = build_model(args.data_name, args.lamb, DEVICE)
 
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   scheduler1 = torch.optim.lr_scheduler.LinearLR(

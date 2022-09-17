@@ -96,7 +96,7 @@ class VQVAE(BaseAE):
     vq_loss = quantizer_output["loss"]
 
     return (
-        (self.lamb * recon_loss + (1 - self.lamb) * vq_loss).mean(dim=0),
+        (recon_loss + self.lamb * vq_loss).mean(dim=0),
         recon_loss.mean(dim=0),
         vq_loss.mean(dim=0),
     )

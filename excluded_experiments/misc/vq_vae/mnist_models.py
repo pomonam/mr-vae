@@ -165,8 +165,7 @@ class HyperVQMNISTResNetEncoder(BaseHyperEncoder):
             get_hyper_layer(128, hyper_cfg),
             nn.ReLU(),
             HyperResBlock(channels=128, hyper_cfg=hyper_cfg),
-            nn.ReLU(),
-            # get_hyper_layer(128, hyper_cfg),
+            nn.ReLU(),  # get_hyper_layer(128, hyper_cfg),
         ))
     self.layers = layers
     self.depth = len(layers)
