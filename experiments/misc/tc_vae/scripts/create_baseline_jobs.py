@@ -8,11 +8,11 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="baseline_jobs")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_tcvae_jobs_v12")
+    "--experiment_name", type=str, default="hvae_tcvae_jobs_final")
 
 args = parser.parse_args()
 
-CONFIG = {"beta": list(np.logspace(-2, 1, num=10)), "seed": [0, 1, 2]}
+CONFIG = {"beta": list(np.logspace(0, 1, num=5)), "seed": [0, 1, 2]}
 
 if __name__ == "__main__":
   jobs = generate_job_strings(
@@ -21,4 +21,4 @@ if __name__ == "__main__":
           args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
-  generate_sh_file(args.file_name, len(jobs), cluster_name="q")
+  generate_sh_file(args.file_name, len(jobs), qos="deadline")

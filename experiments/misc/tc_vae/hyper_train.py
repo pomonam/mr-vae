@@ -122,7 +122,8 @@ class VAE(nn.Module):
                include_mutinfo=True,
                tcvae=False,
                conv=False,
-               mss=False):
+               mss=False,
+               v1=False):
     super(VAE, self).__init__()
 
     self.use_cuda = use_cuda
@@ -143,8 +144,8 @@ class VAE(nn.Module):
     self.register_buffer('prior_params', torch.zeros(self.z_dim, 2))
 
     # create the encoder and decoder networks
-    self.encoder = HyperMLPEncoder(z_dim * self.q_dist.nparams, hyper_cfg)
-    self.decoder = HyperMLPDecoder(z_dim, hyper_cfg)
+    self.encoder = HyperMLPEncoder(z_dim * self.q_dist.nparams, hyper_cfg, v1=v1)
+    self.decoder = HyperMLPDecoder(z_dim, hyper_cfg=v1)
 
   def set_inputs_for_net(self, x, value):
     sample_dict = self.sample_inverse(x, value)
@@ -434,6 +435,7 @@ def main():
       type=int,
       help='size of latent dimension')
   parser.add_argument('--beta', default=6, type=float, help='ELBO penalty term')
+  parser.add_argument('--v1', default=0, type=int, help='ELBO penalty term2')
   parser.add_argument('--tcvae', default=True, action='store_true')
   parser.add_argument('--exclude-mutinfo', action='store_true')
   parser.add_argument('--beta-anneal', action='store_true')
@@ -472,7 +474,8 @@ def main():
       include_mutinfo=not args.exclude_mutinfo,
       tcvae=args.tcvae,
       conv=args.conv,
-      mss=args.mss)
+      mss=args.mss,
+      v1=args.v1)
   vae = vae.to(DEVICE)
 
   # setup the optimizer
