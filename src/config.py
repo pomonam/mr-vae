@@ -83,6 +83,7 @@ class HyperConfig:
           self.block_type = "linear"
 
           self.include_encoder_stem = 0
+          self.include_decoder_stem = 0
 
         if "_bn" in self.hyper_config_summary:
           self.norm_type = "scale_shift"
