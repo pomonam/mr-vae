@@ -7,7 +7,7 @@
 #SBATCH --account=deadline
 #SBATCH --qos=deadline
 #SBATCH --export=ALL
-#SBATCH --array=0-69%69
+#SBATCH --array=0-56%56
 #SBATCH --output=temp/array-%A_%a.out
 #SBATCH -c 4
 

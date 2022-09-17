@@ -8,7 +8,7 @@ parser.add_argument("--file_name", type=str, default="decoder_layer_sweep")
 parser.add_argument(
     "--experiment_name",
     type=str,
-    default="hvae_bimage_nas_sweep_decoder_layer_type_v50")
+    default="hvae_bimage_nas_sweep_decoder_layer_type_v100")
 
 args = parser.parse_args()
 
@@ -21,10 +21,10 @@ RESNET_CONFIG = {
     "encoder_layer_type": ["sig_gate"],
     "decoder_layer_type": [
       "sig_gate",
-      "betsqrt_gate",
+      "sqrt_gate",
       "tanh_gate",
       "scale_shift",
-      "affine"
+      # "affine"
     ],
     "param_type": ["post_act"],
     "block_type": ["linear"],
