@@ -4,7 +4,7 @@
 #SBATCH -p gpu
 #SBATCH --mem=16GB
 #SBATCH --export=ALL
-#SBATCH --array=0-28%28
+#SBATCH --array=0-70%70
 #SBATCH --output=temp/array-%A_%a.out
 #SBATCH --cpus-per-task=8
 
