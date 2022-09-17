@@ -1,9 +1,10 @@
 import math
-from tqdm import tqdm
-from torch.utils.data import DataLoader
-from torch.autograd import Variable
 
 import torch
+from torch.autograd import Variable
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+
 import experiments.misc.tc_vae.lib.utils as utils
 
 cuda = torch.cuda.is_available()

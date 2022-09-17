@@ -3,8 +3,7 @@ import unittest
 import torch
 
 from experiments.text.baseline_train import build_model
-from experiments.text.hyper_train import \
-    build_model as hyper_build_model
+from experiments.text.hyper_train import build_model as hyper_build_model
 from src.config import HyperConfig
 
 

@@ -5,12 +5,13 @@
 # for NVAE. To view a copy of this license, see the LICENSE file.
 # ---------------------------------------------------------------
 
-import torch.utils.data as data
-import numpy as np
+import io
 # import lmdb
 import os
-import io
+
+import numpy as np
 from PIL import Image
+import torch.utils.data as data
 
 
 def num_samples(dataset, train):

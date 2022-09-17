@@ -1,7 +1,6 @@
-from typing import Optional
-
 import os
 import pathlib
+from typing import Optional
 
 import wandb
 

@@ -5,14 +5,16 @@
 # for NVAE. To view a copy of this license, see the LICENSE file.
 # ---------------------------------------------------------------
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import Variable
-import numpy as np
 from collections import OrderedDict
 
-from experiments.nvae.neural_operations import ConvBNSwish, normalize_weight_jit
+import numpy as np
+import torch
+from torch.autograd import Variable
+import torch.nn as nn
+import torch.nn.functional as F
+
+from experiments.nvae.neural_operations import ConvBNSwish
+from experiments.nvae.neural_operations import normalize_weight_jit
 
 AROPS = OrderedDict([
     ('conv_3x3',

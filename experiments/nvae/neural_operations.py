@@ -5,15 +5,16 @@
 # for NVAE. To view a copy of this license, see the LICENSE file.
 # ---------------------------------------------------------------
 
+from collections import OrderedDict
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from experiments.nvae.thirdparty.inplaced_sync_batchnorm import \
+    SyncBatchNormSwish
 from experiments.nvae.thirdparty.swish import Swish as SwishFN
-from experiments.nvae.thirdparty.inplaced_sync_batchnorm import SyncBatchNormSwish
-
 from experiments.nvae.utils import average_tensor
-from collections import OrderedDict
 
 BN_EPS = 1e-5
 SYNC_BN = False

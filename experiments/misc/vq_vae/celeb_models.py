@@ -5,10 +5,11 @@ from torch import nn
 
 from src.base_architecture import BaseDecoder
 from src.base_architecture import BaseEncoder
-from src.models.resblock import ResBlock
-from src.hyper.base_architecture import BaseHyperDecoder, BaseHyperEncoder
+from src.hyper.base_architecture import BaseHyperDecoder
+from src.hyper.base_architecture import BaseHyperEncoder
 from src.hyper.layers import get_hyper_layer
 from src.hyper.norm_layers import get_hyper_bn_layer
+from src.models.resblock import ResBlock
 
 
 class VQCelebResNetEncoder(BaseEncoder):

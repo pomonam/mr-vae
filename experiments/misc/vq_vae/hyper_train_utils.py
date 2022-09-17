@@ -5,11 +5,11 @@ import torch
 import tqdm
 import wandb
 
+from experiments.misc.vq_vae.train_utils import build_input_queue
 from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
-from experiments.misc.vq_vae.train_utils import build_input_queue
 
 
 def hyper_evaluate(model, loader, epoch, name, device):

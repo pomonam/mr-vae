@@ -6,19 +6,21 @@
 # ---------------------------------------------------------------
 
 import argparse
-import torch
-import numpy as np
 import os
-import matplotlib.pyplot as plt
 from time import time
 
-from torch.multiprocessing import Process
-from torch.cuda.amp import autocast
-
-from model import AutoEncoder
-import utils
 import datasets
-from train import test, init_processes, test_vae_fid
+import matplotlib.pyplot as plt
+from model import AutoEncoder
+import numpy as np
+import torch
+from torch.cuda.amp import autocast
+from torch.multiprocessing import Process
+from train import init_processes
+from train import test
+from train import test_vae_fid
+
+import utils
 
 
 def set_bn(model, bn_eval_mode, num_samples=1, t=1.0, iter=100):

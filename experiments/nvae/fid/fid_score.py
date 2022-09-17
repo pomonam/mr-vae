@@ -44,18 +44,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from argparse import ArgumentDefaultsHelpFormatter
+from argparse import ArgumentParser
+from multiprocessing import cpu_count
 import os
 import pathlib
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from multiprocessing import cpu_count
 
 import numpy as np
+from PIL import Image
+from scipy import linalg
 import torch
+from torch.nn.functional import adaptive_avg_pool2d
 from torch.utils.data import DataLoader
 import torchvision.transforms as TF
-from scipy import linalg
-from torch.nn.functional import adaptive_avg_pool2d
-from PIL import Image
 
 from fid.inception import InceptionV3
 

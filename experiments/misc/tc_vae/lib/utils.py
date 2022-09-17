@@ -1,7 +1,8 @@
-from numbers import Number
 import math
-import torch
+from numbers import Number
 import os
+
+import torch
 
 
 def save_checkpoint(state, save, epoch):

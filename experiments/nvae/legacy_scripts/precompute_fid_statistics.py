@@ -4,12 +4,15 @@
 # This work is licensed under the NVIDIA Source Code License
 # for NVAE. To view a copy of this license, see the LICENSE file.
 # ---------------------------------------------------------------
-import os
 import argparse
-from fid.fid_score import compute_statistics_of_generator, save_statistics
-from datasets import get_loaders_eval
-from fid.inception import InceptionV3
 from itertools import chain
+import os
+
+from datasets import get_loaders_eval
+
+from fid.fid_score import compute_statistics_of_generator
+from fid.fid_score import save_statistics
+from fid.inception import InceptionV3
 
 
 def main(args):
