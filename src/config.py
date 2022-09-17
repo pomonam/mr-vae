@@ -46,7 +46,7 @@ class HyperConfig:
     if args is not None:
       self.hyper_config_summary = get_ns(args, "hyper_config_summary")
       if self.hyper_config_summary is not None:
-        if "default" == self.hyper_config_summary:
+        if "linear_default" in self.hyper_config_summary:
           self.shared_preprocess = 0
           self.apply_zero_init = 0
           self.reduce_range = 1
@@ -55,16 +55,11 @@ class HyperConfig:
           self.encoder_layer_type = "sig_gate"
           self.decoder_layer_type = "sqrt_gate"
           self.block_type = "linear"
-          self.norm_type = "none"
 
           self.include_encoder_stem = 0
           self.include_decoder_stem = 0
 
-          self.apply_bn_tracking = 1
-          self.apply_bn_calibrate = 0
-          self.apply_bn_replace = 0
-
-        elif "default_bn" == self.hyper_config_summary:
+        elif "mlp_default" == self.hyper_config_summary:
           self.shared_preprocess = 0
           self.apply_zero_init = 0
           self.reduce_range = 1
@@ -72,99 +67,34 @@ class HyperConfig:
           self.param_type = "post_act"
           self.encoder_layer_type = "sig_gate"
           self.decoder_layer_type = "sqrt_gate"
+          self.block_type = "mlp"
+
+          self.include_encoder_stem = 0
+          self.include_decoder_stem = 0
+
+        elif "linear_ss" in self.hyper_config_summary:
+          self.shared_preprocess = 0
+          self.apply_zero_init = 0
+          self.reduce_range = 1
+
+          self.param_type = "post_act"
+          self.encoder_layer_type = "sig_gate"
+          self.decoder_layer_type = "sig_gate"
           self.block_type = "linear"
+
+          self.include_encoder_stem = 0
+
+        if "_bn" in self.hyper_config_summary:
           self.norm_type = "scale_shift"
-
-          self.include_encoder_stem = 0
-          self.include_decoder_stem = 0
-
           self.apply_bn_tracking = 1
           self.apply_bn_calibrate = 0
           self.apply_bn_replace = 0
 
         else:
-          if "sig_encoder" in self.hyper_config_summary:
-            self.shared_preprocess = 0
-            self.apply_zero_init = 0
-            self.reduce_range = 1
-
-            self.param_type = "post_act"
-            self.encoder_layer_type = "sig_gate"
-            self.block_type = "linear"
-            self.norm_type = "scale_shift"
-
-          elif "amlp_encoder" in self.hyper_config_summary:
-            self.shared_preprocess = 0
-            self.apply_zero_init = 0
-            self.reduce_range = 1
-
-            self.param_type = "post_act"
-            self.encoder_layer_type = "scale_shift"
-            self.decoder_layer_type = "scale_shift"
-            self.block_type = "mlp"
-            self.norm_type = "scale_shift"
-
-          elif "smlp_encoder" in self.hyper_config_summary:
-            self.shared_preprocess = 1
-            self.apply_zero_init = 0
-            self.reduce_range = 1
-
-            self.param_type = "post_act"
-            self.layer_type = "sig_gate"
-            self.block_type = "mlp"
-            self.norm_type = "scale_shift"
-
-          elif "aff_encoder" in self.hyper_config_summary:
-            self.shared_preprocess = 1
-            self.apply_zero_init = 0
-            self.reduce_range = 1
-
-            self.param_type = "post_act"
-            self.layer_type = "affine"
-            self.block_type = "mlp"
-            self.norm_type = "scale_shift"
-
-          else:
-            raise NotImplementedError()
-
-          if "sig_decoder" in self.hyper_config_summary:
-            self.decoder_layer_type = "sig_gate"
-
-          elif "sqrt_decoder" in self.hyper_config_summary:
-            self.decoder_layer_type = "sqrt_gate"
-
-          elif "amlp_decoder" in self.hyper_config_summary:
-            self.decoder_layer_type = "scale_shift"
-
-          elif "smlp_decoder" in self.hyper_config_summary:
-            self.decoder_layer_type = "sig_gate"
-
-          elif "aff_decoder" in self.hyper_config_summary:
-            self.decoder_layer_type = "affine"
-
-          else:
-            raise NotImplementedError()
-
-          if "_bn" in self.hyper_config_summary:
-            self.apply_bn_tracking = 1
-            self.apply_bn_calibrate = 0
-            self.apply_bn_replace = 0
-
-          elif "in" in self.hyper_config_summary:
-            self.apply_bn_tracking = 1
-            self.apply_bn_calibrate = 0
-            self.apply_bn_replace = 1
-
-          else:
-            raise NotImplementedError()
-
-          if "_stem" in self.hyper_config_summary:
-            self.include_encoder_stem = 1
-            self.include_decoder_stem = 1
-
-          else:
-            self.include_encoder_stem = 0
-            self.include_decoder_stem = 0
+          self.norm_type = "none"
+          self.apply_bn_tracking = 1
+          self.apply_bn_calibrate = 0
+          self.apply_bn_replace = 0
 
       else:
         self.shared_preprocess = get_ns(args, "shared_preprocess")
@@ -187,7 +117,7 @@ class HyperConfig:
     self.apply_zero_init = 0
     self.apply_bn_tracking = 1
     self.apply_bn_calibrate = 0
-    self.apply_bn_replace = 1
+    self.apply_bn_replace = 0
     self.reduce_range = 1
     self.include_encoder_stem = 0
     self.include_decoder_stem = 0

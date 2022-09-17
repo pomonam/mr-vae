@@ -6,7 +6,7 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_text_hyper_sweep_v11")
+    "--experiment_name", type=str, default="hvae_text_hyper_sweep_v100")
 
 args = parser.parse_args()
 
@@ -15,7 +15,7 @@ CONFIG = {
     "data_name": ["yahoo", "ptb"],
     "total_epochs": [100],
     "decoder_name": ["lstm", "trans"],
-    "hyper_config_summary": ["lin_bn", "smlp_bn", "aff_bn"],
+    "hyper_config_summary": ["lin_default"],
 }
 
 if __name__ == "__main__":

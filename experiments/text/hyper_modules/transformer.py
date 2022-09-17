@@ -162,7 +162,7 @@ class TransformerDecoder(DecoderBase[Cache, TransformerDecoderOutput]):
                          "FeedForwardNetwork should be equal "
                          "to the dim of TransformerDecoder")
       self.poswise_networks.append(poswise_network)
-      self.hyper_poswise_networks.append(get_hyper_layer(256, self.hyper_cfg))
+      self.hyper_poswise_networks.append(get_hyper_layer(256, self.hyper_cfg, decoder=True))
       self.poswise_layer_norm.append(
           nn.LayerNorm(self._input_size, eps=self._hparams.eps))
       self.hyper_poswise_layer_norm.append(
