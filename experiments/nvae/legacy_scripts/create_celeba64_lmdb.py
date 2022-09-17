@@ -6,8 +6,9 @@
 # ---------------------------------------------------------------
 
 import argparse
-import lmdb
 import os
+
+import lmdb
 import torchvision.datasets as dset
 
 

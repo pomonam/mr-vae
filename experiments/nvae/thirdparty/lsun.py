@@ -12,15 +12,17 @@
 # to this file are subject to the same BSD 3-Clause License.
 # ---------------------------------------------------------------
 
-from torchvision.datasets.vision import VisionDataset
-from PIL import Image
+from collections.abc import Iterable
+import io
 import os
 import os.path
-import io
-import string
-from collections.abc import Iterable
 import pickle
-from torchvision.datasets.utils import verify_str_arg, iterable_to_str
+import string
+
+from PIL import Image
+from torchvision.datasets.utils import iterable_to_str
+from torchvision.datasets.utils import verify_str_arg
+from torchvision.datasets.vision import VisionDataset
 
 
 class LSUNClass(VisionDataset):

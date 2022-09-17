@@ -5,11 +5,11 @@
 # for NVAE. To view a copy of this license, see the LICENSE file.
 # ---------------------------------------------------------------
 import argparse
-import torch
-import lmdb
 import os
 
+import lmdb
 from tfrecord.torch.dataset import TFRecordDataset
+import torch
 
 
 def main(dataset, split, tfr_path, lmdb_path):

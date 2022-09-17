@@ -6,12 +6,12 @@
 # ---------------------------------------------------------------
 
 import argparse
-import torch
-import numpy as np
-import lmdb
 import os
 
+import lmdb
+import numpy as np
 from PIL import Image
+import torch
 
 
 def main(split, ffhq_img_path, ffhq_lmdb_path):

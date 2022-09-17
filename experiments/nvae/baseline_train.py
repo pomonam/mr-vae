@@ -6,20 +6,22 @@
 # ---------------------------------------------------------------
 
 import argparse
-import torch
-import numpy as np
 import os
 
-from torch.cuda.amp import autocast, GradScaler
+import numpy as np
+import torch
+from torch.cuda.amp import autocast
+from torch.cuda.amp import GradScaler
+import wandb
 
+import experiments.nvae.datasets as datasets
 from experiments.nvae.model import AutoEncoder
 from experiments.nvae.thirdparty.adamax import Adamax
 import experiments.nvae.utils as utils
-import experiments.nvae.datasets as datasets
-import wandb
-
 from experiments.wandb_utils import init_wandb
-from fid.fid_score import compute_statistics_of_generator, load_statistics, calculate_frechet_distance
+from fid.fid_score import calculate_frechet_distance
+from fid.fid_score import compute_statistics_of_generator
+from fid.fid_score import load_statistics
 from fid.inception import InceptionV3
 
 cuda = torch.cuda.is_available()

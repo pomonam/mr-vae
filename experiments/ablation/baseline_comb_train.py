@@ -8,11 +8,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 import wandb
 
-from experiments.binary_image.input_pipeline import load_omniglot_data
+from experiments.ablation.models.decoders import MlpDecoder
+from experiments.ablation.models.decoders import PixelCnnDecoder
 from experiments.ablation.models.encoders import MlpEncoder
-from experiments.ablation.models.decoders import MlpDecoder, PixelCnnDecoder
-from experiments.binary_image.models import ResNetEncoder
 from experiments.binary_image.baseline_train import BinaryImageCriterion
+from experiments.binary_image.input_pipeline import load_omniglot_data
+from experiments.binary_image.models import ResNetEncoder
 from experiments.train_utils import evaluate
 from experiments.train_utils import predict
 from experiments.train_utils import train
@@ -20,7 +21,6 @@ from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
 from src.models.beta_vae import BetaVAE
 from src.models.vamp_vae import VampVAE
-
 from src.utils import log_sum_exp
 from src.utils import seed_everything
 

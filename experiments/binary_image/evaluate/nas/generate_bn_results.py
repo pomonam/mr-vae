@@ -5,7 +5,9 @@ from tueplots import cycler
 from tueplots import markers
 from tueplots.constants.color import palettes
 from tueplots.constants.color import rgb
-from experiments.binary_image.evaluate.utils import get_baseline_rd, get_hyper_rd
+
+from experiments.binary_image.evaluate.utils import get_baseline_rd
+from experiments.binary_image.evaluate.utils import get_hyper_rd
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_bimage_jobs_final"

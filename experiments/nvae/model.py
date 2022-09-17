@@ -6,18 +6,32 @@
 # ---------------------------------------------------------------
 
 import time
+
 import numpy as np
 import torch
+from torch.distributions.bernoulli import Bernoulli
 import torch.nn as nn
 import torch.nn.functional as F
-from experiments.nvae.neural_operations import OPS, EncCombinerCell, DecCombinerCell, Conv2D, get_skip_connection, SE
-from experiments.nvae.neural_ar_operations import ARConv2d, ARInvertedResidual, MixLogCDFParam, mix_log_cdf_flow
-from experiments.nvae.neural_ar_operations import ELUConv as ARELUConv
-from torch.distributions.bernoulli import Bernoulli
 
-from experiments.nvae.utils import get_stride_for_cell_type, get_input_size, groups_per_scale
-from experiments.nvae.distributions import Normal, DiscMixLogistic, NormalDecoder
-from experiments.nvae.thirdparty.inplaced_sync_batchnorm import SyncBatchNormSwish
+from experiments.nvae.distributions import DiscMixLogistic
+from experiments.nvae.distributions import Normal
+from experiments.nvae.distributions import NormalDecoder
+from experiments.nvae.neural_ar_operations import ARConv2d
+from experiments.nvae.neural_ar_operations import ARInvertedResidual
+from experiments.nvae.neural_ar_operations import ELUConv as ARELUConv
+from experiments.nvae.neural_ar_operations import mix_log_cdf_flow
+from experiments.nvae.neural_ar_operations import MixLogCDFParam
+from experiments.nvae.neural_operations import Conv2D
+from experiments.nvae.neural_operations import DecCombinerCell
+from experiments.nvae.neural_operations import EncCombinerCell
+from experiments.nvae.neural_operations import get_skip_connection
+from experiments.nvae.neural_operations import OPS
+from experiments.nvae.neural_operations import SE
+from experiments.nvae.thirdparty.inplaced_sync_batchnorm import \
+    SyncBatchNormSwish
+from experiments.nvae.utils import get_input_size
+from experiments.nvae.utils import get_stride_for_cell_type
+from experiments.nvae.utils import groups_per_scale
 
 CHANNEL_MULT = 2
 

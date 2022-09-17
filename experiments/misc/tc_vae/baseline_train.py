@@ -1,20 +1,22 @@
-import time
+import argparse
 import math
 from numbers import Number
-import argparse
+import time
+
 import torch
+from torch.autograd import Variable
 import torch.nn as nn
 import torch.optim as optim
-from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from experiments.wandb_utils import init_wandb
+import wandb
+
+from experiments.misc.tc_vae.elbo_decomposition import elbo_decomposition
+import experiments.misc.tc_vae.lib.datasets as dset
 import experiments.misc.tc_vae.lib.dist as dist
 import experiments.misc.tc_vae.lib.utils as utils
-import experiments.misc.tc_vae.lib.datasets as dset
 from experiments.misc.tc_vae.metrics import mutual_info_metric_shapes
-from experiments.misc.tc_vae.elbo_decomposition import elbo_decomposition
+from experiments.wandb_utils import init_wandb
 from src.utils import seed_everything
-import wandb
 
 cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if cuda else "cpu")

@@ -1,26 +1,28 @@
-import os
-import time
+import argparse
 import math
 from numbers import Number
-import argparse
+import os
+import time
 
 import numpy as np
 import torch
+from torch.autograd import Variable
 import torch.nn as nn
 import torch.optim as optim
-from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from experiments.wandb_utils import init_wandb
+import wandb
+
+from experiments.misc.tc_vae.elbo_decomposition import elbo_decomposition
+import experiments.misc.tc_vae.lib.datasets as dset
 import experiments.misc.tc_vae.lib.dist as dist
 import experiments.misc.tc_vae.lib.utils as utils
-import experiments.misc.tc_vae.lib.datasets as dset
 from experiments.misc.tc_vae.metrics import mutual_info_metric_shapes
-from experiments.misc.tc_vae.elbo_decomposition import elbo_decomposition
+from experiments.wandb_utils import init_wandb
+from src.config import HyperConfig
+from src.hyper.base_model import BaseHyperDecoder
+from src.hyper.base_model import BaseHyperEncoder
 from src.hyper.layers import get_hyper_layer
 from src.utils import seed_everything
-import wandb
-from src.hyper.base_model import BaseHyperEncoder, BaseHyperDecoder
-from src.config import HyperConfig
 
 _SQRT3 = math.sqrt(3)
 # _LOG_A = math.log(0.001)

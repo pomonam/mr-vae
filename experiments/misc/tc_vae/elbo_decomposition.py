@@ -1,9 +1,10 @@
-import os
 import math
 from numbers import Number
-from tqdm import tqdm
+import os
+
 import torch
 from torch.autograd import Variable
+from tqdm import tqdm
 
 import experiments.misc.tc_vae.lib.dist as dist
 
