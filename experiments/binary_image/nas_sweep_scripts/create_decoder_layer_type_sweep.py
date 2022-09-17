@@ -19,14 +19,17 @@ RESNET_CONFIG = {
     "encoder_name": ["resnet"],
     "decoder_name": ["resnet"],
     "encoder_layer_type": ["sig_gate"],
-    "decoder_layer_type": ["sig_gate",
-                           "inv_sqrt_gate",
-                           "tanh_gate",
-                           "scale_shift",
-                           "affine"],
+    "decoder_layer_type": [
+      # "sig_gate",
+      "beta_sqrt_gate",
+      # "tanh_gate",
+      # "scale_shift",
+      # "affine"
+    ],
     "param_type": ["post_act"],
-    "block_type": ["mlp"],
-    "shared_preprocess": [1],
+    "block_type": ["linear"],
+    "shared_preprocess": [0],
+    "apply_zero_init": [0, 1]
 }
 
 

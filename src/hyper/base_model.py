@@ -49,16 +49,24 @@ class HyperVAE(VAE):
           out_features=self.hyper_cfg.shared_preprocess_dim,
           emd_features=self.hyper_cfg.shared_preprocess_dim * 4,
       )
+      self.preprocess_decoder_beta_block = get_block(self.hyper_cfg.block_type)(
+          in_features=1,
+          out_features=self.hyper_cfg.shared_preprocess_dim,
+          emd_features=self.hyper_cfg.shared_preprocess_dim * 4,
+      )
 
-  def set_net_inputs(self, value: torch.Tensor) -> None:
+  def set_inputs(self,
+                 net_inputs: torch.Tensor,
+                 beta_inputs: torch.Tensor) -> None:
     if self.hyper_cfg.shared_preprocess:
-      encoder_value = self.preprocess_encoder_block(value)
-      decoder_value = self.preprocess_decoder_block(value)
-      self.encoder.set_net_inputs(encoder_value)
-      self.decoder.set_net_inputs(decoder_value)
+      encoder_value = self.preprocess_encoder_block(net_inputs)
+      decoder_value = self.preprocess_decoder_block(net_inputs)
+      decoder_beta_value = self.preprocess_decoder_block(beta_inputs)
+      self.encoder.set_inputs(encoder_value, beta_inputs)
+      self.decoder.set_inputs(decoder_value, decoder_beta_value)
     else:
-      self.encoder.set_net_inputs(value)
-      self.decoder.set_net_inputs(value)
+      self.encoder.set_inputs(net_inputs, beta_inputs)
+      self.decoder.set_inputs(net_inputs, beta_inputs)
 
   def forward(self, inputs: torch.Tensor, **kwargs):
     raise NotImplementedError()
