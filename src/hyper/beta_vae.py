@@ -29,7 +29,7 @@ class HyperBetaVAE(HyperVAE):
     else:
       x = inputs["data"]
     sample_dict = self.sample(x)
-    self.set_inputs(sample_dict["net"], sample_dict["beta"])
+    self.set_net_inputs(sample_dict["net"])
 
     encoder_output = self.encoder(x)
     mu, log_var = encoder_output["embedding"], encoder_output["log_covariance"]
@@ -57,7 +57,7 @@ class HyperBetaVAE(HyperVAE):
     else:
       x = inputs["data"]
     sample_dict = self.sample_inverse(x, value)
-    self.set_inputs(sample_dict["net"], sample_dict["beta"])
+    self.set_net_inputs(sample_dict["net"])
 
     encoder_output = self.encoder(x)
     mu, log_var = encoder_output["embedding"], encoder_output["log_covariance"]
