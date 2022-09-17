@@ -9,12 +9,19 @@ from src.hyper.blocks import get_block
 
 class HyperLayer(nn.Module):
   _net_inputs: Optional[torch.Tensor] = None
+  _betas: Optional[torch.Tensor] = None
 
   def set_net_inputs(self, value: torch.Tensor) -> None:
     self._net_inputs = value
 
   def reset_net_inputs(self) -> None:
     self._net_inputs = None
+
+  def set_beta_inputs(self, value: torch.Tensor) -> None:
+    self._betas = value
+
+  def reset_beta_inputs(self) -> None:
+    self._betas = None
 
 
 def get_hyper_layer(features: int,
@@ -23,7 +30,7 @@ def get_hyper_layer(features: int,
   hyper_dict = {
       "sig_gate": HyperSigmoidLayer(features, hyper_cfg),
       "sqrt_gate": HyperSqrtLayer(features, hyper_cfg),
-      "inv_sqrt_gate": HyperInverseSqrtLayer(features, hyper_cfg),
+      "beta_sqrt_gate": HyperBetaSqrtLayer(features, hyper_cfg),
       "tanh_gate": HyperTanhLayer(features, hyper_cfg),
       "scale_shift": HyperScaleShiftLayer(features, hyper_cfg),
       "affine": HyperAffineLayer(features, hyper_cfg)
@@ -67,7 +74,8 @@ class HyperSigmoidLayer(HyperLayer):
 
   def forward(self, inputs: torch.Tensor) -> torch.Tensor:
     scale = self.hyper_block_scale(self._net_inputs)
-    scale = torch.sigmoid(scale)
+    scale = torch.relu(scale)
+    scale = torch.sqrt(scale)
 
     if len(inputs.shape) == 4:
       scale = scale.unsqueeze(-1).unsqueeze(-1)
@@ -103,7 +111,7 @@ class HyperSqrtLayer(HyperLayer):
     return scale * inputs
 
 
-class HyperInverseSqrtLayer(HyperLayer):
+class HyperBetaSqrtLayer(HyperLayer):
 
   def __init__(self, features: int, hyper_cfg: HyperConfig) -> None:
     super().__init__()
@@ -114,7 +122,7 @@ class HyperInverseSqrtLayer(HyperLayer):
       initialize_hyper_blocks(self.features, self.hyper_cfg)
 
   def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-    scale = self.hyper_block_scale(self._net_inputs)
+    scale = self.hyper_block_scale(self._betas)
     scale = torch.sigmoid(scale)
     scale = torch.sqrt(scale)
     scale = 1 / (scale + 1e-5)
