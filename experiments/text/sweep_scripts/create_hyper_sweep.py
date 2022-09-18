@@ -15,7 +15,7 @@ CONFIG = {
     "data_name": ["yahoo", "ptb"],
     "total_epochs": [100],
     "decoder_name": ["lstm", "trans"],
-    "hyper_config_summary": ["lin_default"],
+    "hyper_config_summary": ["linear_default"],
 }
 
 if __name__ == "__main__":
