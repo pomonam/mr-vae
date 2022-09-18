@@ -16,9 +16,13 @@ from experiments.nvae.thirdparty.inplaced_sync_batchnorm import \
 from experiments.nvae.thirdparty.swish import Swish as SwishFN
 from experiments.nvae.utils import average_tensor
 from src.hyper.layers import get_hyper_layer
+from src.config import HyperConfig
 
 BN_EPS = 1e-5
 SYNC_BN = False
+
+cfg = HyperConfig(None)
+cfg.initialize_default_config()
 
 OPS = OrderedDict([
     ('res_elu', lambda Cin, Cout, stride: ELUConv(Cin, Cout, 3, stride, 1)),
@@ -34,19 +38,19 @@ OPS = OrderedDict([
     ('mconv_e6k5g0',
      lambda Cin,
      Cout,
-     stride: InvertedResidual(Cin, Cout, stride, ex=6, dil=1, k=5, g=0)),
+     stride: InvertedResidual(Cin, Cout, stride, ex=6, dil=1, k=5, g=0, hyper_cfg=cfg)),
     ('mconv_e3k5g0',
      lambda Cin,
      Cout,
-     stride: InvertedResidual(Cin, Cout, stride, ex=3, dil=1, k=5, g=0)),
+     stride: InvertedResidual(Cin, Cout, stride, ex=3, dil=1, k=5, g=0, hyper_cfg=cfg)),
     ('mconv_e3k5g8',
      lambda Cin,
      Cout,
-     stride: InvertedResidual(Cin, Cout, stride, ex=3, dil=1, k=5, g=8)),
+     stride: InvertedResidual(Cin, Cout, stride, ex=3, dil=1, k=5, g=8, hyper_cfg=cfg)),
     ('mconv_e6k11g0',
      lambda Cin,
      Cout,
-     stride: InvertedResidual(Cin, Cout, stride, ex=6, dil=1, k=11, g=0)),
+     stride: InvertedResidual(Cin, Cout, stride, ex=6, dil=1, k=11, g=0, hyper_cfg=cfg)),
 ])
 
 
@@ -326,11 +330,11 @@ class EncCombinerCell(nn.Module):
     # Cin = Cin1 + Cin2
     self.conv = Conv2D(
         Cin2, Cout, kernel_size=1, stride=1, padding=0, bias=True)
-    self.hyper = get_hyper_layer(Cout, hyper_cfg=hyper_cfg)
+    # self.hyper = get_hyper_layer(Cout, hyper_cfg=hyper_cfg)
 
   def forward(self, x1, x2):
     x2 = self.conv(x2)
-    x2 = self.hyper(x2)
+    # x2 = self.hyper(x2)
     out = x1 + x2
     return out
 
@@ -343,7 +347,7 @@ class DecCombinerCell(nn.Module):
     self.cell_type = cell_type
     self.conv = Conv2D(
         Cin1 + Cin2, Cout, kernel_size=1, stride=1, padding=0, bias=True)
-    self.hyper = get_hyper_layer(Cout, hyper_cfg=hyper_cfg, decoder=True)
+    # self.hyper = get_hyper_layer(Cout, hyper_cfg=hyper_cfg, decoder=True)
 
   def forward(self, x1, x2):
     out = torch.cat([x1, x2], dim=1)
@@ -397,7 +401,7 @@ class SE(nn.Module):
 
 class InvertedResidual(nn.Module):
 
-  def __init__(self, Cin, Cout, stride, ex, dil, k, g):
+  def __init__(self, Cin, Cout, stride, ex, dil, k, g, hyper_cfg):
     super(InvertedResidual, self).__init__()
     self.stride = stride
     assert stride in [1, 2, -1]
@@ -412,6 +416,7 @@ class InvertedResidual(nn.Module):
     layers = [
         get_batchnorm(Cin, eps=BN_EPS, momentum=0.05),
         ConvBNSwish(Cin, hidden_dim, k=1),
+        get_hyper_layer(hidden_dim, hyper_cfg=hyper_cfg, decoder=True),
         ConvBNSwish(
             hidden_dim,
             hidden_dim,
@@ -419,6 +424,7 @@ class InvertedResidual(nn.Module):
             groups=groups,
             k=k,
             dilation=dil),
+        get_hyper_layer(hidden_dim, hyper_cfg=hyper_cfg, decoder=True),
         Conv2D(hidden_dim, Cout, 1, 1, 0, bias=False, weight_norm=False),
         get_batchnorm(Cout, momentum=0.05)
     ]
