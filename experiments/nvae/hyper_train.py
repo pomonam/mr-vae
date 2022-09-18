@@ -122,7 +122,7 @@ def main(args):
 
     model.eval()
     # generate samples less frequently
-    eval_freq = 100 if args.epochs <= 50 else 50
+    eval_freq = 1 if args.epochs <= 50 else 20
     if epoch % eval_freq == 0 or epoch == (args.epochs - 1):
       betas = np.logspace(-2, 1, num=10, base=10)
 
@@ -150,8 +150,8 @@ def main(args):
         log_dict["val/nelbo_{}".format(beta)] = valid_nelbo
         log_dict["val/bpd_log_p_{}".format(beta)] = valid_neg_log_p * bpd_coeff
         log_dict["val/bpd_elbo_{}".format(beta)] = valid_nelbo * bpd_coeff
-        log_dict["val/dist_{}"] = valid_kl
-        log_dict["val/rate_{}"] = valid_recon
+        log_dict["val/dist_{}".format(beta)] = valid_kl
+        log_dict["val/rate_{}".format(beta)] = valid_recon
 
     save_freq = int(np.ceil(args.epochs / 100))
     if epoch % save_freq == 0 or epoch == (args.epochs - 1):
