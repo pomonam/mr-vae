@@ -145,7 +145,7 @@ class VAE(nn.Module):
 
     # create the encoder and decoder networks
     self.encoder = HyperMLPEncoder(z_dim * self.q_dist.nparams, hyper_cfg=hyper_cfg, v1=v1)
-    self.decoder = HyperMLPDecoder(z_dim, hyper_cfg=v1)
+    self.decoder = HyperMLPDecoder(z_dim, hyper_cfg=hyper_cfg, v1=v1)
 
   def set_inputs_for_net(self, x, value):
     sample_dict = self.sample_inverse(x, value)
