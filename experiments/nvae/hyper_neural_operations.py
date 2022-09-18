@@ -415,7 +415,7 @@ class InvertedResidual(nn.Module):
     layers0 = [nn.UpsamplingNearest2d(scale_factor=2)] if self.upsample else []
     layers = [
         get_batchnorm(Cin, eps=BN_EPS, momentum=0.05),
-        get_hyper_layer(Cin, hyper_cfg=hyper_cfg, decoder=True),
+        # get_hyper_layer(Cin, hyper_cfg=hyper_cfg, decoder=True),
         ConvBNSwish(Cin, hidden_dim, k=1),
         get_hyper_layer(hidden_dim, hyper_cfg=hyper_cfg, decoder=True),
         ConvBNSwish(
@@ -425,7 +425,7 @@ class InvertedResidual(nn.Module):
             groups=groups,
             k=k,
             dilation=dil),
-        get_hyper_layer(hidden_dim, hyper_cfg=hyper_cfg, decoder=True),
+        # get_hyper_layer(hidden_dim, hyper_cfg=hyper_cfg, decoder=True),
         Conv2D(hidden_dim, Cout, 1, 1, 0, bias=False, weight_norm=False),
         get_batchnorm(Cout, momentum=0.05)
     ]
