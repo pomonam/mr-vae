@@ -2,11 +2,11 @@
 #SBATCH -N 1
 #SBATCH --gres=gpu:1
 #SBATCH -p ml
-#SBATCH --mem=32GB
+#SBATCH --mem=40GB
 #SBATCH --export=ALL
 #SBATCH --array=0-8%8
 #SBATCH --output=temp/array-%A_%a.out
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=16
 
 . $HOME/envs/hvae_env
 export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH
