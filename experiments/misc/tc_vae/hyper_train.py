@@ -453,6 +453,7 @@ def main():
   args = parser.parse_args()
 
   hyper_cfg = HyperConfig(args)
+  hyper_cfg.initialize_default_config()
 
   # torch.cuda.set_device(args.gpu)
   init_wandb(
