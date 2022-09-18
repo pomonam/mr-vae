@@ -2,7 +2,7 @@
 #SBATCH -N 1
 #SBATCH --gres=gpu:1
 #SBATCH -p ml
-#SBATCH --mem=16GB
+#SBATCH --mem=32GB
 #SBATCH --export=ALL
 #SBATCH --array=0-8%8
 #SBATCH --output=temp/array-%A_%a.out
