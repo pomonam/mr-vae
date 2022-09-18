@@ -27,7 +27,7 @@ from src.utils import seed_everything
 # Sample from 1 to 10 for TC-VAE.
 _SQRT3 = math.sqrt(3)
 # _LOG_A = math.log(0.001)
-_LOG_RED_A = math.log(1)
+_LOG_RED_A = math.log(0.1)
 _LOG_B = math.log(10)
 # _LOG_M = (_LOG_A + _LOG_B) / 2
 _LOG_RED_M = (_LOG_RED_A + _LOG_B) / 2
