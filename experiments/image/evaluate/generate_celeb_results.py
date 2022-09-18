@@ -5,12 +5,12 @@ from tueplots import markers
 from tueplots.constants.color import palettes
 from tueplots.constants.color import rgb
 
-from experiments.binary_image.evaluate.utils import get_baseline_rd
-from experiments.binary_image.evaluate.utils import get_hyper_rd
+from experiments.image.evaluate.utils import get_baseline_rd
+from experiments.image.evaluate.utils import get_hyper_rd
 
 ENTITY = "bae-group"
-BASELINE_NAME = "hvae_bimage_jobs_final"
-HYPER_NAME = "hvae_bimage_hyper_sweep_v100"
+BASELINE_NAME = "hvae_image_jobs_resnet_final"
+HYPER_NAME = "hvae_image_hyper_sweep_v100"
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.inverted())
 
-  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="mnist",
+  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="celeba",
                                schedule="monotonic", arc_name="resnet", test=True)
   plt.plot([0], [0])
   plt.scatter(
@@ -32,7 +32,7 @@ def main():
     marker="v"
   )
 
-  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="mnist",
+  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="celeba",
                                schedule="monotonic", arc_name="conv", test=True)
   plt.plot([0], [0])
   plt.scatter(
@@ -45,7 +45,7 @@ def main():
     marker="^"
   )
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1xn6cuui")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "12m1rho3")
   plt.plot(rate, dist, "o-", label="ResNet (Hyper)", linewidth=1.5)
 
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3r60bxur")
@@ -57,9 +57,6 @@ def main():
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "27je3kfn")
   # plt.plot(rate, dist, "o-", label="Large MLP", linewidth=1.5)
 
-  plt.xlim(0, 120)
-  plt.ylim(15, 120)
-
   # plt.xlabel("Rate")
   # plt.ylabel("Distortion")
   # plt.title("MNIST Dataset")
@@ -68,18 +65,18 @@ def main():
   # plt.show()
   # plt.clf()
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "135cx5xb")
-  plt.plot(rate, dist, "o-", label="Conv (Hyper)", linewidth=1.5)
+  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "34uh569b")
+  # plt.plot(rate, dist, "o-", label="Conv (Hyper)", linewidth=1.5)
 
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1i04ot2m")
   # plt.plot(rate, dist, "o-", label="HC-VAE-2", linewidth=1.5)
 
-  plt.xlim(0, 110)
-  plt.ylim(20, 110)
+  # plt.xlim(0, 200)
+  # plt.ylim(0, 110)
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
-  plt.title("MNIST Dataset")
+  plt.title("CelebA Dataset")
   plt.legend(ncol=2)
   plt.grid()
   plt.show()

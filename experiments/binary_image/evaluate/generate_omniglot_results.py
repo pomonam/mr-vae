@@ -25,15 +25,28 @@ def main():
   plt.scatter(
     rate,
     dist,
-    label=r"Independent Training",
+    label=r"ResNet (Retraining)",
     edgecolors="k",
     linewidths=0.5,
     c=rgb.tue_lightblue,
     marker="v"
   )
 
+  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
+                               schedule="monotonic", arc_name="conv", test=True)
+  plt.plot([0], [0])
+  plt.scatter(
+    rate,
+    dist,
+    label=r"Conv (Retraining)",
+    edgecolors="k",
+    linewidths=0.5,
+    c=rgb.tue_lightblue,
+    marker="^"
+  )
+
   rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1qezffsn")
-  plt.plot(rate, dist, "o-", label="HC-VAE-1", linewidth=1.5)
+  plt.plot(rate, dist, "o-", label="ResNet (Hyper)", linewidth=1.5)
 
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3r60bxur")
   # plt.plot(rate, dist, "o-", label="HC-VAE-2", linewidth=1.5)
@@ -44,9 +57,6 @@ def main():
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "27je3kfn")
   # plt.plot(rate, dist, "o-", label="Large MLP", linewidth=1.5)
 
-  plt.xlim(0, 120)
-  plt.ylim(15, 120)
-
   # plt.xlabel("Rate")
   # plt.ylabel("Distortion")
   # plt.title("MNIST Dataset")
@@ -55,32 +65,19 @@ def main():
   # plt.show()
   # plt.clf()
 
-  # rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
-  #                              schedule="monotonic", arc_name="conv", test=True)
-  # plt.plot([0], [0])
-  # plt.scatter(
-  #   rate,
-  #   dist,
-  #   label=r"Independent Training",
-  #   edgecolors="k",
-  #   linewidths=0.5,
-  #   c=rgb.tue_lightblue,
-  #   marker="^"
-  # )
-  #
-  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "135cx5xb")
-  # plt.plot(rate, dist, "o-", label="HC-VAE-1", linewidth=1.5)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1nnjic2c")
+  plt.plot(rate, dist, "o-", label="Conv (Hyper)", linewidth=1.5)
 
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1i04ot2m")
   # plt.plot(rate, dist, "o-", label="HC-VAE-2", linewidth=1.5)
 
   plt.xlim(0, 120)
-  plt.ylim(20, 120)
+  plt.ylim(30, 120)
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
-  plt.title("MNIST Dataset")
-  plt.legend()
+  plt.title("Omniglot Dataset")
+  plt.legend(ncol=2)
   plt.grid()
   plt.show()
 

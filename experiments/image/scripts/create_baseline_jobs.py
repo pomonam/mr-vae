@@ -68,7 +68,7 @@ CELEB_CONFIG1 = {
 }
 
 CELEB_CONFIG2 = {
-    "lr": [0.003],
+    "lr": [0.0003],
     "total_epochs": [200],
     "data_name": ["celeba"],
     "arch_name": ["resnet"],
