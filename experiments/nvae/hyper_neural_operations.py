@@ -415,6 +415,7 @@ class InvertedResidual(nn.Module):
     layers0 = [nn.UpsamplingNearest2d(scale_factor=2)] if self.upsample else []
     layers = [
         get_batchnorm(Cin, eps=BN_EPS, momentum=0.05),
+        get_hyper_layer(Cin, hyper_cfg=hyper_cfg, decoder=True),
         ConvBNSwish(Cin, hidden_dim, k=1),
         get_hyper_layer(hidden_dim, hyper_cfg=hyper_cfg, decoder=True),
         ConvBNSwish(

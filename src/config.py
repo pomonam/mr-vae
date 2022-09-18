@@ -126,4 +126,4 @@ class HyperConfig:
     self.encoder_layer_type = "sig_gate"
     self.decoder_layer_type = "sqrt_gate"
     self.block_type = "linear"
-    self.norm_type = "scale_shift"
+    self.norm_type = "none"
