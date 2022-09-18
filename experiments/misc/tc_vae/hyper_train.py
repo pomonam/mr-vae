@@ -144,7 +144,7 @@ class VAE(nn.Module):
     self.register_buffer('prior_params', torch.zeros(self.z_dim, 2))
 
     # create the encoder and decoder networks
-    self.encoder = HyperMLPEncoder(z_dim * self.q_dist.nparams, hyper_cfg, v1=v1)
+    self.encoder = HyperMLPEncoder(z_dim * self.q_dist.nparams, hyper_cfg=hyper_cfg, v1=v1)
     self.decoder = HyperMLPDecoder(z_dim, hyper_cfg=v1)
 
   def set_inputs_for_net(self, x, value):
