@@ -150,8 +150,8 @@ def main(args):
         log_dict["val/nelbo_{}".format(beta)] = valid_nelbo
         log_dict["val/bpd_log_p_{}".format(beta)] = valid_neg_log_p * bpd_coeff
         log_dict["val/bpd_elbo_{}".format(beta)] = valid_nelbo * bpd_coeff
-        log_dict["val/dist"] = valid_kl
-        log_dict["val/rate"] = valid_recon
+        log_dict["val/dist_{}"] = valid_kl
+        log_dict["val/rate_{}"] = valid_recon
 
     save_freq = int(np.ceil(args.epochs / 100))
     if epoch % save_freq == 0 or epoch == (args.epochs - 1):
