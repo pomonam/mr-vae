@@ -538,7 +538,7 @@ def main():
   # logpx, dependence, information, dimwise_kl, analytical_cond_kl, marginal_entropies, joint_entropy = \
   #     elbo_decomposition(vae, dataset_loader)
 
-  beta_lst = np.logspace(0, 1, num=10, base=10)
+  beta_lst = np.logspace(-1, 1, num=10, base=10)
   metrics_lst = []
   for beta in beta_lst:
     # Setting the hyper inputs.
