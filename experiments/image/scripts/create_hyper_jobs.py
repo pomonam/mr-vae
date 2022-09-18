@@ -6,20 +6,17 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
 parser.add_argument(
-    "--experiment_name", type=str, default="hypervae_image_hyper_baseline_v3")
+    "--experiment_name", type=str, default="hypervae_image_hyper_baseline_v100")
 
 args = parser.parse_args()
 
 CONFIG = {
-    "lr": [3e-4, 1e-4, 3e-5],
+    "lr": [0.001],
     "total_epochs": [200],
-    "data_name": ["cifar", "svhn", "celeba"],
-    "include_shift": [0, 1],
-    "include_residual_connection": [0, 1],
-    "include_sigmoid_activation": [0, 1],
-    "preprocess_beta": [0, 1],
-    "include_layer_norm": [0, 1],
-    "block_type": ["mlp"],
+    "data_name": ["celeba"],
+    "arch_name": ["resnet"],
+    "hyper_config_summary": ["linear_default"],
+    "save_final_checkpoint": [1]
 }
 
 if __name__ == "__main__":
@@ -29,4 +26,4 @@ if __name__ == "__main__":
           args.experiment_name))
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
-  generate_sh_file(args.file_name, len(jobs))
+  generate_sh_file(args.file_name, len(jobs), qos="deadline")

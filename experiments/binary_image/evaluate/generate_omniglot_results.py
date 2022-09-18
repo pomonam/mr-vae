@@ -15,7 +15,7 @@ HYPER_NAME = "hvae_bimage_hyper_sweep_v100"
 
 def main():
   plt.rcParams.update({"figure.dpi": 300})
-  plt.rcParams.update(bundles.neurips2022(ncols=1, nrows=1))
+  plt.rcParams.update(bundles.iclr2023(rel_width=0.6))
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.inverted())
 
@@ -48,28 +48,8 @@ def main():
   rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1qezffsn")
   plt.plot(rate, dist, "o-", label="ResNet (Hyper)", linewidth=1.5)
 
-  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3r60bxur")
-  # plt.plot(rate, dist, "o-", label="HC-VAE-2", linewidth=1.5)
-
-  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1skahjue")
-  # plt.plot(rate, dist, "o-", label="MLP (shared weights)", linewidth=1.5)
-  #
-  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "27je3kfn")
-  # plt.plot(rate, dist, "o-", label="Large MLP", linewidth=1.5)
-
-  # plt.xlabel("Rate")
-  # plt.ylabel("Distortion")
-  # plt.title("MNIST Dataset")
-  # plt.grid()
-  # plt.legend()
-  # plt.show()
-  # plt.clf()
-
   rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1nnjic2c")
   plt.plot(rate, dist, "o-", label="Conv (Hyper)", linewidth=1.5)
-
-  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1i04ot2m")
-  # plt.plot(rate, dist, "o-", label="HC-VAE-2", linewidth=1.5)
 
   plt.xlim(0, 120)
   plt.ylim(30, 120)
@@ -77,9 +57,10 @@ def main():
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
   plt.title("Omniglot Dataset")
-  plt.legend(ncol=2)
+  # plt.legend(ncol=2)
   plt.grid()
-  plt.show()
+  plt.tight_layout()
+  plt.savefig("omniglot.pdf", bbox_inches="tight")
 
 
 if __name__ == "__main__":
