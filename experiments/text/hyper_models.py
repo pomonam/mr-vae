@@ -33,7 +33,7 @@ class HyperLstmEncoder(BaseHyperEncoder):
     }
     self.embed = tx.modules.WordEmbedder(
         vocab_size=vocab_size, hparams=enc_emb_hparams)
-    # self.hyper_embed = get_hyper_layer(embed_dim, hyper_cfg)
+    self.hyper_embed = get_hyper_layer(embed_dim, hyper_cfg)
 
     hidden_size = 550 if v1 else 256
     enc_cell_hparams = {
@@ -60,7 +60,7 @@ class HyperLstmEncoder(BaseHyperEncoder):
 
     output = OrderedDict()
     input_embed = self.embed(text_ids)
-    # input_embed = self.hyper_embed(input_embed)
+    input_embed = self.hyper_embed(input_embed)
 
     _, encoder_states = self.encoder(
       input_embed,
@@ -103,7 +103,7 @@ class HyperLstmDecoder(BaseHyperDecoder):
     }
     self.decoder_w_embedder = tx.modules.WordEmbedder(
         vocab_size=vocab_size, hparams=dec_emb_hparams)
-    # self.hyper_decoder_w_embedder = get_hyper_layer(embed_dim, hyper_cfg, decoder=True)
+    self.hyper_decoder_w_embedder = get_hyper_layer(embed_dim, hyper_cfg, decoder=True)
 
     hidden_size = 550 if v1 else 256
     self.hidden_size = hidden_size
@@ -127,9 +127,9 @@ class HyperLstmDecoder(BaseHyperDecoder):
 
   def _embed_fn_rnn(self, tokens: torch.LongTensor):
     embedding = self.decoder_w_embedder(tokens)
-    # embedding = torch.transpose(embedding, 0, 1)
-    # embedding = self.hyper_decoder_w_embedder(embedding)
-    # embedding = torch.transpose(embedding, 0, 1)
+    embedding = torch.transpose(embedding, 0, 1)
+    embedding = self.hyper_decoder_w_embedder(embedding)
+    embedding = torch.transpose(embedding, 0, 1)
     latent_z = self._latent_z
     if len(embedding.size()) > 2:
       latent_z = latent_z.unsqueeze(0).repeat(tokens.size(0), 1, 1)
@@ -204,7 +204,7 @@ class HyperTransformerDecoder(BaseHyperDecoder):
     }
     self.decoder_w_embedder = tx.modules.WordEmbedder(
         vocab_size=vocab_size, hparams=dec_emb_hparams)
-    # self.hyper_decoder_w_embedder = get_hyper_layer(embd_dim, hyper_cfg, decoder=True)
+    self.hyper_decoder_w_embedder = get_hyper_layer(embd_dim, hyper_cfg, decoder=True)
 
     dec_pos_emb_hparams = {
         'dim': hidden_size,
@@ -281,7 +281,7 @@ class HyperTransformerDecoder(BaseHyperDecoder):
                             positions: torch.LongTensor):
     output_p_embed = self.decoder_p_embedder(positions)
     output_w_embed = self.decoder_w_embedder(tokens)
-    # output_w_embed = self.hyper_decoder_w_embedder(output_w_embed)
+    output_w_embed = self.hyper_decoder_w_embedder(output_w_embed)
     output_w_embed = output_w_embed * self.hidden_size**0.5
     output_embed = output_w_embed + output_p_embed
     return output_embed

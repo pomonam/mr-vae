@@ -10,7 +10,7 @@ from experiments.text.evaluate.utils import get_hyper_rd
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hv_text_jobs_final"
-HYPER_NAME = "hvae_text_hyper_sweep_v101"
+HYPER_NAME = "hvae_text_hyper_sweep_v103"
 
 
 def main():
@@ -20,7 +20,7 @@ def main():
   plt.rcParams.update(markers.inverted())
 
   rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="ptb",
-                               schedule="monotonic", arc_name="lstm", test=True)
+                               schedule="constant", arc_name="lstm", test=True)
   plt.plot([0], [0])
   plt.scatter(
     rate,
@@ -45,7 +45,7 @@ def main():
     marker="^"
   )
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "q0j1ldj8")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3izgbzyk")
   plt.plot(rate, dist, "o-", label="LSTM (Hyper)", linewidth=1.5)
 
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3r60bxur")
