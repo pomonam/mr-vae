@@ -203,7 +203,7 @@ def hyper_single_evaluate(
       batch = {
           "data": batch, "start_tokens": start_token, "end_token": end_token
       }
-      output_dict = model.fixed_forward(batch, value=1)
+      output_dict = model.fixed_forward(batch, value=1.)
       loss_dict = criterion.eval_forward(
           recon_x=output_dict["reconstruction"],
           x=output_dict["data"],
@@ -351,6 +351,7 @@ def main():
       args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
   hyper_cfg = HyperConfig(args)
+  hyper_cfg.reduce_range = False
 
   seed_everything(cfg.seed)
   train_data, iterator, vocab = load_data(args.data_name, "train", cfg.batch_size,
