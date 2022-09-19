@@ -174,6 +174,7 @@ class HyperLstmDecoder(BaseHyperDecoder):
     rc_loss = tx.losses.sequence_sparse_softmax_cross_entropy(
         labels=data_batch["text_ids"][:, 1:],
         logits=logits,
+        average_across_batch=False,
         sequence_length=seq_lengths)
 
     return rc_loss
