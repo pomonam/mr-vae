@@ -4,7 +4,7 @@
 #SBATCH -p ml
 #SBATCH --mem=40GB
 #SBATCH --export=ALL
-#SBATCH --array=0-8%8
+#SBATCH --array=0-6%6
 #SBATCH --output=temp/array-%A_%a.out
 #SBATCH --nodelist=sonata1
 #SBATCH --cpus-per-task=16

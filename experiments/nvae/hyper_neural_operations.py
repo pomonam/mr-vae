@@ -425,7 +425,7 @@ class InvertedResidual(nn.Module):
             groups=groups,
             k=k,
             dilation=dil),
-        # get_hyper_layer(hidden_dim, hyper_cfg=hyper_cfg, decoder=True),
+        get_hyper_layer(hidden_dim, hyper_cfg=hyper_cfg, decoder=True),
         Conv2D(hidden_dim, Cout, 1, 1, 0, bias=False, weight_norm=False),
         get_batchnorm(Cout, momentum=0.05)
     ]
