@@ -330,7 +330,7 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument("--experiment_name", type=str, default="hvae_text_debug")
 
-  parser.add_argument("--decoder_name", type=str, default="lstm")
+  parser.add_argument("--decoder_name", type=str, default="trans")
   parser.add_argument("--data_name", type=str, default="ptb")
 
   parser.add_argument("--hyper_config_summary", type=str, default="linear_default")
@@ -352,6 +352,7 @@ def main():
   cfg = TrainConfig(args)
   hyper_cfg = HyperConfig(args)
   hyper_cfg.reduce_range = False
+  hyper_cfg.norm_type = "scale_shift"
 
   seed_everything(cfg.seed)
   train_data, iterator, vocab = load_data(args.data_name, "train", cfg.batch_size,
