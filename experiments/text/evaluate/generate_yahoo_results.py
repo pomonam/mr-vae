@@ -45,7 +45,7 @@ def main():
   #   marker="^"
   # )
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2iwmpx1l")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "31vnv86h")
   plt.plot(rate, dist, "o-", label="LSTM (Hyper)", linewidth=1.5)
 
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1a3huym9")
