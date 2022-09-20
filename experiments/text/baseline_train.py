@@ -94,15 +94,6 @@ def build_model(vocab_size, data_name, decoder_name, device):
   model.reconstruction_loss = "ce"
   return model.to(device)
 
-
-def build_input_queue(loader, device):
-  for batch in loader:
-    if isinstance(batch, list):
-      yield {"data": batch[0].to(device, non_blocking=True)}
-    else:
-      yield {"data": batch.to(device, non_blocking=True)}
-
-
 def evaluate(
     model,
     iterator,

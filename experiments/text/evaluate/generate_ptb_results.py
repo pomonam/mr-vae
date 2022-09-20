@@ -10,7 +10,7 @@ from experiments.text.evaluate.utils import get_hyper_rd
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hv_text_jobs_final"
-HYPER_NAME = "hvae_text_hyper_sweep_v103"
+HYPER_NAME = "hvae_text_hyper_sweep_v104"
 
 
 def main():
@@ -45,7 +45,7 @@ def main():
     marker="^"
   )
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3izgbzyk")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3teva2w6")
   plt.plot(rate, dist, "o-", label="LSTM (Hyper)", linewidth=1.5)
 
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3r60bxur")
