@@ -69,10 +69,12 @@ class HyperLstmEncoder(BaseHyperEncoder):
     out = self.hyper_encoder(out)
 
     emb = self.embedding(out)
+    emb = torch.relu(emb)
     emb = self.hyper_embedding(emb)
     emb = self.embedding_proj(emb)
     output["embedding"] = emb
     lv = self.log_var(out)
+    lv = torch.relu(lv)
     lv = self.hyper_log_var(lv)
     lv = self.log_var_proj(lv)
     output["log_covariance"] = lv
@@ -323,6 +325,7 @@ class HyperTransformerDecoder(BaseHyperDecoder):
     rc_loss = tx.losses.sequence_sparse_softmax_cross_entropy(
         labels=data_batch["text_ids"][:, 1:],
         logits=logits,
+        average_across_batch=False,
         sequence_length=seq_lengths)
 
     return rc_loss
