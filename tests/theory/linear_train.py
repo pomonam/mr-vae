@@ -19,6 +19,7 @@ from src.evaluate import update_metric
 from src.utils import seed_everything
 
 from linear_utils import analytic_rate_and_distortion
+#from analytical import analytic_rate_and_distortion
 from linear_beta_vae import LinearVae
 from linear_beta_vae import LinearDecoder
 from linear_beta_vae import LinearEncoder
@@ -56,7 +57,7 @@ def evaluate(model, biq, epoch, name, delta=0.01):
         means = []
 
         if name == "analytical":
-            rate, dist = analytic_rate_and_distortion(model, loader, 1/args.beta)
+            rate, dist = analytic_rate_and_distortion(model, loader, 1/args.beta, DEVICE)
             wandb.log({name + "/" + "rate": rate, name + "/" + "dist": dist})
         else:
             for batch in p_bar:
@@ -159,8 +160,6 @@ def main():
     evaluate(model, build_input_queue, cfg.total_epochs, "train_eval")
     evaluate(model, build_input_queue, cfg.total_epochs, "test")
     evaluate(model, build_input_queue, cfg.total_epochs, "analytical")
-    
-    print(model.encoder_var.item())
 
     '''
     # Visualizing the reconstruction

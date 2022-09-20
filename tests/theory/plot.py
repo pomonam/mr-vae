@@ -1,27 +1,28 @@
 from experiments.wandb_utils import init_api
 import matplotlib.pyplot as plt
 ENTITY = "bae-group"
+
 RUN_NAMES = [
-    "linear_vae_beta_1e-3",
-    "linear_vae_beta_1.623e-3",
-    "linear_vae_beta_2.637e-3",
-    "linear_vae_beta_4.281e-3",
-    "linear_vae_beta_6.952e-3",
-    "linear_vae_beta_1.129e-2",
-    "linear_vae_beta_1.833e-2",
-    "linear_vae_beta_2.976e-2",
-    "linear_vae_beta_4.833e-2",
-    "linear_vae_beta_7.848e-2",
-    "linear_vae_beta_1.274e-1",
-    "linear_vae_beta_2.069e-1",
-    "linear_vae_beta_3.360e-1",
-    "linear_vae_beta_5.456e-1",
-    "linear_vae_beta_8.859e-1",
-    "linear_vae_beta_1.438",
-    "linear_vae_beta_2.336",
-    "linear_vae_beta_3.793",
-    "linear_vae_beta_6.128",
-    "linear_vae_beta_10.00",
+    "linear_vae_beta_enclogvar_1e-3",
+    "linear_vae_beta_enclogvar_1.623e-3",
+    "linear_vae_beta_enclogvar_2.637e-3",
+    "linear_vae_beta_enclogvar_4.281e-3",
+    "linear_vae_beta_enclogvar_6.952e-3",
+    "linear_vae_beta_enclogvar_1.129e-2",
+    "linear_vae_beta_enclogvar_1.833e-2",
+    "linear_vae_beta_enclogvar_2.976e-2",
+    "linear_vae_beta_enclogvar_4.833e-2",
+    "linear_vae_beta_enclogvar_7.848e-2",
+    "linear_vae_beta_enclogvar_1.274e-1",
+    "linear_vae_beta_enclogvar_2.069e-1",
+    "linear_vae_beta_enclogvar_3.360e-1",
+    "linear_vae_beta_enclogvar_5.456e-1",
+    "linear_vae_beta_enclogvar_8.859e-1",
+    "linear_vae_beta_enclogvar_1.438",
+    "linear_vae_beta_enclogvar_2.336",
+    "linear_vae_beta_enclogvar_3.793",
+    "linear_vae_beta_enclogvar_6.128",
+    "linear_vae_beta_enclogvar_10.00",
 ]
 
 def analytical_rd_metric(a_rate, a_dist, te_rate, te_dist):
@@ -76,9 +77,11 @@ def get_rd_curve():
 
 if __name__ == "__main__":
     a_rate_list, a_dist_list, te_rate_list, te_dist_list, lr_list = get_rd_curve()
-    plt.plot(a_rate_list, a_dist_list, label="analytical")
-    plt.plot(te_rate_list, te_dist_list, label="single_train")
+    plt.plot(a_rate_list, a_dist_list, label="analytical", linewidth=2, marker='.')
+    plt.plot(te_rate_list, te_dist_list, label="single_train", linewidth=2, marker='.')
     for x, y, lr in zip(te_rate_list, te_dist_list, lr_list):
         plt.annotate(text="lr="+str(lr), xy=(x, y))
     plt.legend(loc="best")
+    plt.xlabel("rate")
+    plt.ylabel("distortion")
     plt.show()

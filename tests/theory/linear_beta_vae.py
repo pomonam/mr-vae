@@ -25,7 +25,8 @@ def log_normal_likelihood(x, mean, logvar):
 
     dim = list(mean.size())[1]
     logvar = (torch.zeros(mean.size()) + logvar).to(DEVICE)
-    return -0.5 * (((logvar + (x - mean)**2 / torch.exp(logvar)).sum(1)) + torch.log(torch.tensor(2 * pi)) * dim)
+    return -0.5 * ((logvar + (x - mean)**2 / torch.exp(logvar)).sum(1) +
+                   torch.log(torch.tensor(2 * pi)) * dim)
 
 
 def log_mean_exp(x, dim=1):
@@ -46,9 +47,8 @@ def log_normal(x, mean, logvar):
     Returns:
         output: [B]
     """
-    return -0.5 * (
-        logvar.sum(1) + ((x - mean).pow(2) / torch.exp(logvar)).sum(1))
-
+    return -0.5 * (logvar.sum(1) + (
+        (x - mean).pow(2) / torch.exp(logvar)).sum(1))
 
 def singleton_repeat(x, n):
     """ 
@@ -97,17 +97,16 @@ class LinearVae(nn.Module):
 
         self.encoder = encoder
         self.decoder = decoder
-        self.encoder_var = torch.nn.Parameter(torch.ones(1))
+        self.encoder_log_var = nn.Parameter(torch.log(torch.ones((self.encoder.bottleneck_size,))), requires_grad=True)
         self.observation_log_likelihood_fn = log_normal_likelihood
-        self.x_logvar = nn.Parameter(
-            torch.log(torch.tensor(1)), requires_grad=True)
+        self.x_logvar = nn.Parameter(torch.log(torch.tensor(1)), requires_grad=True)
 
     def encode(self, x):
         hidden = self.encoder(x)
         mean = hidden[:, :self.encoder.bottleneck_size]
-        ones_var = torch.ones((x.shape[0], self.encoder.bottleneck_size)).cuda()
-        logvar = torch.mul(ones_var, self.encoder_var)
-        return mean, logvar
+        logvar = torch.unsqueeze(self.encoder_log_var, dim=0)
+        repeated_logvar = torch.repeat_interleave(logvar, x.shape[0], dim=0)
+        return mean, repeated_logvar
 
     def decode(self, z):
         return self.decoder(z), torch.zeros(1)

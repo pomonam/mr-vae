@@ -81,7 +81,7 @@ def analytical_distortion_point(data, mu, cov, model):
     return distortion
 
 
-def analytic_rate_and_distortion(model, rd_data, beta):
+def analytic_rate_and_distortion(model, rd_data, beta, device):
     rate_list = list()
     distortion_list = list()
     for data in rd_data:

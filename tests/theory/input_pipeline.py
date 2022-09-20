@@ -5,5 +5,8 @@ def build_input_queue(split, batch_size, device, data_path="../../logs/data", da
   loader = load_mnist_data(split=split, batch_size=batch_size, dataset_size=dataset_size, data_path=data_path)
 
   for batch in loader:
-    yield {"inputs": batch[0].to(device, non_blocking=True)}
+    if isinstance(batch, list):
+      yield {"inputs": batch[0].to(device, non_blocking=True)}
+    else:
+      yield {"inputs": batch.to(device, non_blocking=True)}
 
