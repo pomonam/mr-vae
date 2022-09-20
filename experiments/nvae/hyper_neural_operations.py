@@ -330,11 +330,11 @@ class EncCombinerCell(nn.Module):
     # Cin = Cin1 + Cin2
     self.conv = Conv2D(
         Cin2, Cout, kernel_size=1, stride=1, padding=0, bias=True)
-    # self.hyper = get_hyper_layer(Cout, hyper_cfg=hyper_cfg)
+    self.hyper = get_hyper_layer(Cout, hyper_cfg=hyper_cfg)
 
   def forward(self, x1, x2):
     x2 = self.conv(x2)
-    # x2 = self.hyper(x2)
+    x2 = self.hyper(x2)
     out = x1 + x2
     return out
 
@@ -347,17 +347,18 @@ class DecCombinerCell(nn.Module):
     self.cell_type = cell_type
     self.conv = Conv2D(
         Cin1 + Cin2, Cout, kernel_size=1, stride=1, padding=0, bias=True)
-    # self.hyper = get_hyper_layer(Cout, hyper_cfg=hyper_cfg, decoder=True)
+    self.hyper = get_hyper_layer(Cout, hyper_cfg=hyper_cfg, decoder=True)
 
   def forward(self, x1, x2):
     out = torch.cat([x1, x2], dim=1)
     out = self.conv(out)
+    out = self.hyper(out)
     return out
 
 
 class ConvBNSwish(nn.Module):
 
-  def __init__(self, Cin, Cout, k=3, stride=1, groups=1, dilation=1):
+  def __init__(self, Cin, Cout, hyper_cfg, k=3, stride=1, groups=1, dilation=1):
     padding = dilation * (k - 1) // 2
     super(ConvBNSwish, self).__init__()
 
@@ -372,6 +373,7 @@ class ConvBNSwish(nn.Module):
             bias=False,
             dilation=dilation,
             weight_norm=False),
+        get_hyper_layer(Cout, hyper_cfg=hyper_cfg, decoder=True),
         SyncBatchNormSwish(Cout, eps=BN_EPS,
                            momentum=0.05)  # drop in replacement for BN + Swish
     )
@@ -416,17 +418,19 @@ class InvertedResidual(nn.Module):
     layers = [
         get_batchnorm(Cin, eps=BN_EPS, momentum=0.05),
         # get_hyper_layer(Cin, hyper_cfg=hyper_cfg, decoder=True),
-        ConvBNSwish(Cin, hidden_dim, k=1),
-        get_hyper_layer(hidden_dim, hyper_cfg=hyper_cfg, decoder=True),
+        ConvBNSwish(Cin, hidden_dim, k=1, hyper_cfg=hyper_cfg),
+        # get_hyper_layer(hidden_dim, hyper_cfg=hyper_cfg, decoder=True),
         ConvBNSwish(
             hidden_dim,
             hidden_dim,
             stride=self.stride,
             groups=groups,
             k=k,
-            dilation=dil),
-        get_hyper_layer(hidden_dim, hyper_cfg=hyper_cfg, decoder=True),
+            dilation=dil,
+            hyper_cfg=hyper_cfg),
+        # get_hyper_layer(hidden_dim, hyper_cfg=hyper_cfg, decoder=True),
         Conv2D(hidden_dim, Cout, 1, 1, 0, bias=False, weight_norm=False),
+        get_hyper_layer(Cout, hyper_cfg=hyper_cfg, decoder=True),
         get_batchnorm(Cout, momentum=0.05)
     ]
 
