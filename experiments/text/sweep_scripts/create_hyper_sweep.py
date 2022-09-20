@@ -6,12 +6,12 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_text_hyper_sweep_v104")
+    "--experiment_name", type=str, default="hvae_text_hyper_sweep_v150")
 
 args = parser.parse_args()
 
 CONFIG = {
-    "lr": [1e-2, 3e-3, 1e-3, 3e-4, 1e-4,],
+    "lr": [3e-2, 1e-2, 3e-3, 1e-3, 3e-4],
     "data_name": ["yahoo", "ptb"],
     "total_epochs": [100],
     "decoder_name": ["lstm", "trans"],

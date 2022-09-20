@@ -9,8 +9,8 @@ from experiments.text.evaluate.utils import get_baseline_rd
 from experiments.text.evaluate.utils import get_hyper_rd
 
 ENTITY = "bae-group"
-BASELINE_NAME = "hv_text_jobs_final"
-HYPER_NAME = "hvae_text_hyper_sweep_v11"
+BASELINE_NAME = "hv_text_baseline"
+HYPER_NAME = "hypervae_text_hyper_train_v5"
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.inverted())
 
-  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="yahoo",
+  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="yelp",
                                schedule="monotonic", arc_name="lstm", test=True)
   plt.plot([0], [0])
   plt.scatter(
@@ -32,24 +32,24 @@ def main():
     marker="v"
   )
 
-  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="yahoo",
-                               schedule="monotonic", arc_name="trans", test=True)
-  plt.plot([0], [0])
-  plt.scatter(
-    rate,
-    dist,
-    label=r"Transformer (Retraining)",
-    edgecolors="k",
-    linewidths=0.5,
-    c=rgb.tue_lightblue,
-    marker="^"
-  )
+  # rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="yahoo",
+  #                              schedule="monotonic", arc_name="trans", test=True)
+  # plt.plot([0], [0])
+  # plt.scatter(
+  #   rate,
+  #   dist,
+  #   label=r"Transformer (Retraining)",
+  #   edgecolors="k",
+  #   linewidths=0.5,
+  #   c=rgb.tue_lightblue,
+  #   marker="^"
+  # )
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "qwj4q9tb")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2iwmpx1l")
   plt.plot(rate, dist, "o-", label="LSTM (Hyper)", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1a3huym9")
-  plt.plot(rate, dist, "o-", label="Transformer (Hyper)", linewidth=1.5)
+  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1a3huym9")
+  # plt.plot(rate, dist, "o-", label="Transformer (Hyper)", linewidth=1.5)
 
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1i04ot2m")
   # plt.plot(rate, dist, "o-", label="HC-VAE-2", linewidth=1.5)
