@@ -92,14 +92,6 @@ def build_model(vocab_size, data_name, decoder_name, hyper_cfg, device):
   return model.to(device)
 
 
-def build_input_queue(loader, device):
-  for batch in loader:
-    if isinstance(batch, list):
-      yield {"data": batch[0].to(device, non_blocking=True)}
-    else:
-      yield {"data": batch.to(device, non_blocking=True)}
-
-
 def hyper_evaluate(
     model,
     iterator,
@@ -211,7 +203,7 @@ def hyper_single_evaluate(
       batch = {
           "data": batch, "start_tokens": start_token, "end_token": end_token
       }
-      output_dict = model.fixed_forward(batch, value=1)
+      output_dict = model.fixed_forward(batch, value=1.)
       loss_dict = criterion.eval_forward(
           recon_x=output_dict["reconstruction"],
           x=output_dict["data"],
@@ -338,7 +330,7 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument("--experiment_name", type=str, default="hvae_text_debug")
 
-  parser.add_argument("--decoder_name", type=str, default="lstm")
+  parser.add_argument("--decoder_name", type=str, default="trans")
   parser.add_argument("--data_name", type=str, default="ptb")
 
   parser.add_argument("--hyper_config_summary", type=str, default="linear_default")
@@ -359,6 +351,8 @@ def main():
       args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
   hyper_cfg = HyperConfig(args)
+  hyper_cfg.reduce_range = False
+  hyper_cfg.norm_type = "scale_shift"
 
   seed_everything(cfg.seed)
   train_data, iterator, vocab = load_data(args.data_name, "train", cfg.batch_size,
