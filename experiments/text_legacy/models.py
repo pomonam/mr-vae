@@ -1,8 +1,8 @@
-from src.models.base_encoder import BaseEncoder
+from src.base_architecture import BaseEncoder
 import torch
 from torch import nn
 
-from src.models.base_decoder import BaseDecoder
+from src.base_architecture import BaseDecoder
 
 
 class UniformInitializer(object):
