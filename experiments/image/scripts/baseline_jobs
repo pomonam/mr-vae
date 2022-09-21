@@ -1,30 +1,180 @@
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.01 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.01 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.01 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.021544346900318832 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.021544346900318832 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.021544346900318832 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.046415888336127774 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.046415888336127774 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.046415888336127774 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.1 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.1 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.1 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.21544346900318834 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.21544346900318834 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.21544346900318834 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.46415888336127775 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.46415888336127775 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 0.46415888336127775 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 1.0 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 1.0 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 1.0 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 2.154434690031882 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 2.154434690031882 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 2.154434690031882 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 4.6415888336127775 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 4.6415888336127775 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 4.6415888336127775 --save_final_checkpoint 1 --seed 2 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 10.0 --save_final_checkpoint 1 --seed 0 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 10.0 --save_final_checkpoint 1 --seed 1 
-python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule monotonic --beta 10.0 --save_final_checkpoint 1 --seed 2
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.01 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.01 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.01 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.021544346900318832 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.021544346900318832 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.021544346900318832 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.046415888336127774 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.046415888336127774 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.046415888336127774 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.1 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.1 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.1 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.21544346900318834 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.21544346900318834 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.21544346900318834 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.46415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.46415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.46415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 1.0 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 1.0 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 1.0 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 2.154434690031882 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 2.154434690031882 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 2.154434690031882 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 4.6415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 4.6415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 4.6415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 10.0 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 10.0 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 10.0 --seed 2
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.01 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.01 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.01 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.021544346900318832 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.021544346900318832 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.021544346900318832 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.046415888336127774 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.046415888336127774 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.046415888336127774 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.1 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.1 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.1 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.21544346900318834 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.21544346900318834 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.21544346900318834 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.46415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.46415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 0.46415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 1.0 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 1.0 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 1.0 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 2.154434690031882 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 2.154434690031882 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 2.154434690031882 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 4.6415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 4.6415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 4.6415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 10.0 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 10.0 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name svhn --arch_name resnet --schedule constant --beta 10.0 --seed 2
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.01 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.01 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.01 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.021544346900318832 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.021544346900318832 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.021544346900318832 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.046415888336127774 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.046415888336127774 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.046415888336127774 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.1 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.1 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.1 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.21544346900318834 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.21544346900318834 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.21544346900318834 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.46415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.46415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 0.46415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 1.0 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 1.0 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 1.0 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 2.154434690031882 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 2.154434690031882 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 2.154434690031882 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 4.6415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 4.6415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 4.6415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 10.0 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 10.0 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name conv --schedule constant --beta 10.0 --seed 2
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.01 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.01 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.01 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.021544346900318832 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.021544346900318832 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.021544346900318832 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.046415888336127774 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.046415888336127774 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.046415888336127774 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.1 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.1 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.1 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.21544346900318834 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.21544346900318834 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.21544346900318834 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.46415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.46415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 0.46415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 1.0 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 1.0 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 1.0 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 2.154434690031882 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 2.154434690031882 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 2.154434690031882 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 4.6415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 4.6415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 4.6415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 10.0 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 10.0 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.001 --total_epochs 200 --data_name cifar --arch_name resnet --schedule constant --beta 10.0 --seed 2
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.01 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.01 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.01 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.021544346900318832 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.021544346900318832 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.021544346900318832 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.046415888336127774 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.046415888336127774 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.046415888336127774 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.1 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.1 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.1 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.21544346900318834 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.21544346900318834 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.21544346900318834 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.46415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.46415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 0.46415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 1.0 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 1.0 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 1.0 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 2.154434690031882 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 2.154434690031882 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 2.154434690031882 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 4.6415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 4.6415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 4.6415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 10.0 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 10.0 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0001 --total_epochs 200 --data_name celeba --arch_name conv --schedule constant --beta 10.0 --seed 2
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.01 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.01 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.01 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.021544346900318832 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.021544346900318832 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.021544346900318832 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.046415888336127774 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.046415888336127774 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.046415888336127774 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.1 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.1 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.1 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.21544346900318834 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.21544346900318834 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.21544346900318834 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.46415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.46415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 0.46415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 1.0 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 1.0 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 1.0 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 2.154434690031882 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 2.154434690031882 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 2.154434690031882 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 4.6415888336127775 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 4.6415888336127775 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 4.6415888336127775 --seed 2 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 10.0 --seed 0 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 10.0 --seed 1 
+python baseline_train.py --experiment_name hvae_image_jobs_resnet_final --lr 0.0003 --total_epochs 200 --data_name celeba --arch_name resnet --schedule constant --beta 10.0 --seed 2
