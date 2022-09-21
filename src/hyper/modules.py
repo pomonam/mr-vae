@@ -26,6 +26,10 @@ class HyperLinear(HyperLayer):
       scale = torch.sqrt(scale)
     else:
       scale = torch.sigmoid(scale)
+
+    if len(out.shape) == 3:
+      scale = scale.unsqueeze(1)
+
     return scale * out
 
 
