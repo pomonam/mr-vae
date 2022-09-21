@@ -10,7 +10,7 @@ from experiments.binary_image.evaluate.utils import get_hyper_rd
 
 ENTITY = "bae-group"
 BASELINE_NAME = "hvae_bimage_jobs_final"
-HYPER_NAME = "hvae_bimage_hyper_sweep_v100"
+HYPER_NAME = "ahvae_bimage_hyper_sweep"
 
 
 def main():
@@ -45,10 +45,10 @@ def main():
     marker="^"
   )
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1qezffsn")
-  plt.plot(rate, dist, "o-", label="ResNet (Hyper)", linewidth=1.5)
+  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1qezffsn")
+  # plt.plot(rate, dist, "o-", label="ResNet (Hyper)", linewidth=1.5)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1nnjic2c")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "28h0c6ab")
   plt.plot(rate, dist, "o-", label="Conv (Hyper)", linewidth=1.5)
 
   plt.xlim(0, 120)

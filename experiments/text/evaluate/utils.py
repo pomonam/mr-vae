@@ -38,9 +38,7 @@ def get_baseline_summary(config_lst,
   beta_to_elbo = {}
 
   for i, c in enumerate(config_lst):
-    if c["schedule"] == schedule and \
-        c["data_name"] == data_name and \
-        c["decoder_name"] == arc_name:
+    if c["schedule"] == schedule and c["data_name"] == data_name:
       if test:
         beta_to_rate[c["beta"]] = summary_lst[i]["test/rate"]
         beta_to_dist[c["beta"]] = summary_lst[i]["test/distortion"]
