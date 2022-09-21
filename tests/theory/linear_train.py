@@ -31,7 +31,7 @@ parser.add_argument(
 parser.add_argument("--bottleneck_size", type=int, default=100)
 parser.add_argument("--total_epochs", type=int, default=200)
 parser.add_argument("--lr", type=float, default=1e-3)
-parser.add_argument("--batch_size", type=int, default=5000)
+parser.add_argument("--batch_size", type=int, default=64)
 parser.add_argument("--dataset_size", type=int, default=5000)
 parser.add_argument("--beta", type=float, required=True)
 parser.add_argument("--schedule", type=str, default="constant")

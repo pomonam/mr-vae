@@ -27,8 +27,8 @@ def analytical_q_svd(data, model, beta=1):
     s_diag = torch.diag(torch.div(1, 1. + (beta * D**2)))
     core = torch.matmul(torch.matmul(V, r_diag), torch.t(U))
     mu = torch.matmul(core, data)
-    #cov = I_z - torch.matmul(core, W)
-    cov = torch.matmul(V, torch.matmul(s_diag, torch.t(V)))
+    cov = I_z - torch.matmul(core, W)
+    #cov = torch.matmul(V, torch.matmul(s_diag, torch.t(V)))
 
     return mu, cov, D
 
@@ -40,8 +40,7 @@ def analytical_rate_point(data, mu, cov, beta, singular_values):
     latent_size = int(list(cov.size())[0])
 
     if singular_values is not None:
-        first_term = torch.log(torch.tensor(
-            1. / beta)) * singular_values.size()[0]
+        first_term = torch.log(torch.tensor(1. / beta)) * singular_values.size()[0]
         second_term = torch.sum(torch.log(singular_values**2 + (1. / beta)))
         log_det = first_term - second_term
         trace_cov = torch.sum((1. / beta) / (singular_values**2 + (1. / beta)))
