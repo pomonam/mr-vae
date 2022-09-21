@@ -1,5 +1,0 @@
-python hyper_train.py --experiment_name hvae_text_hyper_sweep_v200 --lr 0.03 --data_name yelp 
-python hyper_train.py --experiment_name hvae_text_hyper_sweep_v200 --lr 0.01 --data_name yelp 
-python hyper_train.py --experiment_name hvae_text_hyper_sweep_v200 --lr 0.003 --data_name yelp 
-python hyper_train.py --experiment_name hvae_text_hyper_sweep_v200 --lr 0.001 --data_name yelp 
-python hyper_train.py --experiment_name hvae_text_hyper_sweep_v200 --lr 0.0003 --data_name yelp
