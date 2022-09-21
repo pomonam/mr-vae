@@ -1,15 +1,15 @@
 import torch
 from torch import nn
 import math
-from experiments.text.models import LstmDecoder, LstmEncoder
-from src.hyper.vae import HyperVae
-from src.models.samplers import IsotropicGaussianSampler
-from src.models.vae import BaseVae
-from src.criterions import kl_gaussian, log_sum_exp
+from experiments.text_legacy.models import LstmDecoder, LstmEncoder
+from experiments.text_legacy.old_version.hyper.vae import HyperVae
+from experiments.text_legacy.old_version.models.samplers import IsotropicGaussianSampler
+from experiments.text_legacy.old_version.models.vae import BaseVae
+from experiments.text_legacy.old_version.criterions import kl_gaussian, log_sum_exp
 from torch.nn import functional as F
 
-from experiments.text.hyper_models import HyperLstmDecoder, HyperLstmEncoder
-from src.hyper.models import HyperIsotropicGaussianSampler
+from experiments.text_legacy.hyper_models import HyperLstmDecoder, HyperLstmEncoder
+from experiments.text_legacy.old_version.hyper.models import HyperIsotropicGaussianSampler
 
 
 class TextModel(BaseVae):
@@ -31,7 +31,6 @@ class TextModel(BaseVae):
         mu, log_var = outputs_dict["mean"], outputs_dict["log_var"]
         x_batch, nz = mu.size()
         neg_entropy = (-0.5 * nz * math.log(2 * math.pi) - 0.5 * (1 + log_var).sum(-1)).mean()
-
         z_samples = self.sampler.sample(outputs_dict)
         z_samples = z_samples.unsqueeze(1)
         mu, logvar = mu.unsqueeze(0), log_var.unsqueeze(0)
@@ -102,9 +101,9 @@ class TextCriterion(nn.Module):
         elbo = log_likelihood - beta * kl
         elbo = -torch.mean(elbo)
         loss_dict = {
-            "loss": elbo.item(),
-            "distortion": -torch.mean(log_likelihood).item(),
-            "rate": torch.mean(kl).item()
+            "loss": elbo,
+            "distortion": -torch.mean(log_likelihood),
+            "rate": torch.mean(kl)
         }
         return elbo, loss_dict
 
@@ -135,9 +134,9 @@ class HyperTextCriterion(nn.Module):
         # elbo = log_likelihood - beta * kl
         elbo = -torch.mean(elbo)
         loss_dict = {
-            "loss": elbo.item(),
-            "distortion": -torch.mean(log_likelihood).item(),
-            "rate": torch.mean(kl).item()
+            "loss": elbo,
+            "distortion": -torch.mean(log_likelihood),
+            "rate": torch.mean(kl)
         }
         return elbo, loss_dict
 
