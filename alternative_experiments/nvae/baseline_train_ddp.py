@@ -110,8 +110,7 @@ def main(args):
                     output_tiled = utils.tile_image(output_img, n)
                     writer.add_image('generated_%0.1f' % t, output_tiled, global_step)
 
-            valid_neg_log_p, valid_nelbo, valid_recon, valid_kl \
-                = evaluate(valid_queue, model, num_samples=10, args=args, logging=logging)
+            valid_neg_log_p, valid_nelbo = evaluate(valid_queue, model, num_samples=10, args=args, logging=logging)
             logging.info('valid_nelbo %f', valid_nelbo)
             logging.info('valid neg log p %f', valid_neg_log_p)
             logging.info('valid bpd elbo %f', valid_nelbo * bpd_coeff)
@@ -120,8 +119,6 @@ def main(args):
             writer.add_scalar('val/nelbo', valid_nelbo, epoch)
             writer.add_scalar('val/bpd_log_p', valid_neg_log_p * bpd_coeff, epoch)
             writer.add_scalar('val/bpd_elbo', valid_nelbo * bpd_coeff, epoch)
-            writer.add_scalar('val/dist', valid_recon, epoch)
-            writer.add_scalar('val/rate', valid_kl, epoch)
 
         save_freq = int(np.ceil(args.epochs / 100))
         if epoch % save_freq == 0 or epoch == (args.epochs - 1):
@@ -171,7 +168,8 @@ def train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_it
 
             output = model.decoder_output(logits)
             kl_coeff = utils.kl_coeff(global_step, args.kl_anneal_portion * args.num_total_iter,
-                                      args.kl_const_portion * args.num_total_iter, args.kl_const_coeff)
+                                      args.kl_const_portion * args.num_total_iter, args.kl_const_coeff,
+                                      args.beta)
 
             recon_loss = utils.reconstruction_loss(output, x, crop=model.crop_output)
             balanced_kl, kl_coeffs, kl_vals = utils.kl_balancer(kl_all, kl_coeff, kl_balance=True, alpha_i=alpha_i)
@@ -244,8 +242,6 @@ def evaluate(valid_queue, model, num_samples, args, logging):
         dist.barrier()
     nelbo_avg = utils.AvgrageMeter()
     neg_log_p_avg = utils.AvgrageMeter()
-    recon_avg = utils.AvgrageMeter()
-    kl_avg = utils.AvgrageMeter()
     model.eval()
     for step, x in enumerate(valid_queue):
         x = x[0] if len(x) > 1 else x
@@ -256,39 +252,28 @@ def evaluate(valid_queue, model, num_samples, args, logging):
 
         with torch.no_grad():
             nelbo, log_iw = [], []
-            recon_lst, kl_lst = [], []
             for k in range(num_samples):
-                sample_dict = _sample_inverse(x, 1)
-                logits, log_q, log_p, kl_all, _ = model(x, sample_dict["net"])
+                logits, log_q, log_p, kl_all, _ = model(x)
                 output = model.decoder_output(logits)
                 recon_loss = utils.reconstruction_loss(output, x, crop=model.crop_output)
                 balanced_kl, _, _ = utils.kl_balancer(kl_all, kl_balance=False)
                 nelbo_batch = recon_loss + balanced_kl
-                recon_lst.append(recon_loss)
-                kl_lst.append(balanced_kl)
                 nelbo.append(nelbo_batch)
                 log_iw.append(utils.log_iw(output, x, log_q, log_p, crop=model.crop_output))
 
-            recon_lst = torch.mean(torch.stack(recon_lst, dim=1))
-            kl_lst = torch.mean(torch.stack(kl_lst, dim=1))
             nelbo = torch.mean(torch.stack(nelbo, dim=1))
             log_p = torch.mean(torch.logsumexp(torch.stack(log_iw, dim=1), dim=1) - np.log(num_samples))
 
         nelbo_avg.update(nelbo.data, x.size(0))
         neg_log_p_avg.update(- log_p.data, x.size(0))
-        recon_avg.update(recon_lst.data, x.shape[0])
-        kl_avg.update(kl_lst.data, x.shape[0])
 
     utils.average_tensor(nelbo_avg.avg, args.distributed)
     utils.average_tensor(neg_log_p_avg.avg, args.distributed)
-    utils.average_tensor(recon_avg.avg, args.distributed)
-    utils.average_tensor(kl_avg.avg, args.distributed)
-
     if args.distributed:
         # block to sync
         dist.barrier()
     logging.info('val, step: %d, NELBO: %f, neg Log p %f', step, nelbo_avg.avg, neg_log_p_avg.avg)
-    return neg_log_p_avg.avg, nelbo_avg.avg, recon_avg.avg, kl_avg.avg
+    return neg_log_p_avg.avg, nelbo_avg.avg
 
 
 def create_generator_vae(model, batch_size, num_total_samples):
@@ -348,12 +333,12 @@ def cleanup():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('encoder decoder examiner')
     # experimental results
-    parser.add_argument('--root', type=str, default='/tmp/nasvae/expr',
+    parser.add_argument('--root', type=str, default='checkpoints/',
                         help='location of the results')
     parser.add_argument('--save', type=str, default='exp',
                         help='id used for storing intermediate results')
     # data
-    parser.add_argument('--dataset', type=str, default='mnist',
+    parser.add_argument('--dataset', type=str, default='cifar10',
                         choices=['cifar10', 'mnist', 'omniglot', 'celeba_64', 'celeba_256',
                                  'imagenet_32', 'ffhq', 'lsun_bedroom_128', 'stacked_mnist',
                                  'lsun_church_128', 'lsun_church_64'],
@@ -391,6 +376,8 @@ if __name__ == '__main__':
                         help='The portions epochs that KL is constant at kl_const_coeff')
     parser.add_argument('--kl_const_coeff', type=float, default=0.0001,
                         help='The constant value used for min KL coeff')
+    parser.add_argument('--beta', type=float, default=1.,
+                        help='Final KL weight')
     # Flow params
     parser.add_argument('--num_nf', type=int, default=0,
                         help='The number of normalizing flow cells per groups. Set this to zero to disable flows.')
