@@ -22,9 +22,13 @@ import datasets
 from src.config import HyperConfig
 from experiments.wandb_utils import init_wandb
 from fid.fid_score import compute_statistics_of_generator, load_statistics, calculate_frechet_distance
+from hyper_operations import SYNC_BN
 from fid.inception import InceptionV3
 import math
 
+
+# global SYNC_BN
+# SYNC_BN = False
 
 _SQRT3 = math.sqrt(3)
 _LOG_RED_A = math.log(0.01)
@@ -538,23 +542,25 @@ if __name__ == '__main__':
 
     size = args.num_process_per_node
 
-    if size > 1:
-        args.distributed = True
-        processes = []
-        for rank in range(size):
-            args.local_rank = rank
-            global_rank = rank + args.node_rank * args.num_process_per_node
-            global_size = args.num_proc_node * args.num_process_per_node
-            args.global_rank = global_rank
-            print('Node rank %d, local proc %d, global proc %d' % (args.node_rank, rank, global_rank))
-            p = Process(target=init_processes, args=(global_rank, global_size, main, args))
-            p.start()
-            processes.append(p)
-
-        for p in processes:
-            p.join()
-    else:
-        # for debugging
-        print('starting in debug mode')
-        args.distributed = False
-        init_processes(0, size, main, args)
+    # if size > 1:
+    #     args.distributed = True
+    #     processes = []
+    #     for rank in range(size):
+    #         args.local_rank = rank
+    #         global_rank = rank + args.node_rank * args.num_process_per_node
+    #         global_size = args.num_proc_node * args.num_process_per_node
+    #         args.global_rank = global_rank
+    #         print('Node rank %d, local proc %d, global proc %d' % (args.node_rank, rank, global_rank))
+    #         p = Process(target=init_processes, args=(global_rank, global_size, main, args))
+    #         p.start()
+    #         processes.append(p)
+    #
+    #     for p in processes:
+    #         p.join()
+    # else:
+    #     # for debugging
+    #     print('starting in debug mode')
+    #     args.distributed = False
+    #     init_processes(0, size, main, args)
+    args.distributed = False
+    main(args)
