@@ -314,9 +314,14 @@ def initialize_metric(metric_lst):
 
 
 def update_metric(metric_dict, log_dict, n=1):
-  for m in log_dict.keys():
-    metric_dict[m].update(log_dict[m].item(), n)
-  return metric_dict
+  try:
+    for m in log_dict.keys():
+      metric_dict[m].update(log_dict[m].item(), n)
+    return metric_dict
+  except:
+    for m in log_dict.keys():
+      metric_dict[m].update(log_dict[m], n)
+    return metric_dict
 
 
 def summarize_metric(metric_dict, name=""):
