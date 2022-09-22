@@ -13,6 +13,8 @@ def get_ns(args: Namespace, name: str) -> Optional:
 class TrainConfig:
 
   def __init__(self, args: Namespace) -> None:
+    # Configurations for training.
+
     self.total_epochs = get_ns(args, "total_epochs")
     self.warmup_epochs = get_ns(args, "warmup_epochs")
 
@@ -43,6 +45,8 @@ class HyperConfig:
   shared_preprocess_dim = 64
 
   def __init__(self, args: Optional[Namespace]) -> None:
+    # Configurations for Hyper-training.
+
     if args is not None:
       self.hyper_config_summary = get_ns(args, "hyper_config_summary")
       if self.hyper_config_summary is not None:

@@ -83,7 +83,6 @@ class VAE(BaseAE):
   # noinspection PyMethodMayBeStatic
   def _sample_gauss(self, mu: torch.Tensor,
                     std: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-    # Reparametrization trick.
     eps = torch.randn_like(std)
     return mu + eps * std, eps
 
@@ -91,12 +90,10 @@ class VAE(BaseAE):
               data: torch.Tensor,
               n_samples: int = 1,
               batch_size: int = 100) -> np.ndarray:
-
     if n_samples <= batch_size:
       n_full_batch = 1
     else:
       n_full_batch = n_samples // batch_size
-      n_samples = batch_size
 
     log_p = []
 
