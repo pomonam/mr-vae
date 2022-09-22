@@ -17,7 +17,7 @@ from torch.cuda.amp import autocast, GradScaler
 
 from hyper_model import HyperAutoEncoder
 from thirdparty.adamax import Adamax
-import utils
+import temp_utils as utils
 import datasets
 from src.config import HyperConfig
 from experiments.wandb_utils import init_wandb
