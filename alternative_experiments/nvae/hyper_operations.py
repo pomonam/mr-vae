@@ -15,7 +15,7 @@ from temp_utils import average_tensor
 from collections import OrderedDict
 
 BN_EPS = 1e-5
-SYNC_BN = True
+SYNC_BN = False
 
 OPS = OrderedDict([
     ('res_elu', lambda Cin, Cout, stride: ELUConv(Cin, Cout, 3, stride, 1)),
