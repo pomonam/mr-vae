@@ -18,7 +18,6 @@ import numpy as np
 import torch.distributed as dist
 
 import torch.nn.functional as F
-from tensorboardX import SummaryWriter
 
 
 class AvgrageMeter(object):
@@ -122,6 +121,8 @@ class Logger(object):
 
 class Writer(object):
     def __init__(self, rank, save):
+        from tensorboardX import SummaryWriter
+
         self.rank = rank
         if self.rank == 0:
             self.writer = SummaryWriter(log_dir=save, flush_secs=20)
