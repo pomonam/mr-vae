@@ -9,19 +9,18 @@ from src.hyper.base_architecture import BaseHyperDecoder
 from src.hyper.base_architecture import BaseHyperEncoder
 from src.hyper.blocks import get_block
 
-# Some constants used for sampling.
-# These transformations are linear - just for conditioning.
-_SQRT3 = math.sqrt(3)
-_LOG_A = math.log(0.001)
-_LOG_RED_A = math.log(0.01)
-_LOG_B = math.log(10)
-_LOG_M = (_LOG_A + _LOG_B) / 2
-_LOG_RED_M = (_LOG_RED_A + _LOG_B) / 2
-_LOG_DIFF = _LOG_M - _LOG_A
-_LOG_RED_DIFF = _LOG_RED_M - _LOG_RED_A
-
 
 class HyperVAE(VAE):
+  # Some constants used for sampling.
+  # These transformations are linear - just for conditioning.
+  _SQRT3 = math.sqrt(3)
+  _LOG_A = math.log(0.001)
+  _LOG_RED_A = math.log(0.01)
+  _LOG_B = math.log(10)
+  _LOG_M = (_LOG_A + _LOG_B) / 2.
+  _LOG_RED_M = (_LOG_RED_A + _LOG_B) / 2.
+  _LOG_DIFF = _LOG_M - _LOG_A
+  _LOG_RED_DIFF = _LOG_RED_M - _LOG_RED_A
 
   def __init__(
       self,
@@ -51,6 +50,13 @@ class HyperVAE(VAE):
           emd_features=self.hyper_cfg.shared_preprocess_dim * 4,
       )
 
+  def modify_sample_range(self, start: float, end: float):
+    self.hyper_cfg.reduce_range = True
+    self._LOG_RED_A = math.log(start)
+    self._LOG_B = math.log(end)
+    self._LOG_RED_M = (self._LOG_RED_A + self._LOG_B) / 2.
+    self._LOG_RED_DIFF = self._LOG_RED_M - self._LOG_RED_A
+
   def set_net_inputs(self, net_inputs: torch.Tensor) -> None:
     if self.hyper_cfg.shared_preprocess:
       encoder_value = self.preprocess_encoder_block(net_inputs)
@@ -74,12 +80,12 @@ class HyperVAE(VAE):
       device = x._batch["text_ids"].device
 
     net = (
-        torch.FloatTensor(batch_size, 1).uniform_(-_SQRT3, _SQRT3).to(device))
-    beta = net * (_SQRT3 / 3)
+        torch.FloatTensor(batch_size, 1).uniform_(-self._SQRT3, self._SQRT3).to(device))
+    beta = net * (self._SQRT3 / 3)
     if self.hyper_cfg.reduce_range:
-      beta = beta * _LOG_RED_DIFF + _LOG_RED_M
+      beta = beta * self._LOG_RED_DIFF + self._LOG_RED_M
     else:
-      beta = beta * _LOG_DIFF + _LOG_M
+      beta = beta * self._LOG_DIFF + self._LOG_M
     sample_dict = {"net": net, "beta": torch.exp(beta)}
     return sample_dict
 
@@ -95,10 +101,10 @@ class HyperVAE(VAE):
     ones = torch.ones(batch_size, 1).to(device)
     beta = value * ones
     if self.hyper_cfg.reduce_range:
-      net_beta = (torch.log(beta) - _LOG_RED_M) / _LOG_RED_DIFF
+      net_beta = (torch.log(beta) - self._LOG_RED_M) / self._LOG_RED_DIFF
     else:
-      net_beta = (torch.log(beta) - _LOG_M) / _LOG_DIFF
-    sample_dict = {"net": net_beta * (3 / _SQRT3), "beta": beta}
+      net_beta = (torch.log(beta) - self._LOG_M) / self._LOG_DIFF
+    sample_dict = {"net": net_beta * (3 / self._SQRT3), "beta": beta}
     return sample_dict
 
   def get_log_uniform_samples(self, num: int = 20) -> np.ndarray:
@@ -106,3 +112,11 @@ class HyperVAE(VAE):
       return np.logspace(-2, 1, num=num, base=10)
     else:
       return np.logspace(-3, 1, num=num, base=10)
+
+  def get_log_uniform_samples_with_range(self,
+                                         num: int = 20,
+                                         start: float = -2,
+                                         end: float = 1) -> np.ndarray:
+    # Just to avoid linting issues.
+    self.hyper_cfg.template = None
+    return np.logspace(-start, end, num=num, base=10)

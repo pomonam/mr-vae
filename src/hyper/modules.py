@@ -28,6 +28,7 @@ class HyperLinear(HyperLayer):
       scale = torch.sigmoid(scale)
 
     if len(out.shape) == 3:
+      # This is mainly for text experiments.
       scale = scale.unsqueeze(1)
 
     return scale * out
