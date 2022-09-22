@@ -105,7 +105,7 @@ class HyperCifarConvDecoder(BaseHyperDecoder):
     layers.append(
         nn.Sequential(
             HyperConvTranspose2d(512, 256, 4, 2, padding=1, output_padding=1, decoder=True),
-            nn.BatchNorm2d(512),
+            nn.BatchNorm2d(256),
             CustomReLU()))
 
     layers.append(
@@ -319,7 +319,7 @@ class HyperCelebConvDecoder(BaseHyperDecoder):
     layers.append(
         nn.Sequential(
             HyperConvTranspose2d(1024, 512, 5, 2, padding=2, decoder=True),
-            nn.BatchNorm2d(256),
+            nn.BatchNorm2d(512),
             CustomReLU(),))
     layers.append(
         nn.Sequential(
@@ -330,7 +330,7 @@ class HyperCelebConvDecoder(BaseHyperDecoder):
     layers.append(
         nn.Sequential(
             HyperConvTranspose2d(256, 128, 5, 2, padding=2, output_padding=1, decoder=True),
-            nn.BatchNorm2d(256),
+            nn.BatchNorm2d(128),
             CustomReLU()))
 
     layers.append(
