@@ -206,11 +206,14 @@ def train(train_queue,
       logits, log_q, log_p, kl_all, kl_diag = model(x)
 
       output = model.decoder_output(logits)
-      kl_coeff = utils.kl_coeff(global_step,
-                                args.kl_anneal_portion * args.num_total_iter,
-                                args.kl_const_portion * args.num_total_iter,
-                                args.kl_const_coeff,
-                                args.beta)
+      if args.no_schedule:
+        kl_coeff = args.beta
+      else:
+        kl_coeff = utils.kl_coeff(global_step,
+                                  args.kl_anneal_portion * args.num_total_iter,
+                                  args.kl_const_portion * args.num_total_iter,
+                                  args.kl_const_coeff,
+                                  args.beta)
 
       recon_loss = utils.reconstruction_loss(output, x, crop=model.crop_output)
       balanced_kl, kl_coeffs, kl_vals = utils.kl_balancer(kl_all, kl_coeff, kl_balance=True, alpha_i=alpha_i)
@@ -476,6 +479,11 @@ if __name__ == '__main__':
       '--fast_adamax',
       action='store_true',
       default=False,
+      help='This flag enables using our optimized adamax.')
+  parser.add_argument(
+      '--no_schedule',
+      action='store_true',
+      default=True,
       help='This flag enables using our optimized adamax.')
   parser.add_argument(
       '--arch_instance',
