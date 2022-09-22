@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import os
-
+import wandb
 import torch.distributed as dist
 from torch.multiprocessing import Process
 from torch.cuda.amp import autocast, GradScaler
@@ -213,6 +213,7 @@ def train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_it
     # alpha_i = utils.kl_balancer_coeff(num_scales=model.num_latent_scales,
     #                                   groups_per_scale=model.groups_per_scale, fun='square')
     del writer
+    log_dict = {}
     nelbo = utils.AvgrageMeter()
     model.train()
     for step, x in enumerate(train_queue):
@@ -274,7 +275,7 @@ def train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_it
                 x_tiled = utils.tile_image(x_img, n)
                 output_tiled = utils.tile_image(output_img, n)
                 in_out_tiled = torch.cat((x_tiled, output_tiled), dim=2)
-                writer.add_image('reconstruction', in_out_tiled, global_step)
+                wandb.log({"reconstruction": wandb.Image(in_out_tiled)})
 
             # norm
             # writer.add_scalar('train/norm_loss', norm_loss, global_step)
@@ -303,7 +304,7 @@ def train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_it
             # writer.add_scalar('kl/total_active', total_active, global_step)
 
         global_step += 1
-
+    wandb.log(log_dict)
     utils.average_tensor(nelbo.avg, args.distributed)
     return nelbo.avg, global_step
 
