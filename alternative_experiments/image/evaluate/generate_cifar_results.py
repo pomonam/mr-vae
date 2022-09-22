@@ -5,13 +5,13 @@ from tueplots import markers
 from tueplots.constants.color import palettes
 from tueplots.constants.color import rgb
 
-from experiments.binary_image.evaluate.utils import get_baseline_rd
-from experiments.binary_image.evaluate.utils import get_hyper_rd
+from experiments.image.evaluate.utils import get_baseline_rd
+from experiments.image.evaluate.utils import get_hyper_rd
 
 
 ENTITY = "bae-group"
-BASELINE_NAME = "hvae_bimage_jobs_final"
-HYPER_NAME = "ahvae_bimage_hyper_sweep"
+BASELINE_NAME = "hvae_image_jobs_resnet_final"
+HYPER_NAME = "ahvae_image_hyper_sweep"
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
   plt.rcParams.update(markers.with_edge())
   plt.grid()
 
-  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
+  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="cifar",
                                schedule="monotonic", arc_name="resnet", test=True)
   plt.scatter(
     rate,
@@ -33,7 +33,7 @@ def main():
     marker="v"
   )
 
-  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
+  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="cifar",
                                schedule="monotonic", arc_name="conv", test=True)
   plt.scatter(
     rate,
@@ -44,7 +44,7 @@ def main():
     marker="^"
   )
 
-  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
+  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="cifar",
                                schedule="constant", arc_name="resnet", test=True)
   plt.scatter(
     rate,
@@ -55,7 +55,7 @@ def main():
     marker="v"
   )
 
-  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
+  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="cifar",
                                schedule="constant", arc_name="conv", test=True)
   plt.scatter(
     rate,
@@ -66,20 +66,20 @@ def main():
     marker="^"
   )
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "192k97si")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "i26n4psg")
   plt.plot(rate, dist, "o-", c=rgb.tue_green, linewidth=1.)
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3giz7dld")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1obafov9")
   plt.plot(rate, dist, "o-", c=rgb.tue_red, linewidth=1.)
 
-  plt.xlim(0, 110)
-  plt.ylim(30, 120)
+  plt.xlim(0, 150)
+  plt.ylim(0, 120)
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
-  plt.title("Omniglot")
+  plt.title("CIFAR-10")
   plt.tight_layout()
-  plt.savefig("../../../figures/omniglot.pdf", bbox_inches="tight")
+  plt.savefig("../../../figures/cifar.pdf", bbox_inches="tight")
   # plt.show()
 
 
