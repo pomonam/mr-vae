@@ -137,9 +137,9 @@ class HyperTextCriterion(nn.Module):
         # elbo = log_likelihood - beta * kl
         elbo = -torch.mean(elbo)
         loss_dict = {
-            "loss": elbo.item(),
-            "distortion": -torch.mean(log_likelihood).item(),
-            "rate": torch.mean(kl).item()
+            "loss": elbo,
+            "distortion": -torch.mean(log_likelihood),
+            "rate": torch.mean(kl)
         }
         return elbo, loss_dict
 
