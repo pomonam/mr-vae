@@ -15,14 +15,16 @@ HYPER_NAME = "ahvae_bimage_hyper_sweep"
 
 
 def main():
-  plt.rcParams.update({"figure.dpi": 300})
-  plt.rcParams.update(bundles.iclr2023(rel_width=0.7))
+  # plt.rcParams.update({"figure.dpi": 300})
+  plt.rcParams.update(bundles.iclr2023(ncols=3, nrows=2))
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.with_edge())
 
+  fig, axes = plt.subplots(nrows=1, ncols=3, sharex=True, sharey=True)
+
   rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="mnist",
                                schedule="monotonic", arc_name="resnet", test=True)
-  plt.scatter(
+  axes[0].scatter(
     rate,
     dist,
     edgecolors="k",
@@ -33,7 +35,7 @@ def main():
 
   rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="mnist",
                                schedule="monotonic", arc_name="conv", test=True)
-  plt.scatter(
+  axes[0].scatter(
     rate,
     dist,
     edgecolors="k",
@@ -44,7 +46,7 @@ def main():
 
   rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="mnist",
                                schedule="constant", arc_name="resnet", test=True)
-  plt.scatter(
+  axes[0].scatter(
     rate,
     dist,
     edgecolors="k",
@@ -55,7 +57,7 @@ def main():
 
   rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="mnist",
                                schedule="constant", arc_name="conv", test=True)
-  plt.scatter(
+  axes[0].scatter(
     rate,
     dist,
     edgecolors="k",
@@ -65,15 +67,15 @@ def main():
   )
 
   rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "107fi8xk")
-  plt.plot(rate, dist, "o-", c=rgb.tue_green, linewidth=1.5)
+  axes[0].plot(rate, dist, "o-", c=rgb.tue_green, linewidth=1.5)
 
   rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "xjz7awi9")
-  plt.plot(rate, dist, "o-", c=rgb.tue_red, linewidth=1.5)
+  axes[0].plot(rate, dist, "o-", c=rgb.tue_red, linewidth=1.5)
 
-  plt.xlim(0, 110)
-  plt.ylim(20, 110)
+  axes[0].set_xlim(0, 110)
+  axes[0].set_ylim(20, 110)
 
-  plt.scatter(
+  axes[0].scatter(
     0,
     0,
     edgecolors="k",
@@ -82,7 +84,7 @@ def main():
     label=r"$\beta$-VAE",
     marker="^"
   )
-  plt.scatter(
+  axes[0].scatter(
     0,
     0,
     edgecolors="k",
@@ -90,7 +92,7 @@ def main():
     c=rgb.tue_dark,
     marker="v"
   )
-  plt.scatter(
+  axes[0].scatter(
     0,
     0,
     edgecolors="k",
@@ -99,9 +101,9 @@ def main():
     c=rgb.tue_red,
     marker="o"
   )
-  plt.plot(0, 0, "o-", c=rgb.tue_dark, label="MR-VAE", linewidth=1.5)
+  axes[0].plot(0, 0, "o-", c=rgb.tue_dark, label="MR-VAE", linewidth=1.5)
 
-  plt.scatter(
+  axes[0].scatter(
     0,
     0,
     edgecolors="k",
@@ -111,12 +113,12 @@ def main():
     marker="o"
   )
 
-  plt.xlabel("Rate")
-  plt.ylabel("Distortion")
-  plt.title("MNIST")
-  plt.grid()
-
-  plt.legend(ncol=2)
+  axes[0].set_xlabel("Rate")
+  axes[0].set_ylabel("Distortion")
+  axes[0].set_title("MNIST")
+  axes[0].grid()
+  axes[0].legend(ncol=2)
+  # plt.legend(ncol=2)
 
   plt.tight_layout()
   plt.savefig("../../../figures/mnist.pdf", bbox_inches="tight")

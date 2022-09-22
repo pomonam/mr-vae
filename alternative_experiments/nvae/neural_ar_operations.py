@@ -105,7 +105,7 @@ class ARConv2d(nn.Conv2d):
         weight = normalize_weight_jit(self.log_weight_norm, weight)
         return weight
 
-    def forward(self, x, beta):
+    def forward(self, x):
         self.weight_normalized = self.normalize_weight()
         bias = self.bias
         return F.conv2d(x, self.weight_normalized, bias, self.stride,
