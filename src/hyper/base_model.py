@@ -52,6 +52,10 @@ class HyperVAE(VAE):
 
   def modify_sample_range(self, start: float, end: float):
     self.hyper_cfg.reduce_range = True
+    self.hyper_cfg.sample_range_modified = True
+    self.hyper_cfg.start_sample = start
+    self.hyper_cfg.end_sample = end
+
     self._LOG_RED_A = math.log(start)
     self._LOG_B = math.log(end)
     self._LOG_RED_M = (self._LOG_RED_A + self._LOG_B) / 2.
@@ -108,6 +112,11 @@ class HyperVAE(VAE):
     return sample_dict
 
   def get_log_uniform_samples(self, num: int = 20) -> np.ndarray:
+    if hasattr(self.hyper_cfg, "sample_range_modified"):
+      return np.logspace(np.log10(self.hyper_cfg.start_sample),
+                         np.log10(self.hyper_cfg.end_sample),
+                         num=num,
+                         base=10)
     if self.hyper_cfg.reduce_range:
       return np.logspace(-2, 1, num=num, base=10)
     else:
