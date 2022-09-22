@@ -17,7 +17,7 @@ class HyperLinear(HyperModule):
         self.in_features = in_features
         self.out_features = out_features
         self.linear = nn.Linear(self.in_features, self.out_features, bias=True)
-        self.hyper_block_scale = get_block("linear")(1, self.out_features)
+        self.hyper_block_scale = nn.Linear(1, self.out_features, bias=True)
 
     def forward(self, inputs):
         scale = self.hyper_block_scale(self._net_inputs)
