@@ -80,17 +80,17 @@ def main(args):
     torch.cuda.manual_seed_all(args.seed)
 
     logging = utils.Logger(args.global_rank, args.save)
-    writer = utils.Writer(args.global_rank, args.save)
+    # writer = utils.Writer(args.global_rank, args.save)
 
     # Get data loaders.
-    train_queue, valid_queue, num_classes = datasets.get_loaders_eval(args.dataset, args)
+    train_queue, valid_queue, num_classes = datasets.get_custom_loaders(args)
     args.num_total_iter = len(train_queue) * args.epochs
     warmup_iters = len(train_queue) * args.warmup_epochs
     swa_start = len(train_queue) * (args.epochs - 1)
 
     arch_instance = utils.get_arch_cells(args.arch_instance)
 
-    model = HyperAutoEncoder(args, writer, arch_instance)
+    model = HyperAutoEncoder(args, None, arch_instance)
     model = model.cuda()
 
     logging.info('args = %s', args)
@@ -142,9 +142,9 @@ def main(args):
         logging.info('epoch %d', epoch)
 
         # Training.
-        train_nelbo, global_step = train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_iters, writer, logging)
+        train_nelbo, global_step = train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_iters, None, logging)
         logging.info('train_nelbo %f', train_nelbo)
-        writer.add_scalar('train/nelbo', train_nelbo, global_step)
+        # writer.add_scalar('train/nelbo', train_nelbo, global_step)
 
         model.eval()
         # generate samples less frequently
@@ -164,7 +164,8 @@ def main(args):
                         output = model.decoder_output(logits)
                         output_img = output.mean if isinstance(output, torch.distributions.bernoulli.Bernoulli) else output.sample(t)
                         output_tiled = utils.tile_image(output_img, n)
-                        writer.add_image('generated_%0.1f' % t, output_tiled, global_step)
+                        # wandb.Image('generated_%0.1f' % t, output_tiled, global_step)
+                        wandb.log({"reconstruction": wandb.Image(output_tiled)})
 
                 valid_neg_log_p, valid_nelbo, valid_recon, valid_kl \
                     = evaluate(valid_queue, model, num_samples=10, args=args, logging=logging)
@@ -202,11 +203,11 @@ def main(args):
     valid_neg_log_p, valid_nelbo, _, _ = evaluate(valid_queue, model, num_samples=1000, args=args, logging=logging)
     logging.info('final valid nelbo %f', valid_nelbo)
     logging.info('final valid neg log p %f', valid_neg_log_p)
-    writer.add_scalar('val/neg_log_p', valid_neg_log_p, epoch + 1)
-    writer.add_scalar('val/nelbo', valid_nelbo, epoch + 1)
-    writer.add_scalar('val/bpd_log_p', valid_neg_log_p * bpd_coeff, epoch + 1)
-    writer.add_scalar('val/bpd_elbo', valid_nelbo * bpd_coeff, epoch + 1)
-    writer.close()
+    # writer.add_scalar('val/neg_log_p', valid_neg_log_p, epoch + 1)
+    # writer.add_scalar('val/nelbo', valid_nelbo, epoch + 1)
+    # writer.add_scalar('val/bpd_log_p', valid_neg_log_p * bpd_coeff, epoch + 1)
+    # writer.add_scalar('val/bpd_elbo', valid_nelbo * bpd_coeff, epoch + 1)
+    # writer.close()
 
 
 def train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_iters, writer, logging):
