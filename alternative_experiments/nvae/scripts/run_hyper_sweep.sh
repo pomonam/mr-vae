@@ -13,7 +13,7 @@
 
 . $HOME/envs/hvae_env
 export PYTHONPATH=$HOME/codes/hyper-vae:$PYTHONPATH
-export PYTHONPATH=$HOME/codes/hyper-vae/alternative_experiments/nvae:$PYTHONPATH
+export PYTHONPATH=$/h/baejuhan/codes/hyper-vae/alternative_experiments/nvae:$PYTHONPATH
 
 IFS=$'\n' read -d '' -r -a lines < hyper_sweep
 cd ..
