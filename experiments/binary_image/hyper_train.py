@@ -120,14 +120,14 @@ def main():
   parser.add_argument("--encoder_name", type=str, default="resnet")
   parser.add_argument("--decoder_name", type=str, default="resnet")
 
-  parser.add_argument("--hyper_config_summary", type=str, default="linear_default")
+  parser.add_argument("--hyper_config_summary", type=str, default=None)
 
   # hyper_config_summary overrides below options
   parser.add_argument("--block_type", type=str, default="linear")
   parser.add_argument("--encoder_layer_type", type=str, default="sig_gate")
   parser.add_argument("--decoder_layer_type", type=str, default="sqrt_gate")
   parser.add_argument("--param_type", type=str, default="post_act")
-  parser.add_argument("--norm_type", type=str, default="scale_shift")
+  parser.add_argument("--norm_type", type=str, default="none")
   parser.add_argument("--reduce_range", type=int, default=1)
   parser.add_argument("--apply_bn_tracking", type=int, default=1)
   parser.add_argument("--apply_bn_calibrate", type=int, default=0)
@@ -136,6 +136,8 @@ def main():
   parser.add_argument("--apply_zero_init", type=int, default=0)
   parser.add_argument("--include_encoder_stem", type=int, default=0)
   parser.add_argument("--include_decoder_stem", type=int, default=0)
+  parser.add_argument("--sample_start", type=float, default=0.01)
+  parser.add_argument("--sample_end", type=float, default=10)
 
   parser.add_argument("--total_epochs", type=int, default=10)
   parser.add_argument("--warmup_epochs", type=int, default=10)
@@ -157,6 +159,7 @@ def main():
 
   seed_everything(cfg.seed)
   model = build_model(args.encoder_name, args.decoder_name, hyper_cfg, DEVICE)
+  model.modify_sample_range(args.sample_start, args.sample_end)
   wandb.watch(model)
   print(model)
 
