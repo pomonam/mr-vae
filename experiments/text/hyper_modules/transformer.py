@@ -29,7 +29,8 @@ from texar.torch.modules.encoders.multihead_attention import \
     MultiheadAttentionEncoder
 from texar.torch.modules.encoders.transformer_encoder import \
     default_transformer_poswise_net_hparams
-from texar.torch.modules.networks.networks import FeedForwardNetwork
+# from texar.torch.modules.networks.networks import FeedForwardNetwork
+from experiments.text.hyper_modules.networks import HyperFeedForwardNetwork
 from texar.torch.utils import transformer_attentions as attn
 from texar.torch.utils.beam_search import beam_search
 from texar.torch.utils.shapes import mask_sequences
@@ -104,6 +105,7 @@ class TransformerDecoder(DecoderBase[Cache, TransformerDecoderOutput]):
     self.hyper_poswise_networks = nn.ModuleList()
     self.poswise_layer_norm = nn.ModuleList()
     self.hyper_poswise_layer_norm = nn.ModuleList()
+    self.hyper_last_layer = get_hyper_layer(256, hyper_cfg, decoder=True)
 
     self.initialize_blocks()
 
@@ -139,8 +141,8 @@ class TransformerDecoder(DecoderBase[Cache, TransformerDecoderOutput]):
       self.self_attns.append(attn_module)
       self.self_attn_layer_norm.append(
           nn.LayerNorm(self._input_size, eps=self._hparams.eps))
-      self.hyper_self_attn_layer_norm.append(
-          get_hyper_ln_layer(self._input_size, self.hyper_cfg))
+      # self.hyper_self_attn_layer_norm.append(
+      #     get_hyper_ln_layer(self._input_size, self.hyper_cfg))
 
       attn_module = MultiheadAttentionEncoder(self._input_size,
                                               self._hparams.multihead_attention)
@@ -151,22 +153,24 @@ class TransformerDecoder(DecoderBase[Cache, TransformerDecoderOutput]):
       self.enc_dec_attns.append(attn_module)
       self.end_dec_attn_layer_norm.append(
           nn.LayerNorm(self._input_size, eps=self._hparams.eps))
-      self.hyper_end_dec_attn_layer_norm.append(
-          get_hyper_ln_layer(self._input_size, self.hyper_cfg))
+      # self.hyper_end_dec_attn_layer_norm.append(
+      #     get_hyper_ln_layer(self._input_size, self.hyper_cfg))
 
-      poswise_network = FeedForwardNetwork(
-          hparams=self._hparams.poswise_feedforward)
+      poswise_network = HyperFeedForwardNetwork(
+          hparams=self._hparams.poswise_feedforward,
+          hyper_cfg=self.hyper_cfg)
       if (poswise_network.hparams.layers[-1]['kwargs']['out_features'] !=
           self._hparams.dim):
         raise ValueError("The output dimension of "
                          "FeedForwardNetwork should be equal "
                          "to the dim of TransformerDecoder")
       self.poswise_networks.append(poswise_network)
-      self.hyper_poswise_networks.append(get_hyper_layer(256, self.hyper_cfg, decoder=True))
+      self.hyper_poswise_networks.append(get_hyper_layer(256, self.hyper_cfg,
+                                                         decoder=True))
       self.poswise_layer_norm.append(
           nn.LayerNorm(self._input_size, eps=self._hparams.eps))
-      self.hyper_poswise_layer_norm.append(
-          get_hyper_ln_layer(self._input_size, self.hyper_cfg))
+      # self.hyper_poswise_layer_norm.append(
+      #     get_hyper_ln_layer(self._input_size, self.hyper_cfg))
 
   @staticmethod
   def default_hparams():
@@ -265,6 +269,7 @@ class TransformerDecoder(DecoderBase[Cache, TransformerDecoderOutput]):
           decoder_self_attention_bias,
           memory_attention_bias,
           cache=None)
+      decoder_output = self.hyper_last_layer(decoder_output)
       logits = self._output_layer(decoder_output)
       sample_id = torch.argmax(logits, dim=-1)
 
@@ -373,39 +378,39 @@ class TransformerDecoder(DecoderBase[Cache, TransformerDecoderOutput]):
       layer_cache = cache['layers'][i] if cache is not None else None
 
       # TODO(JB): Changed LN here.
-      # selfatt_output = self.self_attns[i](
-      #     queries=self.self_attn_layer_norm[i](x),
-      #     memory=None,
-      #     memory_attention_bias=decoder_self_attention_bias,
-      #     cache=layer_cache)
       selfatt_output = self.self_attns[i](
-          queries=self.hyper_self_attn_layer_norm[i](x),
+          queries=self.self_attn_layer_norm[i](x),
           memory=None,
           memory_attention_bias=decoder_self_attention_bias,
           cache=layer_cache)
+      # selfatt_output = self.self_attns[i](
+      #     queries=self.hyper_self_attn_layer_norm[i](x),
+      #     memory=None,
+      #     memory_attention_bias=decoder_self_attention_bias,
+      #     cache=layer_cache)
       x = x + self.residual_dropout(selfatt_output)
 
       if memory is not None:
         # TODO(JB): Changed LN here.
-        # encdec_output = self.enc_dec_attns[i](
-        #     queries=self.end_dec_attn_layer_norm[i](x),
-        #     memory=memory,
-        #     memory_attention_bias=memory_attention_bias)
         encdec_output = self.enc_dec_attns[i](
-            queries=self.hyper_end_dec_attn_layer_norm[i](x),
+            queries=self.end_dec_attn_layer_norm[i](x),
             memory=memory,
             memory_attention_bias=memory_attention_bias)
+        # encdec_output = self.enc_dec_attns[i](
+        #     queries=self.hyper_end_dec_attn_layer_norm[i](x),
+        #     memory=memory,
+        #     memory_attention_bias=memory_attention_bias)
         x = x + self.residual_dropout(encdec_output)
 
       # TODO(JB): Changed MLP here.
-      # sub_output = self.poswise_networks[i](self.poswise_layer_norm[i](x))
-      sub_output = self.poswise_networks[i](self.hyper_poswise_layer_norm[i](x))
-      sub_output = self.hyper_poswise_networks[i](sub_output)
+      sub_output = self.poswise_networks[i](self.poswise_layer_norm[i](x))
+      # sub_output = self.poswise_networks[i](self.hyper_poswise_layer_norm[i](x))
+      # sub_output = self.hyper_poswise_networks[i](sub_output)
       x = x + self.residual_dropout(sub_output)
 
     # TODO(JB): Changed LN here.
     # return self.final_layer_norm(x)
-    return self.hyper_final_layer_norm(x)
+    return self.final_layer_norm(x)
 
   def _init_cache(self,
                   memory: Optional[torch.Tensor],
