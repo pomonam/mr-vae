@@ -276,7 +276,7 @@ def main():
   parser.add_argument("--lr", type=float, default=0.001)
   parser.add_argument("--batch_size", type=int, default=32)
   parser.add_argument("--beta", type=float, default=1.)
-  parser.add_argument("--schedule", type=str, default="constant")
+  parser.add_argument("--schedule", type=str, default="monotonic")
 
   parser.add_argument("--seed", type=int, default=0)
   parser.add_argument("--checkpoint_dir", type=str, default=None)
