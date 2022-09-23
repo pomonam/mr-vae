@@ -61,7 +61,7 @@ CELEB_CONFIG1 = {
     "total_epochs": [200],
     "data_name": ["celeba"],
     "arch_name": ["conv"],
-    "schedule": ["constant"],
+    "schedule": ["monotonic"],
     "beta": list(np.logspace(-2, 1, num=10)),
     # "save_final_checkpoint": [1],
     "seed": [0, 1, 2]
@@ -80,36 +80,36 @@ CELEB_CONFIG2 = {
 
 if __name__ == "__main__":
   jobs = generate_job_strings(
-      CELEB_CONFIG2,
-      command_template="python baseline_train.py --experiment_name {} ".format(
-          args.experiment_name))
-  jobs += ["\n"]
-  jobs += generate_job_strings(
-      SVHN_CONFIG2,
-      command_template="python baseline_train.py --experiment_name {} ".format(
-          args.experiment_name))
-  jobs += ["\n"]
-
-  jobs += generate_job_strings(
-      CIFAR_CONFIG1,
-      command_template="python baseline_train.py --experiment_name {} ".format(
-          args.experiment_name))
-  jobs += ["\n"]
-  jobs += generate_job_strings(
-      CIFAR_CONFIG2,
-      command_template="python baseline_train.py --experiment_name {} ".format(
-          args.experiment_name))
-  jobs += ["\n"]
-
-  jobs += generate_job_strings(
       CELEB_CONFIG1,
       command_template="python baseline_train.py --experiment_name {} ".format(
           args.experiment_name))
-  jobs += ["\n"]
-  jobs += generate_job_strings(
-      CELEB_CONFIG2,
-      command_template="python baseline_train.py --experiment_name {} ".format(
-          args.experiment_name))
+  # jobs += ["\n"]
+  # jobs += generate_job_strings(
+  #     SVHN_CONFIG2,
+  #     command_template="python baseline_train.py --experiment_name {} ".format(
+  #         args.experiment_name))
+  # jobs += ["\n"]
+  #
+  # jobs += generate_job_strings(
+  #     CIFAR_CONFIG1,
+  #     command_template="python baseline_train.py --experiment_name {} ".format(
+  #         args.experiment_name))
+  # jobs += ["\n"]
+  # jobs += generate_job_strings(
+  #     CIFAR_CONFIG2,
+  #     command_template="python baseline_train.py --experiment_name {} ".format(
+  #         args.experiment_name))
+  # jobs += ["\n"]
+  #
+  # jobs += generate_job_strings(
+  #     CELEB_CONFIG1,
+  #     command_template="python baseline_train.py --experiment_name {} ".format(
+  #         args.experiment_name))
+  # jobs += ["\n"]
+  # jobs += generate_job_strings(
+  #     CELEB_CONFIG2,
+  #     command_template="python baseline_train.py --experiment_name {} ".format(
+  #         args.experiment_name))
 
   with open(args.file_name, "w") as f:
     f.writelines(jobs)
