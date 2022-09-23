@@ -203,7 +203,7 @@ def hyper_single_evaluate(
       batch = {
           "data": batch, "start_tokens": start_token, "end_token": end_token
       }
-      output_dict = model.fixed_forward(batch, value=1.)
+      output_dict = model.fixed_forward(batch, value=0.1)
       loss_dict = criterion.eval_forward(
           recon_x=output_dict["reconstruction"],
           x=output_dict["data"],
@@ -292,7 +292,7 @@ def hyper_train(model,
           beta=output_dict["beta"])
       optimizer.zero_grad()
       loss_dict["loss"].backward()
-      torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+      torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
       optimizer.step()
 
       metric_dict = update_metric(metric_dict,

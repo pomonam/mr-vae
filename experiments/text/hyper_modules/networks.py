@@ -100,7 +100,7 @@ class HyperFeedForwardNetwork(FeedForwardNetworkBase):
         i = 0
         for layer in self._layers:
             outputs = layer(outputs)
-            if i == 1:
+            if i == 2:
               outputs = self.hyper1(outputs)
             i += 1
         outputs = self.hyper2(outputs)

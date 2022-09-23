@@ -111,8 +111,8 @@ class TransformerDecoder(DecoderBase[Cache, TransformerDecoderOutput]):
 
     self.final_layer_norm = nn.LayerNorm(
         self._input_size, eps=self._hparams.eps)
-    self.hyper_final_layer_norm = get_hyper_ln_layer(self._input_size,
-                                                     hyper_cfg)
+    # self.hyper_final_layer_norm = get_hyper_ln_layer(self._input_size,
+    #                                                  hyper_cfg)
 
     self.embed_dropout = nn.Dropout(self._hparams.embedding_dropout)
     self.residual_dropout = nn.Dropout(self._hparams.residual_dropout)
@@ -407,6 +407,7 @@ class TransformerDecoder(DecoderBase[Cache, TransformerDecoderOutput]):
       # sub_output = self.poswise_networks[i](self.hyper_poswise_layer_norm[i](x))
       # sub_output = self.hyper_poswise_networks[i](sub_output)
       x = x + self.residual_dropout(sub_output)
+      x = self.hyper_poswise_networks[i](x)
 
     # TODO(JB): Changed LN here.
     # return self.final_layer_norm(x)
