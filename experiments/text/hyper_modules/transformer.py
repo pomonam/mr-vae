@@ -124,7 +124,8 @@ class TransformerDecoder(DecoderBase[Cache, TransformerDecoderOutput]):
       # Do not re-initialize LayerNorm modules.
       for name, param in self.named_parameters():
         if name.split(".")[-1] == "weight" and "layer_norm" not in name:
-          initialize(param)
+          if "hyper" not in name:
+            initialize(param)
 
   def initialize_blocks(self):
     r"""Helper function which initializes blocks for decoder.
