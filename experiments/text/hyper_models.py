@@ -19,6 +19,7 @@ class HyperLstmEncoder(BaseHyperEncoder):
     self.hyper_cfg = hyper_cfg
 
     embed_dim = 512 if v1 else 256
+    self.embed_dim = embed_dim
     enc_emb_hparams = {
         'name': 'lookup_table',
         "dim": embed_dim,
@@ -31,6 +32,7 @@ class HyperLstmEncoder(BaseHyperEncoder):
             },
         }
     }
+
     self.embed = tx.modules.WordEmbedder(
         vocab_size=vocab_size, hparams=enc_emb_hparams)
     self.hyper_embed = get_hyper_layer(embed_dim, hyper_cfg)
@@ -48,12 +50,14 @@ class HyperLstmEncoder(BaseHyperEncoder):
     self.hyper_encoder = get_hyper_layer(hidden_size * 2, hyper_cfg)
 
     self.embedding = nn.Linear(hidden_size * 2, hidden_size * 2)
-    self.hyper_embedding = get_hyper_layer(hidden_size * 2, hyper_cfg)
+    self.hyper_embedding1 = get_hyper_layer(hidden_size * 2, hyper_cfg)
     self.embedding_proj = nn.Linear(hidden_size * 2, self.latent_dim)
+    self.hyper_embedding2 = get_hyper_layer(self.latent_dim, hyper_cfg)
 
     self.log_var = nn.Linear(hidden_size * 2, hidden_size * 2)
-    self.hyper_log_var = get_hyper_layer(hidden_size * 2, hyper_cfg)
+    self.hyper_log_var1 = get_hyper_layer(hidden_size * 2, hyper_cfg)
     self.log_var_proj = nn.Linear(hidden_size * 2, self.latent_dim)
+    self.hyper_log_var2 = get_hyper_layer(self.latent_dim, hyper_cfg)
 
   def forward(self, batch):
     text_ids = batch["text_ids"]
@@ -70,13 +74,15 @@ class HyperLstmEncoder(BaseHyperEncoder):
 
     emb = self.embedding(out)
     emb = torch.relu(emb)
-    emb = self.hyper_embedding(emb)
+    emb = self.hyper_embedding1(emb)
     emb = self.embedding_proj(emb)
+    emb = self.hyper_embedding2(emb)
     output["embedding"] = emb
     lv = self.log_var(out)
     lv = torch.relu(lv)
-    lv = self.hyper_log_var(lv)
+    lv = self.hyper_log_var1(lv)
     lv = self.log_var_proj(lv)
+    lv = self.hyper_log_var2(lv)
     output["log_covariance"] = lv
 
     return output

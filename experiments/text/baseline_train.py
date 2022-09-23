@@ -94,6 +94,7 @@ def build_model(vocab_size, data_name, decoder_name, device):
   model.reconstruction_loss = "ce"
   return model.to(device)
 
+
 def evaluate(
     model,
     iterator,

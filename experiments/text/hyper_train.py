@@ -292,7 +292,7 @@ def hyper_train(model,
           beta=output_dict["beta"])
       optimizer.zero_grad()
       loss_dict["loss"].backward()
-      # torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
+      torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
       optimizer.step()
 
       metric_dict = update_metric(metric_dict,
@@ -352,7 +352,8 @@ def main():
   cfg = TrainConfig(args)
   hyper_cfg = HyperConfig(args)
   hyper_cfg.reduce_range = False
-  hyper_cfg.norm_type = "scale_shift"
+  hyper_cfg.norm_type = "none"
+  hyper_cfg.decoder_layer_type = "sig_gate"
 
   seed_everything(cfg.seed)
   train_data, iterator, vocab = load_data(args.data_name, "train", cfg.batch_size,
@@ -362,6 +363,7 @@ def main():
                       args.decoder_name,
                       hyper_cfg,
                       DEVICE)
+  print(model)
   optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
   criterion = build_criterion(DEVICE)
   scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
@@ -381,14 +383,14 @@ def main():
               cfg,
               start_tokens,
               end_token)
-  hyper_evaluate(model,
-                 iterator,
-                 criterion,
-                 cfg.total_epochs,
-                 "train",
-                 DEVICE,
-                 start_tokens,
-                 end_token)
+  # hyper_evaluate(model,
+  #                iterator,
+  #                criterion,
+  #                cfg.total_epochs,
+  #                "train",
+  #                DEVICE,
+  #                start_tokens,
+  #                end_token)
   hyper_evaluate(model,
                  iterator,
                  criterion,

@@ -77,7 +77,7 @@ class HyperSigmoidLayer(HyperLayer):
     if len(inputs.shape) == 3:
       scale = scale.unsqueeze(1)
 
-    return scale * inputs
+    return scale * inputs * 2
 
 
 class HyperSqrtLayer(HyperLayer):
