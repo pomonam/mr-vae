@@ -210,7 +210,7 @@ class HyperTransformerDecoder(BaseHyperDecoder):
     }
     self.decoder_w_embedder = tx.modules.WordEmbedder(
         vocab_size=vocab_size, hparams=dec_emb_hparams)
-    self.hyper_decoder_w_embedder = get_hyper_layer(embd_dim, hyper_cfg, decoder=True)
+    # self.hyper_decoder_w_embedder = get_hyper_layer(embd_dim, hyper_cfg, decoder=True)
 
     dec_pos_emb_hparams = {
         'dim': hidden_size,
@@ -218,10 +218,10 @@ class HyperTransformerDecoder(BaseHyperDecoder):
     self.decoder_p_embedder = tx.modules.SinusoidsPositionEmbedder(
         position_size=300, hparams=dec_pos_emb_hparams)
 
-    relu_dropout = 0.2
+    relu_dropout = 0.
     embedding_dropout = 0.2
     attention_dropout = 0.2
-    residual_dropout = 0.2
+    residual_dropout = 0.
     num_blocks = 3
     trans_hparams = {
         'output_layer_bias': False,
@@ -287,7 +287,7 @@ class HyperTransformerDecoder(BaseHyperDecoder):
                             positions: torch.LongTensor):
     output_p_embed = self.decoder_p_embedder(positions)
     output_w_embed = self.decoder_w_embedder(tokens)
-    output_w_embed = self.hyper_decoder_w_embedder(output_w_embed)
+    # output_w_embed = self.hyper_decoder_w_embedder(output_w_embed)
     output_w_embed = output_w_embed * self.hidden_size**0.5
     output_embed = output_w_embed + output_p_embed
     return output_embed
