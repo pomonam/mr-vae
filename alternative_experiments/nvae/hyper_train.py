@@ -169,7 +169,7 @@ def main(args):
                         output_img = output.mean if isinstance(output, torch.distributions.bernoulli.Bernoulli) else output.sample(t)
                         output_tiled = utils.tile_image(output_img, n)
                         # wandb.Image('generated_%0.1f' % t, output_tiled, global_step)
-                        wandb.log({"reconstruction": wandb.Image(output_tiled)})
+                        wandb.log({"generation": wandb.Image(output_tiled)})
 
                 valid_neg_log_p, valid_nelbo, valid_recon, valid_kl \
                     = evaluate(valid_queue, model, num_samples=10, args=args, logging=logging)
@@ -193,6 +193,7 @@ def main(args):
                 dist_lst.append(valid_recon)
             log_dict["rate_lst"] = rate_lst
             log_dict["dist_lst"] = dist_lst
+        wandb.log(log_dict)
 
         save_freq = int(np.ceil(args.epochs / 100))
         if epoch % save_freq == 0 or epoch == (args.epochs - 1):
