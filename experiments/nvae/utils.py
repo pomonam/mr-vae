@@ -228,25 +228,25 @@ def kl_per_group(kl_all):
   return kl_coeff_i, kl_vals
 
 
-def kl_balancer(kl_all, kl_coeff=1.0, kl_balance=False, alpha_i=None):
-  if kl_balance and kl_coeff < 1.0:
-    alpha_i = alpha_i.unsqueeze(0)
-
-    kl_all = torch.stack(kl_all, dim=1)
-    kl_coeff_i, kl_vals = kl_per_group(kl_all)
-    total_kl = torch.sum(kl_coeff_i)
-
-    kl_coeff_i = kl_coeff_i / alpha_i * total_kl
-    kl_coeff_i = kl_coeff_i / torch.mean(kl_coeff_i, dim=1, keepdim=True)
-    kl = torch.sum(kl_all * kl_coeff_i.detach(), dim=1)
-
-    # for reporting
-    kl_coeffs = kl_coeff_i.squeeze(0)
-  else:
-    kl_all = torch.stack(kl_all, dim=1)
-    kl_vals = torch.mean(kl_all, dim=0)
-    kl = torch.sum(kl_all, dim=1)
-    kl_coeffs = torch.ones(size=(len(kl_vals),))
+def kl_balancer(kl_all, kl_coeff=1.0, kl_balance=False, alpha_i=None, no_schedule=False):
+  # if kl_balance and kl_coeff < 1.0:
+  #   alpha_i = alpha_i.unsqueeze(0)
+  #
+  #   kl_all = torch.stack(kl_all, dim=1)
+  #   kl_coeff_i, kl_vals = kl_per_group(kl_all)
+  #   total_kl = torch.sum(kl_coeff_i)
+  #
+  #   kl_coeff_i = kl_coeff_i / alpha_i * total_kl
+  #   kl_coeff_i = kl_coeff_i / torch.mean(kl_coeff_i, dim=1, keepdim=True)
+  #   kl = torch.sum(kl_all * kl_coeff_i.detach(), dim=1)
+  #
+  #   # for reporting
+  #   kl_coeffs = kl_coeff_i.squeeze(0)
+  # else:
+  kl_all = torch.stack(kl_all, dim=1)
+  kl_vals = torch.mean(kl_all, dim=0)
+  kl = torch.sum(kl_all, dim=1)
+  kl_coeffs = torch.ones(size=(len(kl_vals),))
 
   return kl_coeff * kl, kl_coeffs, kl_vals
 
