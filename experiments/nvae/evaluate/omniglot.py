@@ -15,47 +15,53 @@ HYPER_NAME = "hvae_nvae_hyper_sweep_v1"
 
 def main():
   plt.rcParams.update({"figure.dpi": 300})
-  # plt.rcParams.update(bundles.iclr2023())
-  plt.rcParams.update(bundles.iclr2023(rel_width=0.7))
+  plt.rcParams.update(bundles.iclr2023(ncols=1, nrows=1))
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
-  plt.rcParams.update(markers.with_edge())
+  plt.rcParams.update(markers.inverted())
 
   # rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="celeba",
   #                              schedule="monotonic", arc_name="resnet", test=True)
-  rate_lst = [156.58, 109.272, 29.777, 13.252]
-  dist_lst = [0.092, 0.797, 50.728, 78.064]
+  rate_lst = [170.922, 125.119, 42.21, 14.478]
+  dist_lst = [0.09585, 0.8476, 51.285, 100.434]
   plt.plot([0], [0])
   plt.scatter(
     rate_lst,
     dist_lst,
-    # label=r"ResNet (Retraining)",
+    label=r"ResNet (Retraining)",
     edgecolors="k",
     linewidths=0.5,
-    c=rgb.tue_orange,
+    c=rgb.tue_lightblue,
     marker="v"
   )
-  rate_lst = [159.611, 110.82, 29.174, 4.478]
-  dist_lst = [0.1306, 0.8047, 53.972, 130.405]
+  rate_lst = [173.618, 122.923, 40.934, 0.2279
+]
+  dist_lst = [0.1141, 0.7846, 54.296, 171.79]
   plt.plot([0], [0])
   plt.scatter(
     rate_lst,
     dist_lst,
-    label=r"$\beta$-VAE",
+    label=r"ResNet (Retraining)",
     edgecolors="k",
     linewidths=0.5,
-    c=rgb.tue_orange,
+    c=rgb.tue_lightblue,
     marker="v"
   )
 
-  rate_lst = [162.96170043945312,150.3053741455078,138.78036499023438,126.08306121826172,111.16978454589844,89.45860290527344,31.61103057861328,16.824108123779297,9.654109001159668,5.479655742645264]
-  dist_lst = [0.4114468991756439,0.5684274435043335,0.9163941144943236,1.7960728406906128,4.068247318267822,11.45923137664795,52.47293472290039,72.6950912475586,95.22553253173828,123.1817855834961]
+
+  rate_lst = [0.6786818504333496,0.8555627465248108,1.3866277933120728,2.7263529300689697,5.999025344848633,17.603029251098633,55.41780471801758,88.71240997314453,141.02406311035156,168.11019897460938]
+
+
+  dist_lst = [208.5266876220703,188.3874359130859,169.7919921875,151.21974182128906,130.52430725097656,98.5629425048828,45.06983184814453,21.59174346923828,5.075843811035156,0.5635794401168823]
+
+
+
 
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1ubm70m5")
-  plt.plot(rate_lst, dist_lst, "o-", label="MR-VAE", c=rgb.tue_orange, linewidth=1.5)
+  plt.plot(rate_lst, dist_lst, "o-", label="ResNet (Hyper)", linewidth=1.5)
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
-  plt.title("MNIST (NVAE)")
+  plt.title("MNIST Dataset")
   plt.legend(ncol=2)
   plt.grid()
   plt.show()

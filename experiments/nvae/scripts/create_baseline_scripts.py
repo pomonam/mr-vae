@@ -8,7 +8,7 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="baseline_sweep")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_nvae_sweep_v100")
+    "--experiment_name", type=str, default="hvae_nvae_sweep_v101")
 
 args = parser.parse_args()
 
