@@ -69,8 +69,8 @@ def main():
   rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2txmvy6c")
   plt.plot(rate, dist, "o-", c=rgb.tue_green, linewidth=1.)
 
-  # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "15bbixxt")
-  # plt.plot(rate, dist, "o-", c=rgb.tue_red, linewidth=1.)
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "77xxrb50")
+  plt.plot(rate, dist, "o-", c=rgb.tue_red, linewidth=1.)
 
   plt.xlim(0, 200)
   plt.ylim(25, 230)
@@ -80,7 +80,7 @@ def main():
   plt.title("CelebA")
   plt.tight_layout()
   plt.savefig("../../../figures/celeba.pdf", bbox_inches="tight")
-  # plt.show()
+  plt.show()
 
 
 if __name__ == "__main__":

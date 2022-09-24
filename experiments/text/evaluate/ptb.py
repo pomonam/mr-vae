@@ -19,7 +19,7 @@ def main():
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.inverted())
 
-  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="yahoo",
+  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="yelp",
                                schedule="cyclic", arc_name="lstm", test=True)
   plt.plot([0], [0])
   plt.scatter(
@@ -32,7 +32,7 @@ def main():
     marker="v"
   )
 
-  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="yahoo",
+  rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="yelp",
                                schedule="constant", arc_name="lstm", test=True)
   plt.plot([0], [0])
   plt.scatter(
@@ -45,7 +45,7 @@ def main():
     marker="v"
   )
 
-  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1ggsvqez")
+  rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "2iwmpx1l")
   plt.plot(rate, dist, "o-", label="LSTM (Hyper)", c=rgb.tue_mauve, linewidth=1.5)
 
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1a3huym9")
@@ -54,8 +54,8 @@ def main():
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1i04ot2m")
   # plt.plot(rate, dist, "o-", label="HC-VAE-2", linewidth=1.5)
 
-  plt.xlim(10, 110)
-  plt.ylim(250, 370)
+  # plt.xlim(10, 110)
+  # plt.ylim(250, 370)
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
