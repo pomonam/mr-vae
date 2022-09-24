@@ -12,7 +12,7 @@ args = parser.parse_args()
 
 CONFIG = {
     "lr": [3e-2, 1e-2, 3e-3, 1e-3, 3e-4],
-    "data_name": ["ptb"],
+    "data_name": ["yahoo"],
     "total_epochs": [100],
     "decoder_name": ["lstm", "trans"],
     "hyper_config_summary": ["linear_default"],
