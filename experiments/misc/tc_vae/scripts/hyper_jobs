@@ -1,8 +1,9 @@
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v101 --lr 0.01 --num_epochs 50 --batch_size 2048 --v1 0 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v101 --lr 0.01 --num_epochs 50 --batch_size 2048 --v1 1 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v101 --lr 0.003 --num_epochs 50 --batch_size 2048 --v1 0 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v101 --lr 0.003 --num_epochs 50 --batch_size 2048 --v1 1 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v101 --lr 0.001 --num_epochs 50 --batch_size 2048 --v1 0 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v101 --lr 0.001 --num_epochs 50 --batch_size 2048 --v1 1 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v101 --lr 0.0003 --num_epochs 50 --batch_size 2048 --v1 0 
-python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_v101 --lr 0.0003 --num_epochs 50 --batch_size 2048 --v1 1
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_vdead --lr 0.003 --num_epochs 50 --batch_size 2048 --v1 0 --seed 0 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_vdead --lr 0.003 --num_epochs 50 --batch_size 2048 --v1 0 --seed 1 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_vdead --lr 0.003 --num_epochs 50 --batch_size 2048 --v1 0 --seed 2 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_vdead --lr 0.001 --num_epochs 50 --batch_size 2048 --v1 0 --seed 0 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_vdead --lr 0.001 --num_epochs 50 --batch_size 2048 --v1 0 --seed 1 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_vdead --lr 0.001 --num_epochs 50 --batch_size 2048 --v1 0 --seed 2 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_vdead --lr 0.0003 --num_epochs 50 --batch_size 2048 --v1 0 --seed 0 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_vdead --lr 0.0003 --num_epochs 50 --batch_size 2048 --v1 0 --seed 1 
+python hyper_train.py --experiment_name hvae_tcvae_hyper_jobs_vdead --lr 0.0003 --num_epochs 50 --batch_size 2048 --v1 0 --seed 2

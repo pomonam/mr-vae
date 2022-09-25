@@ -15,9 +15,10 @@ HYPER_NAME = "hypervae_text_hyper_train_v5"
 
 def main():
   plt.rcParams.update({"figure.dpi": 300})
-  plt.rcParams.update(bundles.iclr2023(ncols=1, nrows=1))
+  # plt.rcParams.update(bundles.iclr2023())
+  plt.rcParams.update(bundles.iclr2023(rel_width=0.7))
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
-  plt.rcParams.update(markers.inverted())
+  plt.rcParams.update(markers.with_edge())
 
   rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="yahoo",
                                schedule="cyclic", arc_name="lstm", test=True)
@@ -25,10 +26,10 @@ def main():
   plt.scatter(
     rate,
     dist,
-    label=r"LSTM (Retraining)",
+    # label=r"LSTM (Retraining)",
     edgecolors="k",
     linewidths=0.5,
-    c=rgb.tue_lightblue,
+    c=rgb.tue_mauve,
     marker="v"
   )
 
@@ -38,15 +39,15 @@ def main():
   plt.scatter(
     rate,
     dist,
-    label=r"LSTM (Retraining)",
+    label=r"$\beta$-VAEs",
     edgecolors="k",
     linewidths=0.5,
-    c=rgb.tue_lightblue,
+    c=rgb.tue_mauve,
     marker="v"
   )
 
   rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1ggsvqez")
-  plt.plot(rate, dist, "o-", label="LSTM (Hyper)", c=rgb.tue_mauve, linewidth=1.5)
+  plt.plot(rate, dist, "o-", label="MR-VAEs", c=rgb.tue_mauve, linewidth=1.5)
 
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1a3huym9")
   # plt.plot(rate, dist, "o-", label="Transformer (Hyper)", linewidth=1.5)
@@ -54,14 +55,16 @@ def main():
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1i04ot2m")
   # plt.plot(rate, dist, "o-", label="HC-VAE-2", linewidth=1.5)
 
-  plt.xlim(10, 110)
-  plt.ylim(250, 370)
+  plt.xlim(1, 110)
+  plt.ylim(300, 390)
+  plt.grid()
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
-  plt.title("CIFAR-10 Dataset")
-  plt.legend(ncol=2)
-  plt.grid()
+  plt.title("Yahoo")
+  plt.legend()
+  plt.tight_layout()
+  plt.savefig("yahoo.pdf", bbox_inches="tight")
   plt.show()
 
 

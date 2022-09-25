@@ -19,12 +19,11 @@ def main():
   plt.rcParams.update(bundles.iclr2023(rel_width=0.7))
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.with_edge())
-  plt.grid()
 
   # rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="celeba",
   #                              schedule="monotonic", arc_name="resnet", test=True)
-  rate_lst = [156.58, 109.272, 29.777, 13.252]
-  dist_lst = [0.092, 0.797, 50.728, 78.064]
+  rate_lst = [150.922, 121.119, 35.21, 11.478]
+  dist_lst = [0.09585, 0.8476, 51.285, 100.434]
   plt.plot([0], [0])
   plt.scatter(
     rate_lst,
@@ -35,8 +34,8 @@ def main():
     c=rgb.tue_orange,
     marker="v"
   )
-  rate_lst = [159.611, 110.82, 29.174, 4.478]
-  dist_lst = [0.1306, 0.8047, 53.972, 130.405]
+  rate_lst = [152.618, 122.923, 40.934, 13.2279]
+  dist_lst = [0.1141, 0.7846, 54.296, 102.79]
   plt.plot([0], [0])
   plt.scatter(
     rate_lst,
@@ -54,12 +53,13 @@ def main():
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "1ubm70m5")
   plt.plot(rate_lst, dist_lst, "o-", label="MR-VAE", c=rgb.tue_orange, linewidth=1.5)
   plt.xlim(0, 160)
-  plt.ylim(-5, 130)
+  plt.ylim(-5, 125)
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
-  plt.title("MNIST (NVAE)")
-  plt.legend()
-  plt.savefig("nvae_mnist.pdf", bbox_inches="tight")
+  plt.title("Omniglot (NVAE)")
+  # plt.legend(ncol=2)
+  plt.grid()
+  plt.savefig("nvae_omniglot.pdf", bbox_inches="tight")
   plt.show()
 
 
