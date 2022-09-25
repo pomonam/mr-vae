@@ -133,7 +133,7 @@ def main():
 
   parser.add_argument("--seed", type=int, default=0)
   parser.add_argument("--checkpoint_dir", type=str, default=None)
-  parser.add_argument("--save_final_checkpoint", type=int, default=0)
+  parser.add_argument("--save_final_checkpoint", type=int, default=1)
   parser.add_argument("--save_freq", type=int, default=50)
   # Never evaluate during training.
   parser.add_argument("--eval_freq", type=int, default=2000)
@@ -229,9 +229,11 @@ def main():
     val_table = wandb.Table(data=data_to_log, columns=column_names)
     wandb.log({"image_at_{}".format(sample): val_table})
 
-  if args.save_final_checkpoint and args.seed == 0:
+  if args.save_final_checkpoint:
     save_checkpoint = \
-      os.path.join("checkpoints", "hyper_{}_{}.pth".format(args.data_name, args.arch_name))
+      os.path.join("checkpoints", "hyper_{}_{}_seed{}.pth".format(args.data_name,
+                                                                  args.arch_name,
+                                                                  args.seed))
     log_info = {
         "state_dict": model.state_dict(),
     }
