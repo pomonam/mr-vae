@@ -17,15 +17,13 @@ HYPER_NAME = "ahvae_bimage_hyper_sweep"
 
 def main():
   plt.rcParams.update({"figure.dpi": 300})
-  # plt.rcParams.update(bundles.iclr2023())
   plt.rcParams.update(bundles.iclr2023(rel_width=0.7))
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
   plt.rcParams.update(markers.with_edge())
-  plt.grid()
 
-  beta = [0.01, 0.02154, 0.04642, 0.1, 0.2154, 0.4642, 1, 2.154, 4.642, 10]
-  au_wo_annealing = [32, 32, 32, 32, 32, 32, 32, 32, 8, 3]
-  au_w_annealing = [32, 32, 32, 32, 32, 32, 32, 19, 15, 4]
+  beta = [0.01, 0.02154, 0.04642, 0.1, 0.2154, 0.4642, 1, 3.793, 6.158, 10]
+  au_wo_annealing = [32, 32, 32, 32, 32, 32, 30, 8, 3, 2]
+  au_w_annealing = [32, 32, 32, 32, 32, 32, 19, 15, 4, 2]
 
   plt.scatter(
     beta,
@@ -46,7 +44,7 @@ def main():
   )
 
   beta = np.logspace(-2, 1, num=20, base=10)
-  res = [32] * 17 + [22, 10, 4]
+  res = [32] * 16 + [22, 10, 4, 2]
   plt.xscale("log")
 
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "192k97si")
@@ -55,14 +53,15 @@ def main():
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "3giz7dld")
   # plt.plot(rate, dist, "o-", c=rgb.tue_red, linewidth=1.)
 
-  # plt.xlim(0, 110)
-  # plt.ylim(30, 120)
+  plt.xlim(0.05, 12)
+  plt.ylim(0, 35)
 
-  plt.xlabel(r"$\beta$")
-  plt.ylabel("AU")
+  # plt.xlabel(r"$\beta$")
+  plt.ylabel("Active Units")
   plt.title("Omniglot")
+  plt.grid()
   plt.tight_layout()
-  plt.savefig("../../../figures/omniglot_au.pdf", bbox_inches="tight")
+  plt.savefig("au_omniglot.pdf", bbox_inches="tight")
   plt.show()
 
 

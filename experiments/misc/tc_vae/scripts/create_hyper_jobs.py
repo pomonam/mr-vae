@@ -8,17 +8,18 @@ from experiments.array_utils import generate_sh_file
 parser = argparse.ArgumentParser()
 parser.add_argument("--file_name", type=str, default="hyper_jobs")
 parser.add_argument(
-    "--experiment_name", type=str, default="hvae_tcvae_hyper_jobs_v101")
+    "--experiment_name", type=str, default="hvae_tcvae_hyper_jobs_vdead")
 
 args = parser.parse_args()
 
 # CONFIG = {"beta": list(np.logspace(-2, 1, num=10)), "seed": [0, 1, 2]}
 
 CONFIG = {
-    "lr": [1e-2, 3e-3, 1e-3, 3e-4],
+    "lr": [3e-3, 1e-3, 3e-4],
     "num_epochs": [50],
     "batch_size": [2048],
-    "v1": [0, 1]
+    "v1": [0],
+    "seed": [0, 1, 2]
     # "hyper_config_summary": ["lin_bn", "amlp_bn"],
 }
 

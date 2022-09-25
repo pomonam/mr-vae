@@ -14,10 +14,10 @@ HYPER_NAME = "ahvae_bimage_hyper_sweep"
 
 
 def main():
-  plt.rcParams.update({"figure.dpi": 300})
-  plt.rcParams.update(bundles.iclr2023(rel_width=0.8))
+  plt.rcParams.update({"figure.dpi": 900})
+  plt.rcParams.update(bundles.iclr2023(rel_width=0.7))
   plt.rcParams.update(cycler.cycler(color=palettes.tue_plot))
-  plt.rcParams.update(markers.inverted())
+  plt.rcParams.update(markers.with_edge())
 
   rate, dist = get_baseline_rd(ENTITY, BASELINE_NAME, data_name="omniglot",
                                schedule="monotonic", arc_name="resnet", test=True)
@@ -73,12 +73,11 @@ def main():
 
   rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "192k97si")
   plt.plot(rate, dist, "o-", label="MR-VAEs", c=rgb.tue_red, linewidth=1.5)
-
   # rate, dist = get_hyper_rd(ENTITY, HYPER_NAME, "28h0c6ab")
   # plt.plot(rate, dist, "o-", label="Conv (Hyper)", linewidth=1.5)
 
   plt.xlim(0, 120)
-  plt.ylim(30, 120)
+  plt.ylim(0, 190)
 
   plt.xlabel("Rate")
   plt.ylabel("Distortion")
@@ -86,7 +85,7 @@ def main():
   plt.legend()
   plt.grid()
   plt.tight_layout()
-  # plt.savefig("fig1.pdf", bbox_inches="tight")
+  plt.savefig("fig1.pdf",)
   plt.show()
 
 
