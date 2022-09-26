@@ -1,4 +1,4 @@
-# Learning VAE with hypernetwork
+# MR-VAE
 
 ## Setting up
 
