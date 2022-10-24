@@ -6,14 +6,6 @@
 The repository supports `wandb` logging. To log the results in your `wandb` account, simply change the key in
 `experiments/wandb_utils.py`
 
-### Local
-If you would like to run the code on a local machine, follow these steps:
-```shell
-conda create -n hvae python=3.9
-conda activate hvae
-pip install -e .
-```
-
 ### Vector Vaughn Cluster
 If you would like to run the code on a Vector cluster. Follow
 ```shell
