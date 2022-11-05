@@ -1,10 +1,10 @@
-# MR-VAE
+# Multi-Rate VAE Research Code
 
-## Setting up
+## Setting up the environment
 
-### Weights and Biases logging
+### Weights and Biases Logging
 The repository supports `wandb` logging. To log the results in your `wandb` account, simply change the key in
-`experiments/wandb_utils.py`
+`experiments/wandb_utils.py`.
 
 ### Vector Vaughn Cluster
 If you would like to run the code on a Vector cluster. Follow

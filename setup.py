@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name="hyper-vae",
+    name="mr-vae",
     version="0.1.dev0",
     license="Creative Commons Attribution-Noncommercial-Share Alike license",
     long_description=open("README.md").read(),
@@ -33,6 +33,8 @@ setup(
         "sklearn",
         "scikit-learn",
         "seaborn",
+        "lmdb",
+        "tensorboardX"
     ],
     packages=["src"],
     test_suite="tests",

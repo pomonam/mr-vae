@@ -27,12 +27,9 @@ import math
 # Some constants used for sampling.
 # These transformations are linear - just for conditioning.
 _SQRT3 = math.sqrt(3)
-_LOG_A = math.log(0.001)
 _LOG_RED_A = math.log(0.01)
 _LOG_B = math.log(10)
-_LOG_M = (_LOG_A + _LOG_B) / 2
 _LOG_RED_M = (_LOG_RED_A + _LOG_B) / 2
-_LOG_DIFF = _LOG_M - _LOG_A
 _LOG_RED_DIFF = _LOG_RED_M - _LOG_RED_A
 
 
@@ -85,6 +82,7 @@ def main(args):
 
     model = HyperAutoEncoder(args, writer, arch_instance)
     model = model.cuda()
+    print(model)
 
     logging.info('args = %s', args)
     logging.info('param size = %fM ', utils.count_parameters_in_M(model))
@@ -218,9 +216,9 @@ def train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_it
             logits, log_q, log_p, kl_all, kl_diag = model(x, sample_dict["net"])
 
             output = model.decoder_output(logits)
-            # kl_coeff = utils.kl_coeff(global_step, args.kl_anneal_portion * args.num_total_iter,
-            #                           args.kl_const_portion * args.num_total_iter, args.kl_const_coeff,
-            #                           args.beta)
+            kl_coeff = utils.kl_coeff(global_step, args.kl_anneal_portion * args.num_total_iter,
+                                      args.kl_const_portion * args.num_total_iter, args.kl_const_coeff,
+                                      args.beta)
 
             recon_loss = utils.reconstruction_loss(output, x, crop=model.crop_output)
             # balanced_kl, kl_coeffs, kl_vals = utils.kl_balancer(kl_all, kl_coeff, kl_balance=True, alpha_i=alpha_i)
@@ -402,7 +400,7 @@ if __name__ == '__main__':
     parser.add_argument('--save', type=str, default='exp',
                         help='id used for storing intermediate results')
     # data
-    parser.add_argument('--dataset', type=str, default='cifar10',
+    parser.add_argument('--dataset', type=str, default='mnist',
                         choices=['cifar10', 'mnist', 'omniglot', 'celeba_64', 'celeba_256',
                                  'imagenet_32', 'ffhq', 'lsun_bedroom_128', 'stacked_mnist',
                                  'lsun_church_128', 'lsun_church_64'],
@@ -443,45 +441,45 @@ if __name__ == '__main__':
     parser.add_argument('--beta', type=float, default=1.,
                         help='Final KL weight')
     # Flow params
-    parser.add_argument('--num_nf', type=int, default=0,
+    parser.add_argument('--num_nf', type=int, default=1,
                         help='The number of normalizing flow cells per groups. Set this to zero to disable flows.')
     parser.add_argument('--num_x_bits', type=int, default=8,
                         help='The number of bits used for representing data for colored images.')
     # latent variables
-    parser.add_argument('--num_latent_scales', type=int, default=1,
+    parser.add_argument('--num_latent_scales', type=int, default=2,
                         help='the number of latent scales')
     parser.add_argument('--num_groups_per_scale', type=int, default=10,
                         help='number of groups of latent variables per scale')
     parser.add_argument('--num_latent_per_group', type=int, default=20,
                         help='number of channels in latent variables per group')
-    parser.add_argument('--ada_groups', action='store_true', default=False,
+    parser.add_argument('--ada_groups', action='store_true', default=True,
                         help='Settings this to true will set different number of groups per scale.')
     parser.add_argument('--min_groups_per_scale', type=int, default=1,
                         help='the minimum number of groups per scale.')
     # encoder parameters
-    parser.add_argument('--num_channels_enc', type=int, default=32,
+    parser.add_argument('--num_channels_enc', type=int, default=16,
                         help='number of channels in encoder')
-    parser.add_argument('--num_preprocess_blocks', type=int, default=2,
+    parser.add_argument('--num_preprocess_blocks', type=int, default=1,
                         help='number of preprocessing blocks')
-    parser.add_argument('--num_preprocess_cells', type=int, default=3,
+    parser.add_argument('--num_preprocess_cells', type=int, default=2,
                         help='number of cells per block')
     parser.add_argument('--num_cell_per_cond_enc', type=int, default=1,
                         help='number of cell for each conditional in encoder')
     # decoder parameters
-    parser.add_argument('--num_channels_dec', type=int, default=32,
+    parser.add_argument('--num_channels_dec', type=int, default=16,
                         help='number of channels in decoder')
-    parser.add_argument('--num_postprocess_blocks', type=int, default=2,
+    parser.add_argument('--num_postprocess_blocks', type=int, default=1,
                         help='number of postprocessing blocks')
-    parser.add_argument('--num_postprocess_cells', type=int, default=3,
+    parser.add_argument('--num_postprocess_cells', type=int, default=1,
                         help='number of cells per block')
     parser.add_argument('--num_cell_per_cond_dec', type=int, default=1,
                         help='number of cell for each conditional in decoder')
     parser.add_argument('--num_mixture_dec', type=int, default=10,
                         help='number of mixture components in decoder. set to 1 for Normal decoder.')
     # NAS
-    parser.add_argument('--use_se', action='store_true', default=False,
+    parser.add_argument('--use_se', action='store_true', default=True,
                         help='This flag enables squeeze and excitation.')
-    parser.add_argument('--res_dist', action='store_true', default=False,
+    parser.add_argument('--res_dist', action='store_true', default=True,
                         help='This flag enables squeeze and excitation.')
     parser.add_argument('--cont_training', action='store_true', default=False,
                         help='This flag enables training from an existing checkpoint.')

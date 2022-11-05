@@ -29,13 +29,23 @@ OPS = OrderedDict([
 ])
 
 
+class mySequential(nn.Sequential):
+    def forward(self, inputs, beta=None):
+        for module in self._modules.values():
+            try:
+                inputs = module(inputs, beta)
+            except:
+                inputs = module(inputs)
+        return inputs
+
+
 def get_skip_connection(C, stride, affine, channel_mult):
     if stride == 1:
         return Identity()
     elif stride == 2:
         return FactorizedReduce(C, int(channel_mult * C))
     elif stride == -1:
-        return nn.Sequential(UpSample(), Conv2D(C, int(C / channel_mult), kernel_size=1))
+        return mySequential(UpSample(), HyperConv2D(C, int(C / channel_mult), kernel_size=1))
 
 
 def norm(t, dim):
@@ -107,12 +117,7 @@ class HyperConv2D(nn.Conv2d):
         bias = self.bias
 
         scale = self.hyper_layer(beta)
-
-        if self.decoder:
-            scale = torch.relu(1 - torch.exp(scale))
-            scale = torch.sqrt(scale)
-        else:
-            scale = torch.sigmoid(scale)
+        scale = torch.sigmoid(scale)
         scale = scale.unsqueeze(-1).unsqueeze(-1)
 
         return scale * F.conv2d(x, self.weight_normalized, bias, self.stride,
@@ -192,7 +197,7 @@ class Identity(nn.Module):
     def __init__(self):
         super(Identity, self).__init__()
 
-    def forward(self, x):
+    def forward(self, x, beta):
         return x
 
 
@@ -273,17 +278,17 @@ class FactorizedReduce(nn.Module):
     def __init__(self, C_in, C_out):
         super(FactorizedReduce, self).__init__()
         assert C_out % 2 == 0
-        self.conv_1 = Conv2D(C_in, C_out // 4, 1, stride=2, padding=0, bias=True)
-        self.conv_2 = Conv2D(C_in, C_out // 4, 1, stride=2, padding=0, bias=True)
-        self.conv_3 = Conv2D(C_in, C_out // 4, 1, stride=2, padding=0, bias=True)
-        self.conv_4 = Conv2D(C_in, C_out - 3 * (C_out // 4), 1, stride=2, padding=0, bias=True)
+        self.conv_1 = HyperConv2D(C_in, C_out // 4, 1, stride=2, padding=0, bias=True)
+        self.conv_2 = HyperConv2D(C_in, C_out // 4, 1, stride=2, padding=0, bias=True)
+        self.conv_3 = HyperConv2D(C_in, C_out // 4, 1, stride=2, padding=0, bias=True)
+        self.conv_4 = HyperConv2D(C_in, C_out - 3 * (C_out // 4), 1, stride=2, padding=0, bias=True)
 
-    def forward(self, x):
+    def forward(self, x, beta):
         out = act(x)
-        conv1 = self.conv_1(out)
-        conv2 = self.conv_2(out[:, :, 1:, 1:])
-        conv3 = self.conv_3(out[:, :, :, 1:])
-        conv4 = self.conv_4(out[:, :, 1:, :])
+        conv1 = self.conv_1(out, beta)
+        conv2 = self.conv_2(out[:, :, 1:, 1:], beta)
+        conv3 = self.conv_3(out[:, :, :, 1:], beta)
+        conv4 = self.conv_4(out[:, :, 1:, :], beta)
         out = torch.cat([conv1, conv2, conv3, conv4], dim=1)
         return out
 
@@ -293,7 +298,7 @@ class UpSample(nn.Module):
         super(UpSample, self).__init__()
         pass
 
-    def forward(self, x):
+    def forward(self, x, beta):
         return F.interpolate(x, scale_factor=2, mode='bilinear', align_corners=True)
 
 
@@ -339,13 +344,23 @@ class SE(nn.Module):
     def __init__(self, Cin, Cout):
         super(SE, self).__init__()
         num_hidden = max(Cout // 16, 4)
-        self.se = nn.Sequential(nn.Linear(Cin, num_hidden), nn.ReLU(inplace=True),
-                                nn.Linear(num_hidden, Cout), nn.Sigmoid())
+        self.lin1 = nn.Linear(Cin, num_hidden)
+        self.re = nn.ReLU(inplace=True)
+        self.lin2 = nn.Linear(num_hidden, Cout)
+        self.hyper_layer1 = nn.Linear(1, num_hidden, bias=True)
+        self.hyper_layer2 = nn.Linear(1, Cout, bias=True)
 
-    def forward(self, x):
+    def forward(self, x, beta):
         se = torch.mean(x, dim=[2, 3])
         se = se.view(se.size(0), -1)
-        se = self.se(se)
+
+        scale1 = F.sigmoid(self.hyper_layer1(beta))
+        scale2 = F.sigmoid(self.hyper_layer2(beta))
+
+        se = self.lin1(se) * scale1
+        se = self.re(se)
+        se = self.lin2(se) * scale2
+        se = torch.sigmoid(se)
         se = se.view(se.size(0), -1, 1, 1)
         return x * se
 
