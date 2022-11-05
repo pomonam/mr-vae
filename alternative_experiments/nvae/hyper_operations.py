@@ -68,6 +68,7 @@ class Swish(nn.Module):
     def forward(self, x):
         return act(x)
 
+
 @torch.jit.script
 def normalize_weight_jit(log_weight_norm, weight):
     n = torch.exp(log_weight_norm)

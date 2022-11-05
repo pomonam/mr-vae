@@ -156,7 +156,7 @@ def main(args):
                         writer.add_image('generated_%0.1f' % t, output_tiled, global_step)
 
                 valid_neg_log_p, valid_nelbo, valid_recon, valid_kl \
-                    = evaluate(valid_queue, model, num_samples=10, args=args, logging=logging)
+                    = evaluate(valid_queue, model, beta, num_samples=10, args=args, logging=logging)
                 logging.info('valid_nelbo %f', valid_nelbo)
                 logging.info('valid neg log p %f', valid_neg_log_p)
                 logging.info('valid bpd elbo %f', valid_nelbo * bpd_coeff)
@@ -165,8 +165,8 @@ def main(args):
                 writer.add_scalar('val/nelbo_{}'.format(beta), valid_nelbo, epoch)
                 writer.add_scalar('val/bpd_log_p_{}'.format(beta), valid_neg_log_p * bpd_coeff, epoch)
                 writer.add_scalar('val/bpd_elbo_{}'.format(beta), valid_nelbo * bpd_coeff, epoch)
-                writer.add_scalar('val/rate_{}'.format(beta), valid_recon, epoch)
-                writer.add_scalar('val/dist_{}'.format(beta), valid_kl, epoch)
+                writer.add_scalar('val/rate_{}'.format(beta), valid_kl, epoch)
+                writer.add_scalar('val/dist_{}'.format(beta), valid_recon, epoch)
 
         save_freq = int(np.ceil(args.epochs / 100))
         if epoch % save_freq == 0 or epoch == (args.epochs - 1):
@@ -178,14 +178,19 @@ def main(args):
                             'grad_scalar': grad_scalar.state_dict()}, checkpoint_file)
 
     # Final validation
-    valid_neg_log_p, valid_nelbo, _, _ = evaluate(valid_queue, model, num_samples=1000, args=args, logging=logging)
-    logging.info('final valid nelbo %f', valid_nelbo)
-    logging.info('final valid neg log p %f', valid_neg_log_p)
-    writer.add_scalar('val/neg_log_p', valid_neg_log_p, epoch + 1)
-    writer.add_scalar('val/nelbo', valid_nelbo, epoch + 1)
-    writer.add_scalar('val/bpd_log_p', valid_neg_log_p * bpd_coeff, epoch + 1)
-    writer.add_scalar('val/bpd_elbo', valid_nelbo * bpd_coeff, epoch + 1)
-    writer.close()
+    betas = np.logspace(-2, 1, num=10, base=10)
+    for beta in betas:
+        valid_neg_log_p, valid_nelbo, valid_recon, valid_kl = evaluate(valid_queue, model, beta,
+                                                      num_samples=1000, args=args, logging=logging)
+        logging.info('final valid nelbo %f', valid_nelbo)
+        logging.info('final valid neg log p %f', valid_neg_log_p)
+        writer.add_scalar('val/neg_log_p', valid_neg_log_p, epoch + 1)
+        writer.add_scalar('val/nelbo', valid_nelbo, epoch + 1)
+        writer.add_scalar('val/bpd_log_p', valid_neg_log_p * bpd_coeff, epoch + 1)
+        writer.add_scalar('val/bpd_elbo', valid_nelbo * bpd_coeff, epoch + 1)
+        writer.add_scalar('val/rate_{}'.format(beta), valid_kl, epoch)
+        writer.add_scalar('val/dist_{}'.format(beta), valid_recon, epoch)
+        writer.close()
 
 
 def train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_iters, writer, logging):
@@ -212,18 +217,27 @@ def train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_it
 
         cnn_optimizer.zero_grad()
         with autocast():
-            sample_dict = _sample(x)
-            logits, log_q, log_p, kl_all, kl_diag = model(x, sample_dict["net"])
-
-            output = model.decoder_output(logits)
             kl_coeff = utils.kl_coeff(global_step, args.kl_anneal_portion * args.num_total_iter,
                                       args.kl_const_portion * args.num_total_iter, args.kl_const_coeff,
                                       args.beta)
 
-            recon_loss = utils.reconstruction_loss(output, x, crop=model.crop_output)
-            # balanced_kl, kl_coeffs, kl_vals = utils.kl_balancer(kl_all, kl_coeff, kl_balance=True, alpha_i=alpha_i)
+            if step < args.kl_anneal_portion * args.num_total_iter:
+                sample_dict = _sample_inverse(x, kl_coeff)
+            else:
+                sample_dict = _sample(x)
 
-            nelbo_batch = recon_loss + torch.sum(torch.stack(kl_all, 1) * sample_dict["beta"], dim=1)
+            logits, log_q, log_p, kl_all, kl_diag = model(x, sample_dict["net"])
+
+            output = model.decoder_output(logits)
+
+            recon_loss = utils.reconstruction_loss(output, x, crop=model.crop_output)
+            balanced_kl, kl_coeffs, kl_vals = utils.kl_balancer(kl_all, kl_coeff, kl_balance=False, alpha_i=alpha_i)
+
+            if step < args.kl_anneal_portion * args.num_total_iter:
+                nelbo_batch = recon_loss + balanced_kl
+            else:
+                nelbo_batch = recon_loss + torch.sum(torch.stack(kl_all, 1) * sample_dict["beta"], dim=1)
+
             loss = torch.mean(nelbo_batch)
             norm_loss = model.spectral_norm_parallel()
             bn_loss = model.batchnorm_loss()
@@ -286,7 +300,7 @@ def train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_it
     return nelbo.avg, global_step
 
 
-def evaluate(valid_queue, model, num_samples, args, logging):
+def evaluate(valid_queue, model, beta, num_samples, args, logging):
     if args.distributed:
         dist.barrier()
     nelbo_avg = utils.AvgrageMeter()
@@ -305,7 +319,7 @@ def evaluate(valid_queue, model, num_samples, args, logging):
             nelbo, log_iw = [], []
             recon_lst, kl_lst = [], []
             for k in range(num_samples):
-                sample_dict = _sample_inverse(x, 1)
+                sample_dict = _sample_inverse(x, beta)
                 logits, log_q, log_p, kl_all, _ = model(x, sample_dict["net"])
                 output = model.decoder_output(logits)
                 recon_loss = utils.reconstruction_loss(output, x, crop=model.crop_output)
@@ -432,7 +446,7 @@ if __name__ == '__main__':
     parser.add_argument('--arch_instance', type=str, default='res_mbconv',
                         help='path to the architecture instance')
     # KL annealing
-    parser.add_argument('--kl_anneal_portion', type=float, default=0.3,
+    parser.add_argument('--kl_anneal_portion', type=float, default=0.15,
                         help='The portions epochs that KL is annealed')
     parser.add_argument('--kl_const_portion', type=float, default=0.0001,
                         help='The portions epochs that KL is constant at kl_const_coeff')
