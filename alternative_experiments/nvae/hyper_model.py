@@ -12,7 +12,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from hyper_operations import OPS, EncCombinerCell, DecCombinerCell, Conv2D, get_skip_connection, SE, HyperConv2D
-from hyper_ar_operations import ARConv2d, ARInvertedResidual, MixLogCDFParam, mix_log_cdf_flow
+from hyper_ar_operations import HyperARConv2d, ARInvertedResidual, MixLogCDFParam, mix_log_cdf_flow
 from hyper_ar_operations import ELUConv as ARELUConv
 from torch.distributions.bernoulli import Bernoulli
 
@@ -21,6 +21,16 @@ from distributions import Normal, DiscMixLogistic, NormalDecoder
 from thirdparty.inplaced_sync_batchnorm import SyncBatchNormSwish
 
 CHANNEL_MULT = 2
+
+
+class mySequential(nn.Sequential):
+    def forward(self, inputs, beta=None):
+        for module in self._modules.values():
+            try:
+                inputs = module(inputs, beta)
+            except:
+                inputs = module(inputs)
+        return inputs
 
 
 class HyperCell(nn.Module):
@@ -45,11 +55,11 @@ class HyperCell(nn.Module):
 
     def forward(self, s, beta):
         # skip branch
-        skip = self.skip(s)
+        skip = self.skip(s, beta)
         for i in range(self._num_nodes):
             s = self._ops[i](s, beta)
 
-        s = self.se(s) if self.use_se else s
+        s = self.se(s, beta) if self.use_se else s
         return skip + 0.1 * s
 
 
@@ -72,14 +82,14 @@ class CellAR(nn.Module):
             self.mu = ARELUConv(self.conv.hidden_dim, num_z, kernel_size=1, padding=0, masked=True, zero_diag=False,
                                 weight_init_coeff=0.1, mirror=mirror)
 
-    def forward(self, z, ftr):
-        s = self.conv(z, ftr)
+    def forward(self, z, ftr, beta):
+        s = self.conv(z, ftr, beta)
 
         if self.use_mix_log_cdf:
-            logit_pi, mu, log_s, log_a, b = self.param(s)
+            logit_pi, mu, log_s, log_a, b = self.param(s, beta)
             new_z, log_det = mix_log_cdf_flow(z, logit_pi, mu, log_s, log_a, b)
         else:
-            mu = self.mu(s)
+            mu = self.mu(s, beta)
             new_z = (z - mu)
             log_det = torch.zeros_like(new_z)
 
@@ -92,9 +102,9 @@ class PairedCellAR(nn.Module):
         self.cell1 = CellAR(num_z, num_ftr, num_c, arch, mirror=False)
         self.cell2 = CellAR(num_z, num_ftr, num_c, arch, mirror=True)
 
-    def forward(self, z, ftr):
-        new_z, log_det1 = self.cell1(z, ftr)
-        new_z, log_det2 = self.cell2(new_z, ftr)
+    def forward(self, z, ftr, beta):
+        new_z, log_det1 = self.cell1(z, ftr, beta)
+        new_z, log_det2 = self.cell2(new_z, ftr, beta)
 
         log_det1 += log_det2
         return new_z, log_det1
@@ -163,7 +173,7 @@ class HyperAutoEncoder(nn.Module):
 
         if self.vanilla_vae:
             self.dec_tower = []
-            self.stem_decoder = Conv2D(self.num_latent_per_group, mult * self.num_channels_enc, (1, 1), bias=True)
+            self.stem_decoder = HyperConv2D(self.num_latent_per_group, mult * self.num_channels_enc, (1, 1), bias=True)
         else:
             self.dec_tower, mult = self.init_decoder_tower(mult)
 
@@ -177,7 +187,7 @@ class HyperAutoEncoder(nn.Module):
         self.all_bn_layers = []
         for n, layer in self.named_modules():
             # if isinstance(layer, Conv2D) and '_ops' in n:   # only chose those in cell
-            if isinstance(layer, Conv2D) or isinstance(layer, ARConv2d) or isinstance(layer, HyperConv2D):
+            if isinstance(layer, Conv2D) or isinstance(layer, HyperARConv2d) or isinstance(layer, HyperConv2D):
                 self.all_log_norm.append(layer.log_weight_norm)
                 self.all_conv_layers.append(layer)
             if isinstance(layer, nn.BatchNorm2d) or isinstance(layer, nn.SyncBatchNorm) or \
@@ -194,7 +204,7 @@ class HyperAutoEncoder(nn.Module):
     def init_stem(self):
         Cout = self.num_channels_enc
         Cin = 1 if self.dataset in {'mnist', 'omniglot'} else 3
-        stem = Conv2D(Cin, Cout, 3, padding=1, bias=True)
+        stem = HyperConv2D(Cin, Cout, 3, padding=1, bias=True)
         return stem
 
     def init_pre_process(self, mult):
@@ -246,9 +256,9 @@ class HyperAutoEncoder(nn.Module):
 
     def init_encoder0(self, mult):
         num_c = int(self.num_channels_enc * mult)
-        cell = nn.Sequential(
+        cell = mySequential(
             nn.ELU(),
-            Conv2D(num_c, num_c, kernel_size=1, bias=True),
+            HyperConv2D(num_c, num_c, kernel_size=1, bias=True),
             nn.ELU())
         return cell
 
@@ -259,7 +269,7 @@ class HyperAutoEncoder(nn.Module):
             for g in range(self.groups_per_scale[self.num_latent_scales - s - 1]):
                 # build mu, sigma generator for encoder
                 num_c = int(self.num_channels_enc * mult)
-                cell = Conv2D(num_c, 2 * self.num_latent_per_group, kernel_size=3, padding=1, bias=True)
+                cell = HyperConv2D(num_c, 2 * self.num_latent_per_group, kernel_size=3, padding=1, bias=True)
                 enc_sampler.append(cell)
                 # build NF
                 for n in range(self.num_flows):
@@ -269,9 +279,9 @@ class HyperAutoEncoder(nn.Module):
                     nf_cells.append(PairedCellAR(self.num_latent_per_group, num_c1, num_c2, arch))
                 if not (s == 0 and g == 0):  # for the first group, we use a fixed standard Normal.
                     num_c = int(self.num_channels_dec * mult)
-                    cell = nn.Sequential(
+                    cell = mySequential(
                         nn.ELU(),
-                        Conv2D(num_c, 2 * self.num_latent_per_group, kernel_size=1, padding=0, bias=True))
+                        HyperConv2D(num_c, 2 * self.num_latent_per_group, kernel_size=1, padding=0, bias=True))
                     dec_sampler.append(cell)
 
             mult = mult / CHANNEL_MULT
@@ -332,11 +342,11 @@ class HyperAutoEncoder(nn.Module):
                 C_out = 2 * 3
             else:
                 C_out = 10 * self.num_mix_output
-        return nn.Sequential(nn.ELU(),
+        return mySequential(nn.ELU(),
                              Conv2D(C_in, C_out, 3, padding=1, bias=True))
 
     def forward(self, x, beta):
-        s = self.stem(2 * x - 1.0)
+        s = self.stem(2 * x - 1.0, beta)
 
         # perform pre-processing
         for cell in self.pre_process:
@@ -357,8 +367,8 @@ class HyperAutoEncoder(nn.Module):
         combiner_cells_s.reverse()
 
         idx_dec = 0
-        ftr = self.enc0(s)                            # this reduces the channel dimension
-        param0 = self.enc_sampler[idx_dec](ftr)
+        ftr = self.enc0(s, beta)                            # this reduces the channel dimension
+        param0 = self.enc_sampler[idx_dec](ftr, beta)
         mu_q, log_sig_q = torch.chunk(param0, 2, dim=1)
         dist = Normal(mu_q, log_sig_q)   # for the first approx. posterior
         z, _ = dist.sample()
@@ -367,7 +377,7 @@ class HyperAutoEncoder(nn.Module):
         # apply normalizing flows
         nf_offset = 0
         for n in range(self.num_flows):
-            z, log_det = self.nf_cells[n](z, ftr)
+            z, log_det = self.nf_cells[n](z, ftr, beta)
             log_q_conv -= log_det
         nf_offset += self.num_flows
         all_q = [dist]
@@ -390,19 +400,19 @@ class HyperAutoEncoder(nn.Module):
             if cell.cell_type == 'combiner_dec':
                 if idx_dec > 0:
                     # form prior
-                    param = self.dec_sampler[idx_dec - 1](s)
+                    param = self.dec_sampler[idx_dec - 1](s, beta)
                     mu_p, log_sig_p = torch.chunk(param, 2, dim=1)
 
                     # form encoder
                     ftr = combiner_cells_enc[idx_dec - 1](combiner_cells_s[idx_dec - 1], s, beta)
-                    param = self.enc_sampler[idx_dec](ftr)
+                    param = self.enc_sampler[idx_dec](ftr, beta)
                     mu_q, log_sig_q = torch.chunk(param, 2, dim=1)
                     dist = Normal(mu_p + mu_q, log_sig_p + log_sig_q) if self.res_dist else Normal(mu_q, log_sig_q)
                     z, _ = dist.sample()
                     log_q_conv = dist.log_p(z)
                     # apply NF
                     for n in range(self.num_flows):
-                        z, log_det = self.nf_cells[nf_offset + n](z, ftr)
+                        z, log_det = self.nf_cells[nf_offset + n](z, ftr, beta)
                         log_q_conv -= log_det
                     nf_offset += self.num_flows
                     all_log_q.append(log_q_conv)
@@ -421,12 +431,12 @@ class HyperAutoEncoder(nn.Module):
                 s = cell(s, beta)
 
         if self.vanilla_vae:
-            s = self.stem_decoder(z)
+            s = self.stem_decoder(z, beta)
 
         for cell in self.post_process:
             s = cell(s, beta)
 
-        logits = self.image_conditional(s)
+        logits = self.image_conditional(s, beta)
 
         # compute kl
         kl_all = []
@@ -459,7 +469,7 @@ class HyperAutoEncoder(nn.Module):
             if cell.cell_type == 'combiner_dec':
                 if idx_dec > 0:
                     # form prior
-                    param = self.dec_sampler[idx_dec - 1](s)
+                    param = self.dec_sampler[idx_dec - 1](s, beta)
                     mu, log_sigma = torch.chunk(param, 2, dim=1)
                     dist = Normal(mu, log_sigma, t)
                     z, _ = dist.sample()
@@ -473,12 +483,12 @@ class HyperAutoEncoder(nn.Module):
                     scale_ind += 1
 
         if self.vanilla_vae:
-            s = self.stem_decoder(z)
+            s = self.stem_decoder(z, beta)
 
         for cell in self.post_process:
             s = cell(s, beta)
 
-        logits = self.image_conditional(s)
+        logits = self.image_conditional(s, beta)
         return logits
 
     def decoder_output(self, logits):

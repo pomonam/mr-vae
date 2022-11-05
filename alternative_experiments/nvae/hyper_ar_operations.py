@@ -70,7 +70,7 @@ def norm(t, dim):
     return torch.sqrt(torch.sum(t * t, dim))
 
 
-class ARConv2d(nn.Conv2d):
+class HyperARConv2d(nn.Conv2d):
     """Allows for weights as input."""
 
     def __init__(self, C_in, C_out, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=False,
@@ -79,7 +79,7 @@ class ARConv2d(nn.Conv2d):
         Args:
             use_shared (bool): Use weights for this layer or not?
         """
-        super(ARConv2d, self).__init__(C_in, C_out, kernel_size, stride, padding, dilation, groups, bias)
+        super(HyperARConv2d, self).__init__(C_in, C_out, kernel_size, stride, padding, dilation, groups, bias)
 
         self.masked = masked
         if self.masked:
@@ -94,6 +94,7 @@ class ARConv2d(nn.Conv2d):
         init = torch.log(norm(self.weight * init_mask, dim=[1, 2, 3]).view(-1, 1, 1, 1) + 1e-2)
         self.log_weight_norm = nn.Parameter(init, requires_grad=True)
         self.weight_normalized = None
+        self.hyper_layer = nn.Linear(1, C_out, bias=True)
 
     def normalize_weight(self):
         weight = self.weight
@@ -105,7 +106,7 @@ class ARConv2d(nn.Conv2d):
         weight = normalize_weight_jit(self.log_weight_norm, weight)
         return weight
 
-    def forward(self, x):
+    def forward(self, x, beta):
         """
         Args:
             x (torch.Tensor): of size (B, C_in, H, W).
@@ -113,7 +114,10 @@ class ARConv2d(nn.Conv2d):
         """
         self.weight_normalized = self.normalize_weight()
         bias = self.bias
-        return F.conv2d(x, self.weight_normalized, bias, self.stride,
+        scale = self.hyper_layer(beta)
+        scale = torch.sigmoid(scale)
+        scale = scale.unsqueeze(-1).unsqueeze(-1)
+        return scale * F.conv2d(x, self.weight_normalized, bias, self.stride,
                         self.padding, self.dilation, self.groups)
 
 
@@ -123,19 +127,28 @@ class ELUConv(nn.Module):
     def __init__(self, C_in, C_out, kernel_size, padding=0, dilation=1, masked=True, zero_diag=True,
                  weight_init_coeff=1.0, mirror=False):
         super(ELUConv, self).__init__()
-        self.conv_0 = ARConv2d(C_in, C_out, kernel_size, stride=1, padding=padding, bias=True, dilation=dilation,
+        self.conv_0 = HyperARConv2d(C_in, C_out, kernel_size, stride=1, padding=padding, bias=True, dilation=dilation,
                                masked=masked, zero_diag=zero_diag, mirror=mirror)
         # change the initialized log weight norm
         self.conv_0.log_weight_norm.data += np.log(weight_init_coeff)
 
-    def forward(self, x):
+    def forward(self, x, beta):
         """
         Args:
             x (torch.Tensor): of size (B, C_in, H, W)
         """
         out = F.elu(x)
-        out = self.conv_0(out)
+        out = self.conv_0(out, beta)
         return out
+
+class mySequential(nn.Sequential):
+    def forward(self, inputs, beta=None):
+        for module in self._modules.values():
+            try:
+                inputs = module(inputs, beta)
+            except:
+                inputs = module(inputs)
+        return inputs
 
 
 class ARInvertedResidual(nn.Module):
@@ -144,16 +157,16 @@ class ARInvertedResidual(nn.Module):
         hidden_dim = int(round(inz * ex))
         padding = dil * (k - 1) // 2
         layers = []
-        layers.extend([ARConv2d(inz, hidden_dim, kernel_size=3, padding=1, masked=True, mirror=mirror, zero_diag=True),
+        layers.extend([HyperARConv2d(inz, hidden_dim, kernel_size=3, padding=1, masked=True, mirror=mirror, zero_diag=True),
                        nn.ELU(inplace=True)])
-        layers.extend([ARConv2d(hidden_dim, hidden_dim, groups=hidden_dim, kernel_size=k, padding=padding, dilation=dil,
+        layers.extend([HyperARConv2d(hidden_dim, hidden_dim, groups=hidden_dim, kernel_size=k, padding=padding, dilation=dil,
                                 masked=True, mirror=mirror, zero_diag=False),
                       nn.ELU(inplace=True)])
-        self.convz = nn.Sequential(*layers)
+        self.convz = mySequential(*layers)
         self.hidden_dim = hidden_dim
 
-    def forward(self, z, ftr):
-        z = self.convz(z)
+    def forward(self, z, ftr, beta):
+        z = self.convz(z, beta)
         return z
 
 
@@ -167,8 +180,8 @@ class MixLogCDFParam(nn.Module):
         self.num_z = num_z
         self.num_mix = num_mix
 
-    def forward(self, ftr):
-        out = self.conv(ftr)
+    def forward(self, ftr, beta):
+        out = self.conv(ftr, beta)
         b, c, h, w = out.size()
         out = out.view(b, self.num_z, c // self.num_z,  h, w)
         m = self.num_mix
