@@ -25,6 +25,10 @@ logs
 _site
 .vscode
 
+# Ignore ABCI-specific files
+run.sh
+run.sh.o*
+
 # Ignore Checkpoints and Wandb files
 wandb/
 checkpoints/*.pth

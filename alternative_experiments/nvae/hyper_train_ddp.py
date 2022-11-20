@@ -221,7 +221,7 @@ def train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_it
                                       args.kl_const_portion * args.num_total_iter, args.kl_const_coeff,
                                       args.beta)
 
-            if step < args.kl_anneal_portion * args.num_total_iter:
+            if global_step < args.kl_anneal_portion * args.num_total_iter:
                 sample_dict = _sample_inverse(x, kl_coeff)
             else:
                 sample_dict = _sample(x)
@@ -233,7 +233,7 @@ def train(train_queue, model, cnn_optimizer, grad_scalar, global_step, warmup_it
             recon_loss = utils.reconstruction_loss(output, x, crop=model.crop_output)
             balanced_kl, kl_coeffs, kl_vals = utils.kl_balancer(kl_all, kl_coeff, kl_balance=False, alpha_i=alpha_i)
 
-            if step < args.kl_anneal_portion * args.num_total_iter:
+            if global_step < args.kl_anneal_portion * args.num_total_iter:
                 nelbo_batch = recon_loss + balanced_kl
             else:
                 nelbo_batch = recon_loss + torch.sum(torch.stack(kl_all, 1) * sample_dict["beta"], dim=1)
