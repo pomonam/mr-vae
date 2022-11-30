@@ -155,6 +155,7 @@ def main(args):
                         output_img = output.mean if isinstance(output, torch.distributions.bernoulli.Bernoulli) else output.sample(t)
                         output_tiled = utils.tile_image(output_img, n)
                         writer.add_image('generated_%0.1f' % t, output_tiled, global_step + i)
+                    i += 1
 
                 valid_neg_log_p, valid_nelbo, valid_recon, valid_kl \
                     = evaluate(valid_queue, model, beta, num_samples=10, args=args, logging=logging)
