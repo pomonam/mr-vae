@@ -142,6 +142,7 @@ def main(args):
             betas = np.logspace(-2, 1, num=10, base=10)
             rate_lst = []
             dist_lst = []
+            i = 0
             for beta in betas:
                 with torch.no_grad():
                     num_samples = 16
@@ -153,7 +154,7 @@ def main(args):
                         output = model.decoder_output(logits)
                         output_img = output.mean if isinstance(output, torch.distributions.bernoulli.Bernoulli) else output.sample(t)
                         output_tiled = utils.tile_image(output_img, n)
-                        writer.add_image('generated_%0.1f' % t, output_tiled, global_step)
+                        writer.add_image('generated_%0.1f' % t, output_tiled, global_step + i)
 
                 valid_neg_log_p, valid_nelbo, valid_recon, valid_kl \
                     = evaluate(valid_queue, model, beta, num_samples=10, args=args, logging=logging)
