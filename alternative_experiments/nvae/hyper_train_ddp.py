@@ -147,7 +147,7 @@ def main(args):
                 with torch.no_grad():
                     num_samples = 16
                     n = int(np.floor(np.sqrt(num_samples)))
-                    for t in [1.0]:
+                    for t in [0.7, 1.0]:
                         z0_size = [num_samples] + model.z0_size
                         sample_dict = _sample_inverse(torch.zeros(z0_size).cuda(), beta)
                         logits = model.sample(num_samples, t, sample_dict["net"])
