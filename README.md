@@ -9,8 +9,8 @@ On binarized MNIST with a ResNet encoder/decoder, one MR-VAE training run reprod
 ## Install
 
 ```bash
-git clone https://github.com/pomonam/mr-vae-archive.git
-cd mr-vae-archive
+git clone https://github.com/pomonam/mr-vae.git
+cd mr-vae
 pip install -e .          # runtime
 pip install -e .[dev]     # + pytest, if you want to run tests
 ```
