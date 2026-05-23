@@ -1,131 +1,68 @@
+"""Hyper-network VAE base class.
+
+Implements log-uniform β sampling (Algorithm 1) and input standardization
+(Section 3.4) from the paper. Each layer of the base VAE has a per-layer gate
+(HyperSigmoidLayer for encoders, HyperSqrtLayer for decoders); this class
+broadcasts the hyper-input to every gate before the forward pass.
+"""
 import math
 
 import numpy as np
 import torch
 
 from src.base_model import VAE
-from src.config import HyperConfig
 from src.hyper.base_architecture import BaseHyperDecoder
 from src.hyper.base_architecture import BaseHyperEncoder
-from src.hyper.blocks import get_block
+
+_SQRT3 = math.sqrt(3.0)
 
 
 class HyperVAE(VAE):
-  # Some constants used for sampling.
-  # These transformations are linear - just for conditioning.
-  _SQRT3 = math.sqrt(3)
-  _LOG_A = math.log(0.0001)
-  _LOG_RED_A = math.log(0.01)
-  _LOG_B = math.log(10)
-  _LOG_M = (_LOG_A + _LOG_B) / 2.
-  _LOG_RED_M = (_LOG_RED_A + _LOG_B) / 2.
-  _LOG_DIFF = _LOG_M - _LOG_A
-  _LOG_RED_DIFF = _LOG_RED_M - _LOG_RED_A
 
   def __init__(
       self,
-      hyper_cfg: HyperConfig,
       encoder: BaseHyperEncoder,
       decoder: BaseHyperDecoder,
-      reconstruction_loss: str = "mse",
+      sample_a: float = 0.01,
+      sample_b: float = 10.0,
   ) -> None:
-    super().__init__(
-        encoder=encoder,
-        decoder=decoder,
-        reconstruction_loss=reconstruction_loss)
-
+    super().__init__(encoder=encoder, decoder=decoder)
     self.model_name = "HyperVAE"
-    self.hyper_cfg = hyper_cfg
-
-    if self.hyper_cfg.shared_preprocess:
-      self.preprocess_encoder_block = get_block(self.hyper_cfg.block_type)(
-          in_features=1,
-          out_features=self.hyper_cfg.shared_preprocess_dim,
-          # By default, hidden dimension has expansion factor of 4.
-          emd_features=self.hyper_cfg.shared_preprocess_dim * 4,
-      )
-      self.preprocess_decoder_block = get_block(self.hyper_cfg.block_type)(
-          in_features=1,
-          out_features=self.hyper_cfg.shared_preprocess_dim,
-          emd_features=self.hyper_cfg.shared_preprocess_dim * 4,
-      )
-
-  def modify_sample_range(self, start: float, end: float):
-    self.hyper_cfg.reduce_range = True
-    self.hyper_cfg.sample_range_modified = True
-    self.hyper_cfg.start_sample = start
-    self.hyper_cfg.end_sample = end
-
-    self._LOG_RED_A = math.log(start)
-    self._LOG_B = math.log(end)
-    self._LOG_RED_M = (self._LOG_RED_A + self._LOG_B) / 2.
-    self._LOG_RED_DIFF = self._LOG_RED_M - self._LOG_RED_A
+    self.sample_a = sample_a
+    self.sample_b = sample_b
+    self._log_a = math.log(sample_a)
+    self._log_b = math.log(sample_b)
+    self._log_m = 0.5 * (self._log_a + self._log_b)
+    self._log_half_range = 0.5 * (self._log_b - self._log_a)
 
   def set_net_inputs(self, net_inputs: torch.Tensor) -> None:
-    if self.hyper_cfg.shared_preprocess:
-      encoder_value = self.preprocess_encoder_block(net_inputs)
-      decoder_value = self.preprocess_decoder_block(net_inputs)
-      self.encoder.set_net_inputs(encoder_value)
-      self.decoder.set_net_inputs(decoder_value)
-    else:
-      self.encoder.set_net_inputs(net_inputs)
-      self.decoder.set_net_inputs(net_inputs)
+    self.encoder.set_net_inputs(net_inputs)
+    self.decoder.set_net_inputs(net_inputs)
 
-  def forward(self, inputs: torch.Tensor, **kwargs):
+  def forward(self, inputs, **kwargs):
     raise NotImplementedError()
 
   def sample(self, x: torch.Tensor) -> dict:
-    try:
-      batch_size = x.shape[0]
-      device = x.device
-    except AttributeError:
-      # This is for text models.
-      batch_size = x.batch_size
-      device = x._batch["text_ids"].device
-
-    net = (
-        torch.FloatTensor(batch_size, 1).uniform_(-self._SQRT3, self._SQRT3).to(device))
-    beta = net * (self._SQRT3 / 3)
-    if self.hyper_cfg.reduce_range:
-      beta = beta * self._LOG_RED_DIFF + self._LOG_RED_M
-    else:
-      beta = beta * self._LOG_DIFF + self._LOG_M
-    sample_dict = {"net": net, "beta": torch.exp(beta)}
-    return sample_dict
+    """Draw β ~ log-Uniform[a, b] for each example, and return both the raw β
+    and the standardized hyper-network input.
+    """
+    batch_size = x.shape[0]
+    device = x.device
+    net = torch.empty(batch_size, 1, device=device).uniform_(-_SQRT3, _SQRT3)
+    log_beta = (net / _SQRT3) * self._log_half_range + self._log_m
+    return {"net": net, "beta": torch.exp(log_beta)}
 
   def sample_inverse(self, x: torch.Tensor, value: float) -> dict:
-    try:
-      batch_size = x.shape[0]
-      device = x.device
-    except AttributeError:
-      # This is for text models.
-      batch_size = x.batch_size
-      device = x._batch["text_ids"].device
-
-    ones = torch.ones(batch_size, 1).to(device)
-    beta = value * ones
-    if self.hyper_cfg.reduce_range:
-      net_beta = (torch.log(beta) - self._LOG_RED_M) / self._LOG_RED_DIFF
-    else:
-      net_beta = (torch.log(beta) - self._LOG_M) / self._LOG_DIFF
-    sample_dict = {"net": net_beta * (3 / self._SQRT3), "beta": beta}
-    return sample_dict
+    """Inverse of `sample`: given a target β, produce the matching hyper-network input."""
+    batch_size = x.shape[0]
+    device = x.device
+    beta = torch.full((batch_size, 1), value, device=device)
+    net = (torch.log(beta) - self._log_m) / self._log_half_range * _SQRT3
+    return {"net": net, "beta": beta}
 
   def get_log_uniform_samples(self, num: int = 20) -> np.ndarray:
-    if hasattr(self.hyper_cfg, "sample_range_modified"):
-      return np.logspace(np.log10(self.hyper_cfg.start_sample),
-                         np.log10(self.hyper_cfg.end_sample),
-                         num=num,
-                         base=10)
-    if self.hyper_cfg.reduce_range:
-      return np.logspace(-2, 1, num=num, base=10)
-    else:
-      return np.logspace(-3, 1, num=num, base=10)
-
-  def get_log_uniform_samples_with_range(self,
-                                         num: int = 20,
-                                         start: float = -2,
-                                         end: float = 1) -> np.ndarray:
-    # Just to avoid linting issues.
-    self.hyper_cfg.template = None
-    return np.logspace(-start, end, num=num, base=10)
+    """Return `num` β values log-uniformly spaced in [sample_a, sample_b] for evaluation."""
+    return np.logspace(self._log_a / math.log(10),
+                       self._log_b / math.log(10),
+                       num=num,
+                       base=10)

@@ -437,7 +437,7 @@ class CelebResNetDecoder(BaseDecoder):
                 2,
                 padding=1,
             ),
-            nn.Sigmoid(),
+            nn.ReLU(),
         ))
     layers.append(
         nn.Sequential(

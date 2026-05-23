@@ -18,7 +18,6 @@ from experiments.hyper_train_utils import hyper_evaluate
 from experiments.hyper_train_utils import hyper_predict
 from experiments.hyper_train_utils import hyper_train
 from experiments.wandb_utils import init_wandb
-from src.config import HyperConfig
 from src.config import TrainConfig
 from src.hyper.beta_vae import HyperBetaVAE
 from src.utils import log_sum_exp
@@ -45,15 +44,12 @@ class HyperBinaryImageCriterion(nn.Module):
         x.reshape(x.shape[0], -1),
         reduction="none",
     ).sum(dim=-1)
-
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
-
-    loss_dict = {
+    return {
         "loss": (recon_loss + beta.squeeze(-1) * kld).mean(dim=0),
         "distortion": recon_loss.mean(dim=0),
-        "rate": kld.mean(dim=0)
+        "rate": kld.mean(dim=0),
     }
-    return loss_dict
 
   @staticmethod
   def eval_forward(recon_x, x, mu, log_var, z, beta):
@@ -62,82 +58,66 @@ class HyperBinaryImageCriterion(nn.Module):
         x.reshape(x.shape[0], -1),
         reduction="none",
     ).sum(dim=-1)
-
     kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=-1)
 
-    # Compute MI as well for eval forward.
     batch_size, nz = mu.size()
     neg_entropy = (-0.5 * nz * math.log(2 * math.pi) - 0.5 *
                    (1 + log_var).sum(-1)).mean()
     z, mu, log_var = z.unsqueeze(1), mu.unsqueeze(1), log_var.unsqueeze(1)
     var = log_var.exp()
     dev = z - mu
-    log_density = -0.5 * ((dev ** 2) / var).sum(dim=-1) - \
+    log_density = -0.5 * ((dev**2) / var).sum(dim=-1) - \
                   0.5 * (nz * math.log(2 * math.pi) + log_var.sum(-1))
     log_qz = log_sum_exp(log_density, dim=1) - math.log(batch_size)
     mi = neg_entropy - log_qz.mean(-1)
 
-    loss_dict = {
+    return {
         "loss": (recon_loss + beta * kld).mean(dim=0),
         "distortion": recon_loss.mean(dim=0),
         "rate": kld.mean(dim=0),
-        "mi": mi
+        "mi": mi,
     }
-    return loss_dict
 
 
 def build_criterion(device):
-  loss_fnc = HyperBinaryImageCriterion()
-  return loss_fnc.to(device)
+  return HyperBinaryImageCriterion().to(device)
 
 
-def build_model(encoder_name, decoder_name, hyper_cfg, device):
+def build_model(encoder_name, decoder_name, device, sample_a=0.01, sample_b=10.0):
   if encoder_name == "conv":
-    encoder = HyperConvEncoder(hyper_cfg)
+    encoder = HyperConvEncoder()
   elif encoder_name == "resnet":
-    encoder = HyperResNetEncoder(hyper_cfg)
+    encoder = HyperResNetEncoder()
   else:
-    raise
+    raise ValueError(f"Unknown encoder_name {encoder_name!r}; expected 'conv' or 'resnet'.")
 
   if decoder_name == "conv":
-    decoder = HyperConvDecoder(hyper_cfg)
+    decoder = HyperConvDecoder()
   elif decoder_name == "resnet":
-    decoder = HyperResNetDecoder(hyper_cfg)
+    decoder = HyperResNetDecoder()
   else:
-    raise
+    raise ValueError(f"Unknown decoder_name {decoder_name!r}; expected 'conv' or 'resnet'.")
 
-  model = HyperBetaVAE(encoder=encoder, decoder=decoder, hyper_cfg=hyper_cfg)
-  model.reconstruction_loss = "bce"
+  model = HyperBetaVAE(
+      encoder=encoder,
+      decoder=decoder,
+      sample_a=sample_a,
+      sample_b=sample_b)
   return model.to(device)
 
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument(
-      "--experiment_name", type=str, default="hvae_bimage_debug")
+  parser.add_argument("--experiment_name", type=str, default="hvae_bimage_debug")
 
   parser.add_argument("--data_name", type=str, default="mnist")
   parser.add_argument("--encoder_name", type=str, default="resnet")
   parser.add_argument("--decoder_name", type=str, default="resnet")
 
-  parser.add_argument("--hyper_config_summary", type=str, default=None)
-
-  # hyper_config_summary overrides below options
-  parser.add_argument("--block_type", type=str, default="linear")
-  parser.add_argument("--encoder_layer_type", type=str, default="sig_gate")
-  parser.add_argument("--decoder_layer_type", type=str, default="sqrt_gate")
-  parser.add_argument("--param_type", type=str, default="post_act")
-  parser.add_argument("--norm_type", type=str, default="none")
-  parser.add_argument("--reduce_range", type=int, default=1)
-  parser.add_argument("--apply_bn_tracking", type=int, default=1)
-  parser.add_argument("--apply_bn_calibrate", type=int, default=0)
-  parser.add_argument("--apply_bn_replace", type=int, default=0)
-  parser.add_argument("--shared_preprocess", type=int, default=0)
-  parser.add_argument("--apply_zero_init", type=int, default=0)
-  parser.add_argument("--include_encoder_stem", type=int, default=0)
-  parser.add_argument("--include_decoder_stem", type=int, default=0)
-  parser.add_argument("--sample_start", type=float, default=0.01)
-  parser.add_argument("--sample_end", type=float, default=10)
+  parser.add_argument("--sample_a", type=float, default=0.01,
+                      help="Lower bound of log-uniform β sampling range.")
+  parser.add_argument("--sample_b", type=float, default=10.0,
+                      help="Upper bound of log-uniform β sampling range.")
 
   parser.add_argument("--total_epochs", type=int, default=10)
   parser.add_argument("--warmup_epochs", type=int, default=10)
@@ -148,18 +128,16 @@ def main():
   parser.add_argument("--checkpoint_dir", type=str, default=None)
   parser.add_argument("--save_final_checkpoint", type=int, default=0)
   parser.add_argument("--save_freq", type=int, default=50)
-  # Never evaluate during training.
   parser.add_argument("--eval_freq", type=int, default=2000)
   args = parser.parse_args()
 
   init_wandb(
       args.checkpoint_dir, project_name=args.experiment_name, config=vars(args))
   cfg = TrainConfig(args)
-  hyper_cfg = HyperConfig(args)
 
   seed_everything(cfg.seed)
-  model = build_model(args.encoder_name, args.decoder_name, hyper_cfg, DEVICE)
-  model.modify_sample_range(args.sample_start, args.sample_end)
+  model = build_model(args.encoder_name, args.decoder_name, DEVICE,
+                      sample_a=args.sample_a, sample_b=args.sample_b)
   wandb.watch(model)
   print(model)
 
@@ -192,68 +170,38 @@ def main():
   else:
     raise NotImplementedError
 
-  hyper_train(model,
-              train_loader,
-              test_loader,
-              criterion,
-              optimizer,
-              scheduler,
-              DEVICE,
-              cfg,
-              hyper_cfg)
-  hyper_evaluate(
-      model,
-      train_loader,
-      criterion,
-      cfg.total_epochs,
-      "train_eval",
-      hyper_cfg,
-      DEVICE,
-      train_loader=train_loader)
-  hyper_evaluate(
-      model,
-      test_loader,
-      criterion,
-      cfg.total_epochs,
-      "test",
-      hyper_cfg,
-      DEVICE,
-      train_loader=train_loader)
+  hyper_train(model, train_loader, test_loader, criterion, optimizer,
+              scheduler, DEVICE, cfg)
+  hyper_evaluate(model, train_loader, criterion, cfg.total_epochs, "train_eval",
+                 DEVICE)
+  hyper_evaluate(model, test_loader, criterion, cfg.total_epochs, "test",
+                 DEVICE)
 
   for sample in model.get_log_uniform_samples(4):
-    true_data, reconstructions, generations = hyper_predict(model, test_loader, sample, DEVICE)
+    true_data, reconstructions, generations = hyper_predict(
+        model, test_loader, sample, DEVICE)
     column_names = ["images_id", "truth", "reconstruction", "normal_generation"]
     data_to_log = []
     for i in range(len(true_data)):
       data_to_log.append([
           f"img_{i}",
           wandb.Image(np.moveaxis(true_data[i].cpu().detach().numpy(), 0, -1)),
-          wandb.Image(
-              np.clip(
-                  np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
-                  0,
-                  255.0,
-              )),
-          wandb.Image(
-              np.clip(
-                  np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
-                  0,
-                  255.0,
-              )),
+          wandb.Image(np.clip(
+              np.moveaxis(reconstructions[i].cpu().detach().numpy(), 0, -1),
+              0, 255.0)),
+          wandb.Image(np.clip(
+              np.moveaxis(generations[i].cpu().detach().numpy(), 0, -1),
+              0, 255.0)),
       ])
-
     val_table = wandb.Table(data=data_to_log, columns=column_names)
     wandb.log({"image_at_{}".format(sample): val_table})
 
   if args.save_final_checkpoint and args.seed == 0:
-    save_checkpoint = \
-      os.path.join("checkpoints", "hyper_{}_{}_{}.pth".format(args.data_name,
-                                                              args.encoder_name,
-                                                              args.decoder_name))
-    log_info = {
-        "state_dict": model.state_dict(),
-    }
-    torch.save(log_info, save_checkpoint)
+    save_checkpoint = os.path.join(
+        "checkpoints",
+        "hyper_{}_{}_{}.pth".format(args.data_name, args.encoder_name,
+                                    args.decoder_name))
+    torch.save({"state_dict": model.state_dict()}, save_checkpoint)
 
   wandb.finish()
 

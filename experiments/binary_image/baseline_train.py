@@ -96,14 +96,14 @@ def build_model(encoder_name, decoder_name, device):
   elif encoder_name == "resnet":
     encoder = ResNetEncoder()
   else:
-    raise
+    raise ValueError(f"Unknown encoder_name {encoder_name!r}; expected 'conv' or 'resnet'.")
 
   if decoder_name == "conv":
     decoder = ConvDecoder()
   elif decoder_name == "resnet":
     decoder = ResNetDecoder()
   else:
-    raise
+    raise ValueError(f"Unknown decoder_name {decoder_name!r}; expected 'conv' or 'resnet'.")
 
   model = BetaVAE(
       encoder=encoder,
@@ -212,21 +212,6 @@ def main():
     ])
   val_table = wandb.Table(data=data_to_log, columns=column_names)
   wandb.log({"image": val_table})
-
-  # Uncomment ot compute NLL.
-  # TODO(JB): This function gives negative NLL?
-  # test_loader = load_mnist_data(
-  #   "test", 10000, workers=0, data_path="../../logs/data")
-  # test_data = next(iter(test_loader))
-  # test_data = test_data[0]
-  # test_data = test_data.to(DEVICE).type(torch.float)
-  # with torch.no_grad():
-  #   nll = []
-  #   for i in range(5):
-  #     nll_i = model.get_nll(test_data, n_samples=500, batch_size=500)
-  #     print(f"Round {i + 1} nll: {nll_i}")
-  #     nll.append(nll_i)
-  # wandb.log({"nll_mean": np.mean(nll), "nll_std": np.std(nll)})
 
   if args.save_final_checkpoint and args.seed == 0:
     save_checkpoint = \

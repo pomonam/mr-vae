@@ -62,8 +62,7 @@ def train(model,
           optimizer,
           scheduler,
           device,
-          cfg,
-          valid_loader=None):
+          cfg):
   do_checkpoint = cfg.checkpoint_dir is not None
   if do_checkpoint and os.path.exists(
       os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
@@ -124,16 +123,6 @@ def train(model,
     wandb.log(summ_dict)
     epoch = epoch + 1
 
-    # We are not using this at the moment.
-    # if "ReduceLROnPlateau" in str(scheduler.__class__):
-    #   val_loss = evaluate(model,
-    #                       valid_loader,
-    #                       criterion,
-    #                       epoch,
-    #                       "valid",
-    #                       device)
-    #   scheduler.step(val_loss)
-    # else:
     scheduler.step()
 
     if np.isnan(summ_dict["train_step/loss"]):

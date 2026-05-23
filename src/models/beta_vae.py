@@ -26,10 +26,7 @@ class BetaVAE(VAE):
     mu, log_var = encoder_output["embedding"], encoder_output["log_covariance"]
     std = torch.exp(0.5 * log_var)
     z, _ = self._sample_gauss(mu, std)
-    try:
-      recon_x = self.decoder(z)["reconstruction"]
-    except LookupError:
-      recon_x = self.decoder.ar_forward(x, z, inputs)
+    recon_x = self.decoder(z)["reconstruction"]
 
     output = {
         "reconstruction": recon_x,

@@ -1,7 +1,6 @@
 import torch
 from torch import nn
 
-from src.config import HyperConfig
 from src.hyper.layers import get_hyper_layer
 
 
@@ -16,35 +15,23 @@ class ResBlock(nn.Module):
         nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
     )
 
-  def forward(self, x: torch.tensor) -> torch.Tensor:
+  def forward(self, x: torch.Tensor) -> torch.Tensor:
     return x + self.conv_block(x)
 
 
 class HyperResBlock(nn.Module):
+  """Residual block with paper-style per-conv pre-activation modulation."""
 
-  def __init__(self,
-               channels: int,
-               hyper_cfg: HyperConfig,
-               decoder: bool = False) -> None:
+  def __init__(self, channels: int, decoder: bool = False) -> None:
     super().__init__()
 
-    if hyper_cfg.param_type in ["pre_bn", "post_bn"]:
-      self.conv_block = nn.Sequential(
-          nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-          get_hyper_layer(channels, hyper_cfg, decoder=decoder),
-          nn.ReLU(),
-          nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-          get_hyper_layer(channels, hyper_cfg, decoder=decoder),
-      )
-    elif hyper_cfg.param_type == "post_act":
-      self.conv_block = nn.Sequential(
-          nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-          nn.ReLU(),
-          get_hyper_layer(channels, hyper_cfg, decoder=decoder),
-          nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
-      )
-    else:
-      raise NotImplementedError
+    self.conv_block = nn.Sequential(
+        nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
+        get_hyper_layer(channels, decoder=decoder),
+        nn.ReLU(),
+        nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1),
+        get_hyper_layer(channels, decoder=decoder),
+    )
 
-  def forward(self, x: torch.tensor) -> torch.Tensor:
+  def forward(self, x: torch.Tensor) -> torch.Tensor:
     return x + self.conv_block(x)

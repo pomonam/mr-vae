@@ -214,7 +214,7 @@ def main():
   val_table = wandb.Table(data=data_to_log, columns=column_names)
   wandb.log({"image": val_table})
 
-  if args.save_final_checkpoint is not None and args.seed == 0:
+  if args.save_final_checkpoint and args.seed == 0:
     save_checkpoint = \
       os.path.join("checkpoints", "final_{}_{}_{}_{}.pth".format(args.data_name,
                                                                  args.arch_name,

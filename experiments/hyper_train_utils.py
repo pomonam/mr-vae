@@ -10,41 +10,18 @@ from src.evaluate import generate_metric_str
 from src.evaluate import initialize_metric
 from src.evaluate import summarize_metric
 from src.evaluate import update_metric
-from src.hyper.norm_layers import calibrate_bn
 
 
-def hyper_evaluate(model,
-                   loader,
-                   criterion,
-                   epoch,
-                   name,
-                   hyper_cfg,
-                   device,
-                   delta=0.01,
-                   train_loader=None):
+def hyper_evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
   model.eval()
 
   with torch.no_grad():
     sample_lst = model.get_log_uniform_samples(20)
-
-    loss_lst = []
-    rate_lst = []
-    dist_lst = []
-    au_lst = []
-    mi_lst = []
+    loss_lst, rate_lst, dist_lst, au_lst, mi_lst = [], [], [], [], []
 
     for sample in sample_lst:
       queue = build_input_queue(loader, device)
       p_bar = tqdm.tqdm(queue)
-
-      # We might want to calibrate bn.
-      if hyper_cfg.apply_bn_calibrate:
-        # Reset all statistics...
-        model.apply(calibrate_bn)
-        # Recompute the statistics...
-        run_one_epoch(model, train_loader, sample, device)
-        model.eval()
-
       metric_dict = initialize_metric(criterion.get_eval_metric_lst())
       means = []
 
@@ -59,8 +36,7 @@ def hyper_evaluate(model,
             log_var=output_dict["log_var"],
             z=output_dict["z"],
             beta=1.)
-        metric_dict = update_metric(metric_dict,
-                                    loss_dict,
+        metric_dict = update_metric(metric_dict, loss_dict,
                                     batch["data"].size(0))
         summ_dict = summarize_metric(metric_dict)
         summ_str = generate_metric_str(name, epoch, summ_dict)
@@ -70,10 +46,8 @@ def hyper_evaluate(model,
 
       means = torch.cat(means, dim=0)
       au_mean = means.mean(0, keepdim=True)
-
-      au_var = means - au_mean
-      ns = au_var.size(0)
-      au_var = (au_var**2).sum(dim=0) / (ns - 1)
+      au_var = (means - au_mean) ** 2
+      au_var = au_var.sum(dim=0) / (au_var.size(0) - 1)
 
       loss_lst.append(summ_dict["loss"])
       rate_lst.append(summ_dict["rate"])
@@ -98,34 +72,16 @@ def hyper_evaluate(model,
     })
 
 
-def run_one_epoch(model, loader, value, device):
-  queue = build_input_queue(loader, device)
-  p_bar = tqdm.tqdm(queue)
-
-  for batch in p_bar:
-    # Don't need to do anything, just computing the statistics.
-    model.fixed_forward(batch, value)
-
-
-def hyper_train(model,
-                train_loader,
-                test_loader,
-                criterion,
-                optimizer,
-                scheduler,
-                device,
-                cfg,
-                hyper_cfg,
-                valid_loader=None):
+def hyper_train(model, train_loader, test_loader, criterion, optimizer,
+                scheduler, device, cfg):
   do_checkpoint = cfg.checkpoint_dir is not None
   if do_checkpoint and os.path.exists(
       os.path.join(cfg.checkpoint_dir, "checkpoint.pth")):
-    slurm_checkpoint = torch.load(
-        os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
-    model.load_state_dict(slurm_checkpoint["state_dict"])
-    optimizer.load_state_dict(slurm_checkpoint["optimizer"])
-    scheduler.load_state_dict(slurm_checkpoint["scheduler"])
-    epoch = slurm_checkpoint["epoch"]
+    saved = torch.load(os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
+    model.load_state_dict(saved["state_dict"])
+    optimizer.load_state_dict(saved["optimizer"])
+    scheduler.load_state_dict(saved["scheduler"])
+    epoch = saved["epoch"]
   else:
     epoch = 0
 
@@ -134,35 +90,18 @@ def hyper_train(model,
     do_save = epoch % cfg.save_freq == 0 and epoch != 0
 
     if do_evaluate:
-      hyper_evaluate(
-          model,
-          train_loader,
-          criterion,
-          epoch,
-          "train_eval",
-          hyper_cfg,
-          device,
-          train_loader=train_loader)
-      hyper_evaluate(
-          model,
-          test_loader,
-          criterion,
-          epoch,
-          "test",
-          hyper_cfg,
-          device,
-          train_loader=train_loader)
+      hyper_evaluate(model, train_loader, criterion, epoch, "train_eval",
+                     device)
+      hyper_evaluate(model, test_loader, criterion, epoch, "test", device)
 
     if do_checkpoint and do_save:
-      slurm_check_dir = os.path.join(cfg.checkpoint_dir, "checkpoint.pth")
-      log_info = {
+      torch.save({
           "id": wandb.run.id,
           "epoch": epoch,
           "state_dict": model.state_dict(),
           "optimizer": optimizer.state_dict(),
-          "scheduler": scheduler.state_dict()
-      }
-      torch.save(log_info, slurm_check_dir)
+          "scheduler": scheduler.state_dict(),
+      }, os.path.join(cfg.checkpoint_dir, "checkpoint.pth"))
 
     model.train()
     queue = build_input_queue(train_loader, device)
@@ -192,20 +131,11 @@ def hyper_train(model,
     wandb.log(summ_dict)
     epoch = epoch + 1
 
-    # We don't use it for now.
-    # if "ReduceLROnPlateau" in str(scheduler.__class__):
-    #   val_loss = hyper_single_evaluate(model,
-    #                                    valid_loader,
-    #                                    criterion,
-    #                                    epoch,
-    #                                    "valid",
-    #                                    device)
-    #   scheduler.step(val_loss)
     scheduler.step()
 
     if np.isnan(summ_dict["train_step/loss"]):
       wandb.finish(exit_code=1)
-      raise ValueError()
+      raise ValueError("Loss is NaN; aborting training.")
 
 
 def hyper_predict(model, loader, value, device):
@@ -217,6 +147,5 @@ def hyper_predict(model, loader, value, device):
   reconstructions = model_out["reconstruction"].cpu().detach()
   z_enc = model_out["z"]
   z = torch.randn_like(z_enc)
-  # net_inputs is already set.
   normal_generation = model.decoder(z)["reconstruction"].detach().cpu()
   return batch["data"], reconstructions, normal_generation

@@ -6,19 +6,19 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
-    - name: Install pytest
+        python-version: "3.10"
+    - name: Install package and test deps
       run: |
         python -m pip install --upgrade pip
-        pip install pytest
-        pip install .
-    - name: Run pytest
+        pip install -e .[dev]
+    - name: Run model smoke tests
+      env:
+        WANDB_MODE: disabled
       run: |
         pytest -vx tests/test_binary_image.py
         pytest -vx tests/test_cifar_image.py
         pytest -vx tests/test_celeba_image.py
-        pytest -vx tests/test_text.py
