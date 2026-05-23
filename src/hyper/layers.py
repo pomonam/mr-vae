@@ -6,9 +6,8 @@ from torch import nn
 
 
 class HyperLayer(nn.Module):
-  """Base class. Stores the hypernetwork input (standardized log β) set by the
-  parent HyperVAE before each forward pass.
-  """
+  """Stateful gate: MRVAE writes `_net_inputs` (standardized log β) once
+  per batch, every gate reads it during forward."""
   _net_inputs: Optional[torch.Tensor] = None
 
   def set_net_inputs(self, value: torch.Tensor) -> None:

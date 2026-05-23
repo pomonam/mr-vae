@@ -29,6 +29,8 @@ def hyper_evaluate(model, loader, criterion, epoch, name, device, delta=0.01):
         output_dict = model.fixed_forward(batch, sample)
         means.append(output_dict["mu"])
 
+        # beta=1 reports the standard ELBO (recon + KL) as `loss` so it's
+        # comparable across β; the per-β rate/distortion fields don't use it.
         loss_dict = criterion.eval_forward(
             recon_x=output_dict["reconstruction"],
             x=output_dict["data"],

@@ -17,7 +17,7 @@ from src.hyper.base_architecture import BaseHyperEncoder
 _SQRT3 = math.sqrt(3.0)
 
 
-class HyperVAE(VAE):
+class MRVAE(VAE):
 
   def __init__(
       self,
@@ -27,7 +27,7 @@ class HyperVAE(VAE):
       sample_b: float = 10.0,
   ) -> None:
     super().__init__(encoder=encoder, decoder=decoder)
-    self.model_name = "HyperVAE"
+    self.model_name = "MRVAE"
     self.sample_a = sample_a
     self.sample_b = sample_b
     self._log_a = math.log(sample_a)

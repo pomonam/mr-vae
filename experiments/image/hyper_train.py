@@ -22,7 +22,7 @@ from experiments.image.hyper_models import HyperCifarResNetEncoder
 from experiments.image.input_pipeline import load_data
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
-from src.hyper.beta_vae import HyperBetaVAE
+from src.hyper.beta_vae import MRBetaVAE
 from src.utils import log_sum_exp
 from src.utils import seed_everything
 
@@ -101,7 +101,7 @@ def build_model(data_name, arch_name, device, sample_a=0.01, sample_b=10.0):
   else:
     raise ValueError(f"Unknown data_name {data_name!r}; expected 'cifar', 'svhn', or 'celeba'.")
 
-  model = HyperBetaVAE(
+  model = MRBetaVAE(
       encoder=encoder,
       decoder=decoder,
       sample_a=sample_a,

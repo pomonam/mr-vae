@@ -2,10 +2,10 @@ import torch
 
 from src.hyper.base_architecture import BaseHyperDecoder
 from src.hyper.base_architecture import BaseHyperEncoder
-from src.hyper.base_model import HyperVAE
+from src.hyper.base_model import MRVAE
 
 
-class HyperBetaVAE(HyperVAE):
+class MRBetaVAE(MRVAE):
 
   def __init__(
       self,
@@ -19,7 +19,7 @@ class HyperBetaVAE(HyperVAE):
         decoder=decoder,
         sample_a=sample_a,
         sample_b=sample_b)
-    self.model_name = "HyperBetaVAE"
+    self.model_name = "MRBetaVAE"
 
   def forward(self, inputs, **kwargs) -> dict:
     return self.sample_forward(inputs)

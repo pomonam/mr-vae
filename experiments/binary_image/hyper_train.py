@@ -19,7 +19,7 @@ from experiments.hyper_train_utils import hyper_predict
 from experiments.hyper_train_utils import hyper_train
 from experiments.wandb_utils import init_wandb
 from src.config import TrainConfig
-from src.hyper.beta_vae import HyperBetaVAE
+from src.hyper.beta_vae import MRBetaVAE
 from src.utils import log_sum_exp
 from src.utils import seed_everything
 
@@ -98,7 +98,7 @@ def build_model(encoder_name, decoder_name, device, sample_a=0.01, sample_b=10.0
   else:
     raise ValueError(f"Unknown decoder_name {decoder_name!r}; expected 'conv' or 'resnet'.")
 
-  model = HyperBetaVAE(
+  model = MRBetaVAE(
       encoder=encoder,
       decoder=decoder,
       sample_a=sample_a,
