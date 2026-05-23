@@ -32,7 +32,7 @@ The first writes the MR-VAE rate-distortion sweep to `rd_curve.csv`. The second 
 
 ### What you should see
 
-Using the same setup as the plot above, our run produced this table (8 epochs, full MNIST, ResNet, batch 64, lr 1e-3):
+Our run on the above settings (8 epochs, full MNIST, ResNet, batch 64, lr 1e-3) produced:
 
 |     β  | MR-VAE rate | MR-VAE dist |  β-VAE rate | β-VAE dist |   gap (lower distortion wins) |
 | -----: | ----------: | ----------: | ----------: | ---------: | ----------------------------- |
