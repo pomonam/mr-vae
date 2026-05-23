@@ -55,6 +55,7 @@ class CustomMNIST(Dataset):
     return len(self.data)
 
 def load_mnist_binarized(data_path):
+  os.makedirs(data_path, exist_ok=True)
   dataset = os.path.join(data_path, "mnist.gz")
 
   if not os.path.isfile(dataset):
@@ -111,20 +112,17 @@ def load_mnist_data(split, batch_size, workers=0, data_path="../../logs/data", a
 
 def download_omniglot(data_dir):
   filename = "chardata.mat"
-  if not os.path.exists(data_dir):
-    os.mkdir(data_dir)
+  os.makedirs(data_dir, exist_ok=True)
   url = "https://raw.github.com/yburda/iwae/master/datasets/OMNIGLOT/chardata.mat"
 
   filepath = os.path.join(data_dir, filename)
   if not os.path.exists(filepath):
-    filepath, _ = urllib.request.urlretrieve(url, filepath)
+    urllib.request.urlretrieve(url, filepath)
     print("Downloaded", filename)
-
-  return
 
 
 def load_omniglot_data(split, batch_size, workers=0,
-                       data_path="../../logs/", add_padding=False):
+                       data_path="../../logs/data", add_padding=False):
   assert split in ["train", "train_eval", "test"]
   download_omniglot(data_path)
   dataset = scipy.io.loadmat(os.path.join(data_path, "chardata.mat"))
